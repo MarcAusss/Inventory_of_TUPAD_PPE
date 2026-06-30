@@ -37,15 +37,10 @@
 
                         <div class="flex gap-3">
 
-                            <input
-                                type="text"
-                                name="search"
-                                value="{{ request('search') }}"
-                                placeholder="Search supplier..."
-                                class="w-full rounded-lg border-gray-300">
+                            <input type="text" name="search" value="{{ request('search') }}"
+                                placeholder="Search supplier..." class="w-full rounded-lg border-gray-300">
 
-                            <button
-                                class="rounded-lg bg-gray-800 px-5 text-white hover:bg-black">
+                            <button class="rounded-lg bg-gray-800 px-5 text-white hover:bg-black">
 
                                 Search
 
@@ -129,7 +124,8 @@
 
                                         @if($supplier->is_active)
 
-                                            <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                                            <span
+                                                class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
                                                 Active
                                             </span>
 
@@ -147,21 +143,17 @@
 
                                         <div class="flex justify-center gap-2">
 
-                                            <a
-                                                href="{{ route('supply.suppliers.show',$supplier) }}"
+                                            <a href="{{ route('supply.suppliers.show', $supplier) }}"
                                                 class="rounded-md bg-sky-500 px-3 py-2 text-sm text-white hover:bg-sky-600">
                                                 View
                                             </a>
 
-                                            <a
-                                                href="{{ route('supply.suppliers.edit',$supplier) }}"
+                                            <a href="{{ route('supply.suppliers.edit', $supplier) }}"
                                                 class="rounded-md bg-amber-500 px-3 py-2 text-sm text-white hover:bg-amber-600">
                                                 Edit
                                             </a>
 
-                                            <form
-                                                action="{{ route('supply.suppliers.destroy',$supplier) }}"
-                                                method="POST"
+                                            <form action="{{ route('supply.suppliers.destroy', $supplier) }}" method="POST"
                                                 onsubmit="return confirm('Delete this supplier?')">
 
                                                 @csrf
@@ -186,8 +178,7 @@
 
                                 <tr>
 
-                                    <td colspan="7"
-                                        class="py-10 text-center text-gray-500">
+                                    <td colspan="7" class="py-10 text-center text-gray-500">
 
                                         No suppliers found.
 

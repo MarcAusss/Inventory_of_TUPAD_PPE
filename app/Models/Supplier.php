@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Supplier extends Model
 {
@@ -41,9 +42,9 @@ class Supplier extends Model
 
         return $query->where(function ($query) use ($search) {
             $query->where('supplier_name', 'like', "%{$search}%")
-                  ->orWhere('contact_person', 'like', "%{$search}%")
-                  ->orWhere('contact_number', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                ->orWhere('contact_person', 'like', "%{$search}%")
+                ->orWhere('contact_number', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%");
         });
     }
 
@@ -51,7 +52,8 @@ class Supplier extends Model
      * Future Relationship
      * One supplier can have many Purchase Orders.
      */
-    public function purchaseOrders()
+
+    public function purchaseOrders(): HasMany
     {
         return $this->hasMany(PurchaseOrder::class);
     }

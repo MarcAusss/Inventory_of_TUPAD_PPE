@@ -22,7 +22,7 @@
                     <div class="px-16 mb-5">
                         <h1 class="">MENU</h1>
                     </div>
-                    <a href="" class="flex gap-2 px-20 text-xl">
+                    <a href="{{route('dashboard')}}" class="flex gap-2 px-20 text-xl">
                         <i class=""></i>
                         Dashboard
                     </a>
@@ -33,6 +33,10 @@
                     <a href="{{ Route('supply.suppliers.index')}}" class="flex mt-5 gap-2 px-20 text-xl">
                         <i class=""></i>
                         Suppliers
+                    </a>
+                    <a href="{{ Route('supply.purchase-orders.index')}}" class="flex mt-5 gap-2 px-20 text-xl">
+                        <i class=""></i>
+                        Purchase Orders
                     </a>
                     
                 </div>

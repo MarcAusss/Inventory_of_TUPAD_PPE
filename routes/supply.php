@@ -3,6 +3,8 @@
 use App\Http\Controllers\Supply\DashboardController;
 use App\Http\Controllers\Supply\SupplierController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Supply\PurchaseOrderController;
+use App\Http\Controllers\Supply\ItemController;
 
 Route::middleware([
     'auth',
@@ -23,7 +25,7 @@ Route::middleware([
     */
 
     Route::resource('suppliers', SupplierController::class);
-    // Route::resource('items', ItemController::class);
+    Route::resource('items', ItemController::class);
 
     /*
     |--------------------------------------------------------------------------
@@ -31,6 +33,6 @@ Route::middleware([
     |--------------------------------------------------------------------------
     */
 
-    // Route::resource('purchase-orders', PurchaseOrderController::class);
+    Route::resource('purchase-orders', PurchaseOrderController::class);
 
 });
