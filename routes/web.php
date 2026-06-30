@@ -1,23 +1,55 @@
 <?php
 
-
+use App\Http\Controllers\Auth\RedirectDashboardController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Provincial\OfficeController;
 use Illuminate\Support\Facades\Route;
 
+/*
+|--------------------------------------------------------------------------
+| Public Routes
+|--------------------------------------------------------------------------
+*/
+
 Route::get('/', function () {
-    return view('auth.login');
+    return redirect()->route('login');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+/*
+|--------------------------------------------------------------------------
+| Authenticated Routes
+|--------------------------------------------------------------------------
+*/
 
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+Route::middleware(['auth', 'verified'])->group(function () {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Redirect Dashboard
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/dashboard', RedirectDashboardController::class)
+        ->name('dashboard');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Profile
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/profile', [ProfileController::class, 'edit'])
+        ->name('profile.edit');
+
+    Route::patch('/profile', [ProfileController::class, 'update'])
+        ->name('profile.update');
+
+    Route::delete('/profile', [ProfileController::class, 'destroy'])
+        ->name('profile.destroy');
+
 });
 
 require __DIR__.'/auth.php';
-Route::resource('POcontroller', OfficeController::class);
+require __DIR__.'/supply.php';
+require __DIR__.'/tssd.php';
+require __DIR__.'/provincial.php';
+require __DIR__.'/accounting.php';

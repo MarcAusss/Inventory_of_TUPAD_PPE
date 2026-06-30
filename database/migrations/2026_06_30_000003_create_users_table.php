@@ -13,11 +13,30 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+
+            // Role
+            $table->foreignId('role_id')
+                ->constrained()
+                ->cascadeOnDelete();
+
+            // Province (Only for Provincial Office Users)
+            $table->foreignId('province_id')
+                ->nullable()
+                ->constrained()
+                ->nullOnDelete();
+
+            // User Information
             $table->string('name');
+            $table->string('username')->unique();
+
+            // Used for Email Verification
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
+
+            // Authentication
             $table->string('password');
             $table->rememberToken();
+
             $table->timestamps();
         });
 

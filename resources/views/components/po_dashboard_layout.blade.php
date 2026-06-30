@@ -35,7 +35,7 @@
             <div class="flex items-center justify-center w-full">
                 {{-- <a href="{{ route('auth.logout')}}">Logout</a> --}}
                 <form method="POST" action="{{ route('logout') }}">
-                    @csrf
+                    @csrf 
                     <div
                         class="bg-[linear-gradient(to_top_right,#000000_5%,#EE1C09_60%)] text-white py-2 px-10 rounded-xl">
                         <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault();
