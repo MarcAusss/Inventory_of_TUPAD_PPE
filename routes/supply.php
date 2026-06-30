@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Supply\DashboardController;
+use App\Http\Controllers\Supply\SupplierController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware([
@@ -21,8 +22,7 @@ Route::middleware([
     |--------------------------------------------------------------------------
     */
 
-    // Route::resource('suppliers', SupplierController::class);
-
+    Route::resource('suppliers', SupplierController::class);
     // Route::resource('items', ItemController::class);
 
     /*

@@ -30,6 +30,11 @@
                         <i class=""></i>
                         Inventory
                     </a>
+                    <a href="{{ Route('supply.suppliers.index')}}" class="flex mt-5 gap-2 px-20 text-xl">
+                        <i class=""></i>
+                        Suppliers
+                    </a>
+                    
                 </div>
             </div>
             <div class="flex items-center justify-center w-full">

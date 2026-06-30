@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             ProvinceSeeder::class,
             RoleSeeder::class,
             UserSeeder::class,
+            SupplierSeeder::class,
         ]);
     }
 }
