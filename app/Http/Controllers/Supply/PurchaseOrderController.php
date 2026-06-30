@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use App\Models\PurchaseOrderItem;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-
+use App\Models\Inventory;
 
 class PurchaseOrderController extends Controller
 {
@@ -218,6 +218,16 @@ class PurchaseOrderController extends Controller
                 ]);
 
             }
+            $inventory = Inventory::firstOrCreate(
+                [
+                    'item_id' => $item['item_id']
+                ],
+                [
+                    'quantity' => 0
+                ]
+            );
+
+            $inventory->increment('quantity', $item['quantity']);
 
         });
 

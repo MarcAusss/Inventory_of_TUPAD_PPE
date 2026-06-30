@@ -39,7 +39,12 @@ class Item extends Model
         }
 
         $query->where('item_name', 'like', "%{$search}%")
-              ->orWhere('label', 'like', "%{$search}%")
-              ->orWhere('unit_of_measurement', 'like', "%{$search}%");
+            ->orWhere('label', 'like', "%{$search}%")
+            ->orWhere('unit_of_measurement', 'like', "%{$search}%");
+    }
+
+    public function inventory()
+    {
+        return $this->hasOne(Inventory::class, 'item_id');
     }
 }
