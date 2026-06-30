@@ -336,7 +336,6 @@ class PurchaseOrderController extends Controller
         ]);
 
         DB::transaction(function () use ($request, $validated, $purchaseOrder) {
-            dd($validated['items']);
             $document = $purchaseOrder->document;
 
             if ($request->hasFile('document')) {
