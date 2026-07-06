@@ -16,4 +16,9 @@ class Province extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    public function tssdDistributions()
+    {
+        return $this->hasMany(TSSDDistribution::class);
+    }
 }

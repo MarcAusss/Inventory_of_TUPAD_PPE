@@ -50,4 +50,8 @@ class PurchaseOrder extends Model
     {
         return $this->hasMany(PurchaseOrderItem::class);
     }
+    public function tssdDistributions()
+    {
+        return $this->hasMany(TSSDDistribution::class);
+    }
 }

@@ -47,4 +47,9 @@ class Item extends Model
     {
         return $this->hasOne(Inventory::class, 'item_id');
     }
+
+    public function tssdDistributions()
+    {
+        return $this->hasMany(TSSDDistribution::class);
+    }
 }

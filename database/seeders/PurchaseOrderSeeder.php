@@ -47,9 +47,8 @@ class PurchaseOrderSeeder extends Seeder
 
             $totalAmount = 0;
 
-            $selectedItems = $items->random(rand(2, 5));
-
-            foreach ($selectedItems as $item) {
+            // Add ALL PPE items to every Purchase Order
+            foreach ($items as $item) {
 
                 $quantity = rand(1, 20);
                 $unitCost = rand(100, 5000);
@@ -61,13 +60,9 @@ class PurchaseOrderSeeder extends Seeder
                     'quantity' => $quantity,
                     'unit_cost' => $unitCost,
                     'total_cost' => $totalCost,
-                    'size' => fake()->optional()->randomElement([
-                        'Small',
-                        'Medium',
-                        'Large',
-                        'XL',
-                        'XXL',
-                    ]),
+
+                    // Use the item's label as the size (Medium, Large, US9, etc.)
+                    'size' => $item->label,
                 ]);
 
                 $totalAmount += $totalCost;
