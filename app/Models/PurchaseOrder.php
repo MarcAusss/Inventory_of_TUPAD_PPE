@@ -29,6 +29,9 @@ class PurchaseOrder extends Model
         'remarks',
 
     ];
+    protected $casts = [
+        'po_date' => 'date',
+    ];
 
     /*
     |--------------------------------------------------------------------------
