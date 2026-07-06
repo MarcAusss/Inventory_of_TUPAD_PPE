@@ -1,18 +1,19 @@
 <?php
 
-use App\Http\Controllers\ProvincialOffice\DashboardController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProvincialOffice\ProvincialOfficeController;
 
 Route::middleware([
     'auth',
     'verified',
     'role:Provincial Office',
-])
-->prefix('provincial')
-->name('provincial.')
-->group(function () {
+])->prefix('provincial')
+  ->name('provincial.')
+  ->group(function () {
 
-    Route::get('/dashboard', DashboardController::class)
-        ->name('dashboard');
+    Route::get(
+        '/',
+        [ProvincialOfficeController::class, 'index']
+    )->name('dashboard');
 
-});
+}); 

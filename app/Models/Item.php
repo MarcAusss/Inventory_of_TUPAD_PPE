@@ -52,4 +52,13 @@ class Item extends Model
     {
         return $this->hasMany(TSSDDistribution::class);
     }
+    public function deliveryReceiptItems()
+    {
+        return $this->hasMany(DeliveryReceiptItem::class);
+    }
+
+    public function supplyDesignationItems()
+    {
+        return $this->hasMany(SupplyDesignationItem::class);
+    }
 }
