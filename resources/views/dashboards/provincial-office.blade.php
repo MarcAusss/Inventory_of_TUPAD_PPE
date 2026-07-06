@@ -1,103 +1,96 @@
 <x-po_dashboard_layout>
 
-<div class="space-y-6">
+<div class="bg-white rounded-xl shadow">
 
-    <h1 class="text-3xl font-bold">
-        Provincial Dashboard
-    </h1>
+    <div class="bg-red-900 text-white px-6 py-4">
 
-    @forelse($deliveries as $purchaseOrderId => $items)
+        <h2 class="text-2xl font-bold">
+            PPE Deliveries
+        </h2>
 
-        @php
-            $po = $items->first()->purchaseOrder;
-        @endphp
+    </div>
 
-        <div class="bg-white rounded-xl shadow border">
+    <table class="min-w-full">
 
-            <div class="bg-green-700 text-white px-6 py-4 flex justify-between">
+        <thead class="bg-gray-100">
 
-                <div>
+            <tr>
 
-                    <h2 class="text-xl font-bold">
-                        {{ $po->po_number }}
-                    </h2>
+                <th class="px-4 py-3 text-left">
+                    PO Number
+                </th>
 
-                    <p>
-                        {{ $po->supplier->supplier_name }}
-                    </p>
+                <th class="px-4 py-3 text-left">
+                    Supplier
+                </th>
 
-                </div>
+                <th class="px-4 py-3">
+                    Delivery Date
+                </th>
 
-                <button
-                    class="bg-white text-green-700 px-5 py-2 rounded-lg">
+                <th class="px-4 py-3">
+                    Action
+                </th>
 
-                    Receive Delivery
+            </tr>
 
-                </button>
+        </thead>
 
-            </div>
+        <tbody>
 
-            <table class="w-full">
+        @forelse($deliveries as $delivery)
 
-                <thead class="bg-gray-100">
+            <tr>
 
-                    <tr>
+                <td class="border px-4 py-3">
 
-                        <th class="p-3 text-left">
-                            PPE Item
-                        </th>
+                    {{ $delivery->purchaseOrder->po_number }}
 
-                        <th class="p-3">
-                            Qty
-                        </th>
+                </td>
 
-                    </tr>
+                <td class="border px-4 py-3">
 
-                </thead>
+                    {{ $delivery->purchaseOrder->supplier->supplier_name }}
 
-                <tbody>
+                </td>
 
-                @foreach($items as $distribution)
+                <td class="border text-center">
 
-                    <tr>
+                    {{ $delivery->delivery_date }}
 
-                        <td class="border p-3">
+                </td>
 
-                            {{ $distribution->item->item_name }}
+                <td class="border text-center">
 
-                            @if($distribution->item->label)
+                    <a
+                        href="{{ route('provincial.show', $delivery->purchase_order_id) }}"
+                        class="text-blue-600 underline">
 
-                                ({{ $distribution->item->label }})
+                        View Delivery
 
-                            @endif
+                    </a>
 
-                        </td>
+                </td>
 
-                        <td class="border text-center">
+            </tr>
 
-                            {{ $distribution->quantity }}
+        @empty
 
-                        </td>
+            <tr>
 
-                    </tr>
+                <td colspan="4" class="text-center py-8">
 
-                @endforeach
+                    No deliveries yet.
 
-                </tbody>
+                </td>
 
-            </table>
+            </tr>
 
-        </div>
+        @endforelse
 
-    @empty
+        </tbody>
 
-        <div class="bg-white rounded-xl p-10 text-center">
-
-            No deliveries assigned.
-
-        </div>
-
-    @endforelse
+    </table>
 
 </div>
 
