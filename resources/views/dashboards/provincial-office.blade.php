@@ -1,100 +1,34 @@
-    @extends('layouts.provincial_office_dashboard')
+@extends('layouts.provincial_office_dashboard')
 
-    @section('dashboard-provincial_office')
+@section('dashboard-provincial_office')
 
+    <div class="mb-4">
+        <h1 class="text-[25px]">Dashboard</h1>
+        <div class="flex">
+            <a href="{{ Route('dashboard')}}">Dashboard/</a>
+        </div>
+    </div>
 
-<div class="bg-white rounded-xl shadow">
+    {{-- <div class="grid grid-cols-[repeat(3,minmax(0,0.85fr))] gap-6 w-full h-fit">
+        <div class="h-[235px] bg-white rounded flex items-center justify-center">1</div>
 
-    <div class="bg-red-900 text-white px-6 py-4">
+        <div class="col-span-2 h-[235px] bg-white rounded flex items-center justify-center">3</div>
 
-        <h2 class="text-2xl font-bold">
-            PPE Deliveries
-        </h2>
+        <div class="col-span-3 h-[330px] bg-white rounded flex items-center justify-center">4</div>
+    </div> --}}
+
+    <div class="grid grid-col md:grid-cols-9 grid-rows-2 md:grid-rows-2 gap-2 md:gap-2 m-4">
+        <div
+            class="col-start-1 h-82.75  row-start-1 col-span-4 md:col-start-1 md:row-start-1 md:col-span-4 md:row-span-1 bg-gray-300 rounded-md p-10">
+            Accounting</div>
+        <div
+            class="col-start-5 h-82.75  row-start-1 col-span-5 md:col-start-5 md:row-start-1 md:col-span-5 md:row-span-1 bg-gray-300 rounded-md p-10">
+            1</div>
+        <div
+            class="col-start-1 h-82.5 row-start-2 col-span-9 md:col-start-1 md:row-start-2 md:col-span-9 md:row-span-1 bg-gray-300 rounded-md p-10">
+            2</div>
 
     </div>
 
-    <table class="min-w-full">
-
-        <thead class="bg-gray-100">
-
-            <tr>
-
-                <th class="px-4 py-3 text-left">
-                    PO Number
-                </th>
-
-                <th class="px-4 py-3 text-left">
-                    Supplier
-                </th>
-
-                <th class="px-4 py-3">
-                    Delivery Date
-                </th>
-
-                <th class="px-4 py-3">
-                    Action
-                </th>
-
-            </tr>
-
-        </thead>
-
-        <tbody>
-
-        @forelse($deliveries as $delivery)
-
-            <tr>
-
-                <td class="border px-4 py-3">
-
-                    {{ $delivery->purchaseOrder->po_number }}
-
-                </td>
-
-                <td class="border px-4 py-3">
-
-                    {{ $delivery->purchaseOrder->supplier->supplier_name }}
-
-                </td>
-
-                <td class="border text-center">
-
-                    {{ $delivery->delivery_date }}
-
-                </td>
-
-                <td class="border text-center">
-
-                    <a
-                        href="{{ route('provincial.show', $delivery->purchase_order_id) }}"
-                        class="text-blue-600 underline">
-
-                        View Delivery
-
-                    </a>
-
-                </td>
-
-            </tr>
-
-        @empty
-
-            <tr>
-
-                <td colspan="4" class="text-center py-8">
-
-                    No deliveries yet.
-
-                </td>
-
-            </tr>
-
-        @endforelse
-
-        </tbody>
-
-    </table>
-
-</div>
 
 @endsection

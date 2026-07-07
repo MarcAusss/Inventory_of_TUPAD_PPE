@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\TSSDDistribution;
 use Illuminate\Support\Facades\Auth;
+use App\Models\DeliveryReceipt;
+use App\Models\DeliveryReceiptItem;
+use Illuminate\Support\Facades\DB;
 
 
 class ProvincialOfficeController extends Controller
@@ -34,11 +37,18 @@ class ProvincialOfficeController extends Controller
                     ->where('province_id', $provinceId)
                     ->get();
 
+                $delivery->receipt = DeliveryReceipt::where(
+                    'purchase_order_id',
+                    $delivery->purchase_order_id
+                )
+                    ->where('province_id', $provinceId)
+                    ->first();
+
                 return $delivery;
             });
 
         return view(
-            'dashboards.provincial-office',
+            'provincial.delivery.index',
             compact('deliveries')
         );
     }
@@ -66,7 +76,7 @@ class ProvincialOfficeController extends Controller
     {
         $provinceId = Auth::user()->province_id;
 
-        $distribution = TSSDDistribution::with([
+        $items = TSSDDistribution::with([
             'purchaseOrder',
             'purchaseOrder.supplier',
             'province',
@@ -74,13 +84,23 @@ class ProvincialOfficeController extends Controller
         ])
             ->where('purchase_order_id', $purchaseOrderId)
             ->where('province_id', $provinceId)
-            ->firstOrFail();
+            ->get();
+
+        abort_if($items->isEmpty(), 404);
+
+        $distribution = $items->first();
+
+        $receipt = DeliveryReceipt::where('purchase_order_id', $purchaseOrderId)
+            ->where('province_id', $provinceId)
+            ->first();
 
         return view(
             'provincial.delivery.show',
-            [
-                'distribution' => $distribution
-            ]
+            compact(
+                'distribution',
+                'items',
+                'receipt'
+            )
         );
     }
 
@@ -106,5 +126,135 @@ class ProvincialOfficeController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+
+    public function receive($purchaseOrderId)
+    {
+        $provinceId = Auth::user()->province_id;
+
+        $items = TSSDDistribution::with([
+            'purchaseOrder',
+            'purchaseOrder.supplier',
+            'province',
+            'item',
+        ])
+            ->where('purchase_order_id', $purchaseOrderId)
+            ->where('province_id', $provinceId)
+            ->get();
+
+        abort_if($items->isEmpty(), 404);
+
+        $distribution = $items->first();
+
+        $existingReceipt = DeliveryReceipt::where(
+            'purchase_order_id',
+            $purchaseOrderId
+        )
+            ->where('province_id', $provinceId)
+            ->first();
+
+        if ($existingReceipt) {
+
+            return redirect()
+                ->route('provincial.deliveries.index')
+                ->with(
+                    'error',
+                    'This delivery has already been received.'
+                );
+        }
+
+        return view(
+            'provincial.delivery.receive',
+            compact(
+                'distribution',
+                'items'
+            )
+        );
+    }
+
+    public function storeReceipt(Request $request, $purchaseOrderId)
+    {
+        $provinceId = Auth::user()->province_id;
+
+        $distribution = TSSDDistribution::where(
+            'purchase_order_id',
+            $purchaseOrderId
+        )
+            ->where(
+                'province_id',
+                $provinceId
+            )
+            ->firstOrFail();
+
+        $existingReceipt = DeliveryReceipt::where(
+            'purchase_order_id',
+            $purchaseOrderId
+        )
+            ->where(
+                'province_id',
+                $provinceId
+            )
+            ->exists();
+
+        if ($existingReceipt) {
+
+            return redirect()
+                ->route('provincial.deliveries.index')
+                ->with(
+                    'error',
+                    'Delivery Receipt already exists.'
+                );
+        }
+
+        $request->validate([
+            'dr_number' => 'required|unique:delivery_receipts,dr_number',
+            'delivery_date' => 'required|date',
+            'received_by' => 'required|string|max:255',
+            'remarks' => 'nullable|string',
+            'items' => 'required|array',
+        ]);
+
+        DB::transaction(function () use ($request, $distribution, $provinceId) {
+
+            $receipt = DeliveryReceipt::create([
+
+                'purchase_order_id' => $distribution->purchase_order_id,
+
+                'province_id' => $provinceId,
+
+                'dr_number' => $request->dr_number,
+
+                'delivery_date' => $request->delivery_date,
+
+                'received_by' => $request->received_by,
+
+                'remarks' => $request->remarks,
+
+                'status' => 'Received',
+
+            ]);
+
+            foreach ($request->items as $itemId => $quantity) {
+
+                DeliveryReceiptItem::create([
+
+                    'delivery_receipt_id' => $receipt->id,
+
+                    'item_id' => $itemId,
+
+                    'quantity' => $quantity,
+
+                ]);
+            }
+
+        });
+
+        return redirect()
+            ->route('provincial.deliveries.index')
+            ->with(
+                'success',
+                'Delivery received successfully.'
+            );
     }
 }
