@@ -57,7 +57,7 @@
     <div class="ml-[330px] ">
         <header class="w-full h-22 mt-2 rounded-xl bg-[#F7F7F7] flex justify-between px-7 py-2">
             <div class="flex flex-col h-full justify-center">
-                <div class="text-[16px]" id="live-clock">--:--:--</div>
+                {{-- <div class="text-[16px]" id="live-clock">--:--:--</div> --}}
                 <div class="text-[16px]" id="live-date">--/--/--</div>
             </div>
         </header>
