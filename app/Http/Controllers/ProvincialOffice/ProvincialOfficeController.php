@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\DeliveryReceipt;
 use App\Models\DeliveryReceiptItem;
 use Illuminate\Support\Facades\DB;
+use App\Models\ProvincialInventory;
+use App\Models\SupplyDesignation;
 
 
 class ProvincialOfficeController extends Controller
@@ -94,14 +96,11 @@ class ProvincialOfficeController extends Controller
             ->where('province_id', $provinceId)
             ->first();
 
-        return view(
-            'provincial.delivery.show',
-            compact(
-                'distribution',
-                'items',
-                'receipt'
-            )
-        );
+        return view('provincial.delivery.show', [
+            'distribution' => $distribution,
+            'items' => $items,
+            'receipt' => $receipt,
+        ]);
     }
 
     /**
@@ -147,30 +146,20 @@ class ProvincialOfficeController extends Controller
 
         $distribution = $items->first();
 
-        $existingReceipt = DeliveryReceipt::where(
-            'purchase_order_id',
-            $purchaseOrderId
-        )
+        $existingReceipt = DeliveryReceipt::where('purchase_order_id', $purchaseOrderId)
             ->where('province_id', $provinceId)
             ->first();
 
         if ($existingReceipt) {
-
             return redirect()
-                ->route('provincial.deliveries.index')
-                ->with(
-                    'error',
-                    'This delivery has already been received.'
-                );
+                ->route('provincial.deliveries.show', $purchaseOrderId)
+                ->with('error', 'This delivery has already been received.');
         }
 
-        return view(
-            'provincial.delivery.receive',
-            compact(
-                'distribution',
-                'items'
-            )
-        );
+        return view('provincial.delivery.receive', [
+            'distribution' => $distribution,
+            'items' => $items,
+        ]);
     }
 
     public function storeReceipt(Request $request, $purchaseOrderId)
@@ -181,31 +170,8 @@ class ProvincialOfficeController extends Controller
             'purchase_order_id',
             $purchaseOrderId
         )
-            ->where(
-                'province_id',
-                $provinceId
-            )
+            ->where('province_id', $provinceId)
             ->firstOrFail();
-
-        $existingReceipt = DeliveryReceipt::where(
-            'purchase_order_id',
-            $purchaseOrderId
-        )
-            ->where(
-                'province_id',
-                $provinceId
-            )
-            ->exists();
-
-        if ($existingReceipt) {
-
-            return redirect()
-                ->route('provincial.deliveries.index')
-                ->with(
-                    'error',
-                    'Delivery Receipt already exists.'
-                );
-        }
 
         $request->validate([
             'dr_number' => 'required|unique:delivery_receipts,dr_number',
@@ -215,11 +181,26 @@ class ProvincialOfficeController extends Controller
             'items' => 'required|array',
         ]);
 
-        DB::transaction(function () use ($request, $distribution, $provinceId) {
+        $existingReceipt = DeliveryReceipt::where(
+            'purchase_order_id',
+            $purchaseOrderId
+        )
+            ->where('province_id', $provinceId)
+            ->exists();
+
+        if ($existingReceipt) {
+
+            return back()->with(
+                'error',
+                'Delivery Receipt already exists.'
+            );
+        }
+
+        DB::transaction(function () use ($request, $purchaseOrderId, $provinceId) {
 
             $receipt = DeliveryReceipt::create([
 
-                'purchase_order_id' => $distribution->purchase_order_id,
+                'purchase_order_id' => $purchaseOrderId,
 
                 'province_id' => $provinceId,
 
@@ -247,7 +228,6 @@ class ProvincialOfficeController extends Controller
 
                 ]);
             }
-
         });
 
         return redirect()
@@ -255,6 +235,92 @@ class ProvincialOfficeController extends Controller
             ->with(
                 'success',
                 'Delivery received successfully.'
+            );
+    }
+    public function inventory()
+    {
+        $provinceId = Auth::user()->province_id;
+
+        $inventories = ProvincialInventory::with([
+            'item',
+            'province',
+        ])
+            ->where('province_id', $provinceId)
+            ->orderBy('item_id')
+            ->get();
+
+        return view(
+            'provincial.inventory.index',
+            compact('inventories')
+        );
+    }
+    public function designate($inventoryId)
+    {
+        $provinceId = Auth::user()->province_id;
+
+        $inventory = ProvincialInventory::with('item')
+            ->where('province_id', $provinceId)
+            ->findOrFail($inventoryId);
+
+        return view(
+            'provincial.inventory.designate',
+            compact('inventory')
+        );
+    }
+    public function storeDesignation(Request $request, $inventoryId)
+    {
+        $provinceId = Auth::user()->province_id;
+
+        $inventory = ProvincialInventory::where(
+            'province_id',
+            $provinceId
+        )->findOrFail($inventoryId);
+
+        $request->validate([
+
+            'project_name' => 'required|string|max:255',
+
+            'quantity' => [
+                'required',
+                'integer',
+                'min:1',
+                'max:' . $inventory->quantity,
+            ],
+
+            'remarks' => 'nullable|string',
+
+        ]);
+
+        DB::transaction(function () use ($request, $inventory, $provinceId) {
+
+            SupplyDesignation::create([
+
+                'province_inventory_id' => $inventory->id,
+
+                'province_id' => $provinceId,
+
+                'item_id' => $inventory->item_id,
+
+                'project_name' => $request->project_name,
+
+                'quantity' => $request->quantity,
+
+                'remarks' => $request->remarks,
+
+            ]);
+
+            $inventory->decrement(
+                'quantity',
+                $request->quantity
+            );
+
+        });
+
+        return redirect()
+            ->route('provincial.inventory.index')
+            ->with(
+                'success',
+                'PPE designated successfully.'
             );
     }
 }

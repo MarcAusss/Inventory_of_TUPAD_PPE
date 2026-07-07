@@ -25,4 +25,8 @@ class Province extends Model
     {
         return $this->hasMany(DeliveryReceipt::class);
     }
+    public function inventories()
+    {
+        return $this->hasMany(ProvincialInventory::class);
+    }
 }

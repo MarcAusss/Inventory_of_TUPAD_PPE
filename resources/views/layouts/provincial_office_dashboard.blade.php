@@ -27,31 +27,29 @@
                         <i class=""></i>
                         Dashboard
                     </a>
-                    <!-- <a href="{{ Route('supply.suppliers.index')}}" class="flex mt-5 gap-2 px-20 text-xl">
-                        <i class=""></i>
-                        Suppliers
+                    <a href="{{ route('provincial.inventory.index') }}">
+                        Inventory
                     </a>
-                    <a href="{{ Route('supply.purchase-orders.index')}}" class="flex mt-5 gap-2 px-20 text-xl">
-                        <i class=""></i>
-                        Purchase Orders
-                    </a> -->
-                    
+                    <a href="{{ route('provincial.deliveries.index') }}">
+                        Inventory
+                    </a>
+
                 </div>
             </div>
             <div class="flex items-center justify-center w-full">
                 {{-- <a href="{{ route('auth.logout')}}">Logout</a> --}}
                 <form method="POST" action="{{ route('logout') }}">
-                    @csrf 
+                    @csrf
                     <div
                         class="bg-[linear-gradient(to_top_right,#000000_5%,#EE1C09_60%)] text-white py-2 px-10 rounded-xl">
                         <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault();
                                         this.closest('form').submit();">
                             {{ __('Log Out') }}
-                        </x-responsive-nav-link> 
+                        </x-responsive-nav-link>
                     </div>
                 </form>
             </div>
-        </div> 
+        </div>
     </aside>
 
     <div class="ml-[330px] ">
@@ -66,9 +64,9 @@
         </main>
     </div>
 
-    <footer>    
-        
-    </footer> 
+    <footer>
+
+    </footer>
 
     <script>
         function updateClockAndDate() {

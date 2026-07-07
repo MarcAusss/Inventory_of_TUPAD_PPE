@@ -61,4 +61,8 @@ class Item extends Model
     {
         return $this->hasMany(SupplyDesignationItem::class);
     }
+    public function provincialInventories()
+    {
+        return $this->hasMany(ProvincialInventory::class);
+    }
 }

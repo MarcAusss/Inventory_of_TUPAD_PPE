@@ -73,18 +73,27 @@
 
                 <a href="{{ route('provincial.deliveries.receive', $distribution->purchase_order_id) }}"
                     class="bg-blue-600 text-white px-4 py-2 rounded">
-
                     Receive Delivery
-
                 </a>
 
             @else
 
-                <span class="bg-green-600 text-white px-4 py-2 rounded">
+                <div class="flex gap-3">
 
-                    Delivery Received
+                    <span class="bg-green-600 text-white px-4 py-2 rounded">
+                        Delivery Received
+                    </span>
 
-                </span>
+                    <a href="{{ route('provincial.inventory.index') }}" class="bg-indigo-600 text-white px-4 py-2 rounded">
+                        View Inventory
+                    </a>
+
+                    <a href="{{ route('provincial.inventory.designate', $receipt->id) }}"
+                        class="bg-orange-600 text-white px-4 py-2 rounded">
+                        Designate Supplies
+                    </a>
+
+                </div>
 
             @endif
         </div>

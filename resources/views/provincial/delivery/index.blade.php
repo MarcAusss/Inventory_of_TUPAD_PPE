@@ -90,8 +90,7 @@
 
                         <td class="border text-center">
 
-                            <a href="{{ route('provincial.deliveries.show', $delivery->purchase_order_id) }}"
-                                class="text-blue-600 underline">
+                            <a href="{{ route('provincial.deliveries.show', $delivery->purchase_order_id) }}">
                                 View Delivery
                             </a>
 

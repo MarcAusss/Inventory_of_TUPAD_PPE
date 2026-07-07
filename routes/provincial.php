@@ -9,25 +9,68 @@ Route::middleware([
     'verified',
     'role:Provincial Office',
 ])
-->prefix('provincial')
-->name('provincial.')
-->group(function () {
+    ->prefix('provincial')
+    ->name('provincial.')
+    ->group(function () {
 
-    Route::get('/', DashboardController::class)
-        ->name('dashboard');
+        /*
+        |--------------------------------------------------------------------------
+        | Dashboard
+        |--------------------------------------------------------------------------
+        */
 
-    Route::get('/deliveries', [ProvincialOfficeController::class, 'index'])
-        ->name('deliveries.index');
+        Route::get(
+            '/',
+            DashboardController::class
+        )->name('dashboard');
 
-    Route::get('/deliveries/{distribution}', [ProvincialOfficeController::class, 'show'])
-        ->name('deliveries.show');
 
-    Route::get('/deliveries/{distribution}/receive', [ProvincialOfficeController::class, 'receive'])
-        ->name('deliveries.receive');
+        /*
+        |--------------------------------------------------------------------------
+        | Deliveries
+        |--------------------------------------------------------------------------
+        */
 
-    Route::post('/deliveries/{distribution}/receive', [ProvincialOfficeController::class, 'storeReceipt'])
-        ->name('deliveries.receipt.store');
+        Route::get(
+            '/deliveries',
+            [ProvincialOfficeController::class, 'index']
+        )->name('deliveries.index');
 
-    Route::resource('provincial', ProvincialOfficeController::class);
+        Route::get(
+            '/deliveries/{id}',
+            [ProvincialOfficeController::class, 'show']
+        )->name('deliveries.show');
 
-});
+        Route::get(
+            '/deliveries/{id}/receive',
+            [ProvincialOfficeController::class, 'receive']
+        )->name('deliveries.receive');
+
+        Route::post(
+            '/deliveries/{purchaseOrder}/receive',
+            [ProvincialOfficeController::class, 'storeReceipt']
+        )->name('deliveries.receipt.store');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Inventory
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/inventory',
+            [ProvincialOfficeController::class, 'inventory']
+        )->name('inventory.index');
+
+        Route::get(
+            '/inventory/{receipt}/designate',
+            [ProvincialOfficeController::class, 'designate']
+        )->name('inventory.designate');
+
+        Route::post(
+            '/inventory/{receipt}/designate',
+            [ProvincialOfficeController::class, 'storeDesignation']
+        )->name('inventory.designate.store');
+
+    });
