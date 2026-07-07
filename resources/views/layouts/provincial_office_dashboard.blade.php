@@ -68,7 +68,7 @@
 
     <footer>    
         
-    </footer>
+    </footer> 
 
     <script>
         function updateClockAndDate() {
