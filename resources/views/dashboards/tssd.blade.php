@@ -1,4 +1,6 @@
-<x-po_dashboard_layout>
+@extends('layouts.tssd_dashboard')
+
+@section('dashboard-tssd')
 
     <div class="mb-4">
         <h1 class="text-[25px]">Dashboard</h1>
@@ -21,4 +23,5 @@
       <div class="col-start-1 h-82.5 row-start-2 col-span-9 md:col-start-1 md:row-start-2 md:col-span-9 md:row-span-1 bg-gray-300 rounded-md p-10">2</div>
       
     </div>
-</x-po_dashboard_layout>
+
+@endsection
