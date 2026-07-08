@@ -19,10 +19,9 @@ Route::middleware([
         |--------------------------------------------------------------------------
         */
 
-        Route::get(
-            '/',
-            DashboardController::class
-        )->name('dashboard');
+        Route::get('/', DashboardController::class)
+            ->name('dashboard');
+
 
 
         /*
@@ -37,12 +36,12 @@ Route::middleware([
         )->name('deliveries.index');
 
         Route::get(
-            '/deliveries/{id}',
+            '/deliveries/{purchaseOrder}',
             [ProvincialOfficeController::class, 'show']
         )->name('deliveries.show');
 
         Route::get(
-            '/deliveries/{id}/receive',
+            '/deliveries/{purchaseOrder}/receive',
             [ProvincialOfficeController::class, 'receive']
         )->name('deliveries.receive');
 
@@ -52,9 +51,10 @@ Route::middleware([
         )->name('deliveries.receipt.store');
 
 
+
         /*
         |--------------------------------------------------------------------------
-        | Inventory
+        | Delivery Receipt
         |--------------------------------------------------------------------------
         */
 
@@ -62,6 +62,19 @@ Route::middleware([
             '/inventory',
             [ProvincialOfficeController::class, 'inventory']
         )->name('inventory.index');
+
+        Route::get(
+            '/inventory/{receipt}',
+            [ProvincialOfficeController::class, 'inventoryShow']
+        )->name('inventory.show');
+
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Supply Designation
+        |--------------------------------------------------------------------------
+        */
 
         Route::get(
             '/inventory/{receipt}/designate',
@@ -72,5 +85,10 @@ Route::middleware([
             '/inventory/{receipt}/designate',
             [ProvincialOfficeController::class, 'storeDesignation']
         )->name('inventory.designate.store');
+
+        Route::get(
+            '/designations',
+            [ProvincialOfficeController::class, 'designationIndex']
+        )->name('designations.index');
 
     });

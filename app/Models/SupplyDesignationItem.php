@@ -16,7 +16,7 @@ class SupplyDesignationItem extends Model
 
     ];
 
-    public function supplyDesignation()
+    public function designation()
     {
         return $this->belongsTo(SupplyDesignation::class);
     }

@@ -241,78 +241,87 @@ class ProvincialOfficeController extends Controller
     {
         $provinceId = Auth::user()->province_id;
 
-        $inventories = ProvincialInventory::with([
-            'item',
-            'province',
+        $receipts = DeliveryReceipt::with([
+            'purchaseOrder',
+            'purchaseOrder.supplier',
+            'items.item',
         ])
             ->where('province_id', $provinceId)
-            ->orderBy('item_id')
+            ->latest()
             ->get();
 
         return view(
             'provincial.inventory.index',
-            compact('inventories')
+            compact('receipts')
         );
     }
-    public function designate($inventoryId)
+
+
+    public function designate($receiptId)
     {
         $provinceId = Auth::user()->province_id;
 
-        $inventory = ProvincialInventory::with('item')
+        $receipt = DeliveryReceipt::with([
+            'items.item',
+        ])
             ->where('province_id', $provinceId)
-            ->findOrFail($inventoryId);
+            ->findOrFail($receiptId);
 
         return view(
             'provincial.inventory.designate',
-            compact('inventory')
+            compact('receipt')
         );
     }
-    public function storeDesignation(Request $request, $inventoryId)
+
+
+    public function storeDesignation(Request $request, $receiptId)
     {
         $provinceId = Auth::user()->province_id;
 
-        $inventory = ProvincialInventory::where(
+        $receipt = DeliveryReceipt::where(
             'province_id',
             $provinceId
-        )->findOrFail($inventoryId);
+        )->findOrFail($receiptId);
 
         $request->validate([
 
-            'project_name' => 'required|string|max:255',
+            'designation_number' => 'required|unique:supply_designations',
 
-            'quantity' => [
-                'required',
-                'integer',
-                'min:1',
-                'max:' . $inventory->quantity,
-            ],
+            'designation_date' => 'required|date',
+
+            'project_name' => 'required|string|max:255',
 
             'remarks' => 'nullable|string',
 
         ]);
 
-        DB::transaction(function () use ($request, $inventory, $provinceId) {
+        DB::transaction(function () use ($request, $receipt) {
 
-            SupplyDesignation::create([
+            $designation = SupplyDesignation::create([
 
-                'province_inventory_id' => $inventory->id,
+                'delivery_receipt_id' => $receipt->id,
 
-                'province_id' => $provinceId,
+                'designation_number' => $request->designation_number,
 
-                'item_id' => $inventory->item_id,
+                'designation_date' => $request->designation_date,
 
                 'project_name' => $request->project_name,
-
-                'quantity' => $request->quantity,
 
                 'remarks' => $request->remarks,
 
             ]);
 
-            $inventory->decrement(
-                'quantity',
-                $request->quantity
-            );
+            foreach ($receipt->items as $item) {
+
+                $designation->items()->create([
+
+                    'item_id' => $item->item_id,
+
+                    'quantity' => $item->quantity,
+
+                ]);
+
+            }
 
         });
 
@@ -320,7 +329,44 @@ class ProvincialOfficeController extends Controller
             ->route('provincial.inventory.index')
             ->with(
                 'success',
-                'PPE designated successfully.'
+                'Supply Designation created successfully.'
             );
+    }
+
+    public function inventoryShow($receiptId)
+    {
+        $provinceId = Auth::user()->province_id;
+
+        $receipt = DeliveryReceipt::with([
+            'purchaseOrder',
+            'purchaseOrder.supplier',
+            'items.item',
+            'province',
+        ])
+            ->where('province_id', $provinceId)
+            ->findOrFail($receiptId);
+
+        return view(
+            'provincial.inventory.show',
+            compact('receipt')
+        );
+    }
+
+    public function designationIndex()
+    {
+        $provinceId = Auth::user()->province_id;
+
+        $designations = SupplyDesignation::with([
+            'item',
+            'province',
+        ])
+            ->where('province_id', $provinceId)
+            ->latest()
+            ->get();
+
+        return view(
+            'provincial.designation.index',
+            compact('designations')
+        );
     }
 }

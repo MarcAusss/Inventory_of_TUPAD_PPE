@@ -48,4 +48,5 @@ class DeliveryReceipt extends Model
     {
         return $this->hasMany(SupplyDesignation::class);
     }
+    
 }

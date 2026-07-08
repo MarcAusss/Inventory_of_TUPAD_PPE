@@ -2,87 +2,167 @@
 
 @section('dashboard-provincial_office')
 
-    <div class="max-w-2xl mx-auto bg-white shadow rounded-xl p-8">
+<div class="max-w-5xl mx-auto bg-white shadow rounded-xl p-8">
 
-        <h2 class="text-2xl font-bold mb-6">
-            Designate PPE
-        </h2>
+    <h2 class="text-2xl font-bold mb-6">
+        Create Supply Designation
+    </h2>
 
-        <div class="mb-6">
+    <div class="mb-6">
 
-            <p>
+        <p>
+            <strong>DR Number:</strong>
+            {{ $receipt->dr_number }}
+        </p>
 
-                <strong>Item:</strong>
+        <p>
+            <strong>Purchase Order:</strong>
+            {{ $receipt->purchaseOrder->po_number }}
+        </p>
 
-                {{ $inventory->item->item_name }}
+        <p>
+            <strong>Supplier:</strong>
+            {{ $receipt->purchaseOrder->supplier->supplier_name }}
+        </p>
 
-                @if($inventory->item->label)
+    </div>
 
-                    ({{ $inventory->item->label }})
+    <form
+        action="{{ route('provincial.inventory.designate.store', $receipt->id) }}"
+        method="POST">
 
-                @endif
+        @csrf
 
-            </p>
+        <div class="mb-4">
 
-            <p>
+            <label class="block font-semibold mb-2">
+                Designation Number
+            </label>
 
-                <strong>Available:</strong>
-
-                {{ $inventory->quantity }}
-
-            </p>
+            <input
+                type="text"
+                name="designation_number"
+                class="w-full border rounded p-2"
+                required>
 
         </div>
 
-        <form action="{{ route('provincial.inventory.designate.store', $inventory->id) }}" method="POST">
+        <div class="mb-4">
 
-            @csrf
+            <label class="block font-semibold mb-2">
+                Designation Date
+            </label>
 
-            <div class="mb-4">
+            <input
+                type="date"
+                name="designation_date"
+                class="w-full border rounded p-2"
+                required>
 
-                <label class="font-semibold">
+        </div>
 
-                    Project / Beneficiary
+        <div class="mb-4">
 
-                </label>
+            <label class="block font-semibold mb-2">
+                Project Name
+            </label>
 
-                <input type="text" name="project_name" class="w-full border rounded p-2" required>
+            <input
+                type="text"
+                name="project_name"
+                class="w-full border rounded p-2"
+                required>
 
-            </div>
+        </div>
 
-            <div class="mb-4">
+        <table class="w-full border mb-6">
 
-                <label class="font-semibold">
+            <thead class="bg-gray-100">
 
-                    Quantity
+                <tr>
 
-                </label>
+                    <th class="border p-2 text-left">
+                        Item
+                    </th>
 
-                <input type="number" min="1" max="{{ $inventory->quantity }}" name="quantity"
-                    class="w-full border rounded p-2" required>
+                    <th class="border p-2 text-center">
+                        Delivered
+                    </th>
 
-            </div>
+                    <th class="border p-2 text-center">
+                        Quantity to Designate
+                    </th>
 
-            <div class="mb-4">
+                </tr>
 
-                <label class="font-semibold">
+            </thead>
 
-                    Remarks
+            <tbody>
 
-                </label>
+                @foreach($receipt->items as $item)
 
-                <textarea name="remarks" class="w-full border rounded p-2"></textarea>
+                <tr>
 
-            </div>
+                    <td class="border p-2">
 
-            <button class="bg-red-900 text-white px-6 py-2 rounded">
+                        {{ $item->item->item_name }}
 
-                Save Designation
+                        @if($item->item->label)
 
-            </button>
+                            ({{ $item->item->label }})
 
-        </form>
+                        @endif
 
-    </div>
+                    </td>
+
+                    <td class="border p-2 text-center">
+
+                        {{ $item->quantity }}
+
+                    </td>
+
+                    <td class="border p-2">
+
+                        <input
+                            type="number"
+                            name="items[{{ $item->item_id }}]"
+                            min="0"
+                            max="{{ $item->quantity }}"
+                            value="0"
+                            class="w-full border rounded p-2">
+
+                    </td>
+
+                </tr>
+
+                @endforeach
+
+            </tbody>
+
+        </table>
+
+        <div class="mb-6">
+
+            <label class="block font-semibold mb-2">
+                Remarks
+            </label>
+
+            <textarea
+                name="remarks"
+                rows="3"
+                class="w-full border rounded p-2"></textarea>
+
+        </div>
+
+        <button
+            class="bg-red-900 text-white px-6 py-2 rounded hover:bg-red-800">
+
+            Save Supply Designation
+
+        </button>
+
+    </form>
+
+</div>
 
 @endsection

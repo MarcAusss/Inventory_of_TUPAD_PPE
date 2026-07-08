@@ -27,12 +27,19 @@
                         <i class=""></i>
                         Dashboard
                     </a>
-                    <a href="{{ route('provincial.inventory.index') }}">
+                    <a href="{{ route('provincial.inventory.index') }}" class="flex gap-2 px-20 text-xl">
+                        <i class=""></i>
                         Inventory
                     </a>
-                    <a href="{{ route('provincial.deliveries.index') }}">
-                        Inventory
+                    <a href="{{ route('provincial.deliveries.index') }}" class="flex gap-2 px-20 text-xl">
+                        <i class=""></i>
+                        Delivery
                     </a>
+                    <a href="{{ route('provincial.designations.index') }}" class="flex gap-2 px-20 text-xl">
+                        <i class=""></i>
+                        Supply Designations
+                    </a>
+
 
                 </div>
             </div>

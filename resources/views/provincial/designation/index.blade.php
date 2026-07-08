@@ -7,7 +7,7 @@
     <div class="bg-red-900 text-white px-6 py-4">
 
         <h2 class="text-2xl font-bold">
-            Provincial Inventory
+            Supply Designations
         </h2>
 
     </div>
@@ -19,23 +19,23 @@
             <tr>
 
                 <th class="px-4 py-3 text-left">
-                    DR Number
+                    Designation No.
                 </th>
 
                 <th class="px-4 py-3 text-left">
-                    Purchase Order
+                    Project
                 </th>
 
                 <th class="px-4 py-3 text-left">
-                    Supplier
+                    Item
                 </th>
 
                 <th class="px-4 py-3 text-center">
-                    Delivery Date
+                    Quantity
                 </th>
 
                 <th class="px-4 py-3 text-center">
-                    Action
+                    Date
                 </th>
 
             </tr>
@@ -44,45 +44,39 @@
 
         <tbody>
 
-            @forelse($receipts as $receipt)
+            @forelse($designations as $designation)
 
                 <tr>
 
                     <td class="border px-4 py-3">
-                        {{ $receipt->dr_number }}
+                        {{ $designation->designation_number }}
                     </td>
 
                     <td class="border px-4 py-3">
-                        {{ $receipt->purchaseOrder->po_number }}
+                        {{ $designation->project_name }}
                     </td>
 
                     <td class="border px-4 py-3">
-                        {{ $receipt->purchaseOrder->supplier->supplier_name }}
+
+                        {{ $designation->item->item_name }}
+
+                        @if($designation->item->label)
+
+                            ({{ $designation->item->label }})
+
+                        @endif
+
                     </td>
 
                     <td class="border text-center">
-                        {{ $receipt->delivery_date->format('F d, Y') }}
+
+                        {{ $designation->quantity }}
+
                     </td>
 
                     <td class="border text-center">
 
-                        <a
-                            href="{{ route('provincial.inventory.show', $receipt->id) }}"
-                            class="text-blue-600 underline">
-
-                            View
-
-                        </a>
-
-                        |
-
-                        <a
-                            href="{{ route('provincial.inventory.designate', $receipt->id) }}"
-                            class="text-green-600 underline">
-
-                            Designate
-
-                        </a>
+                        {{ $designation->designation_date->format('F d, Y') }}
 
                     </td>
 
@@ -94,7 +88,7 @@
 
                     <td colspan="5" class="text-center py-8">
 
-                        No Delivery Receipts found.
+                        No designations found.
 
                     </td>
 
