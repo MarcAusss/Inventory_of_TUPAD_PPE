@@ -10,7 +10,7 @@ return new class extends Migration {
 
             $table->id();
 
-            $table->foreignId('delivery_receipt_id')
+            $table->foreignId('delivery_receipt_id')  
                 ->constrained()
                 ->cascadeOnDelete();
 

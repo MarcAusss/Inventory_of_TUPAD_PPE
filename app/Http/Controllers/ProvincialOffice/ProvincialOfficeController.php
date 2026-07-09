@@ -357,10 +357,12 @@ class ProvincialOfficeController extends Controller
         $provinceId = Auth::user()->province_id;
 
         $designations = SupplyDesignation::with([
-            'item',
-            'province',
+            'deliveryReceipt.purchaseOrder.supplier',
+            'items.item',
         ])
-            ->where('province_id', $provinceId)
+            ->whereHas('deliveryReceipt', function ($query) use ($provinceId) {
+                $query->where('province_id', $provinceId);
+            })
             ->latest()
             ->get();
 
