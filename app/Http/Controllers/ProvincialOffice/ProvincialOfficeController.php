@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\DeliveryReceipt;
 use App\Models\DeliveryReceiptItem;
 use Illuminate\Support\Facades\DB;
-use App\Models\ProvincialInventory;
+// use App\Models\ProvincialInventory;
 use App\Models\SupplyDesignation;
 
 

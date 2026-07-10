@@ -61,4 +61,8 @@ class PurchaseOrder extends Model
     {
         return $this->hasMany(DeliveryReceipt::class);
     }
+    public function callOff()
+    {
+        return $this->hasOne(CallOff::class);
+    }
 }
