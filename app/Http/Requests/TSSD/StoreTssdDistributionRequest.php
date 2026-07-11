@@ -9,7 +9,7 @@ use Illuminate\Validation\ValidationException;
 class StoreTssdDistributionRequest extends FormRequest
 {
     /**
-     * Only TSSD users may submit distribution batches.
+     * Only the TSSD Unit may submit distribution batches.
      */
     public function authorize(): bool
     {
@@ -17,32 +17,34 @@ class StoreTssdDistributionRequest extends FormRequest
     }
 
     /**
-     * Convert the JSON distribution field from the current Blade form
-     * into a normal PHP array before validation.
+     * Convert the JSON hidden input into a regular PHP array.
      */
     protected function prepareForValidation(): void
     {
-        $distributions = $this->input('distributions');
+        $distributions = $this->input(
+            'distributions'
+        );
 
         if (is_string($distributions)) {
-            $decoded = json_decode($distributions, true);
+            $decoded = json_decode(
+                $distributions,
+                true
+            );
 
-            $distributions = json_last_error() === JSON_ERROR_NONE
-                ? $decoded
-                : null;
+            $distributions =
+                json_last_error()
+                    === JSON_ERROR_NONE
+                    ? $decoded
+                    : null;
         }
 
         $this->merge([
-            'distributions' => $distributions,
+            'distributions' =>
+                $distributions,
         ]);
     }
 
     /**
-     * Validation rules.
-     *
-     * These field names intentionally match the JavaScript currently used in
-     * resources/views/tssd/distribution/create.blade.php.
-     *
      * @return array<string, mixed>
      */
     public function rules(): array
@@ -123,31 +125,32 @@ class StoreTssdDistributionRequest extends FormRequest
     }
 
     /**
-     * Validate business-level input conditions that cannot be expressed
-     * cleanly through individual field rules.
+     * Validate conditions involving complete province rows.
      */
     public function withValidator(
         Validator $validator
     ): void {
         $validator->after(
-            function (Validator $validator): void {
+            function (
+                Validator $validator
+            ): void {
                 $distributions =
                     $this->input(
                         'distributions',
                         []
                     );
 
-                if (!is_array($distributions)) {
+                if (! is_array($distributions)) {
                     return;
                 }
 
                 $wholeBatchTotal = 0;
 
                 foreach (
-                    $distributions as $index
-                    => $distribution
+                    $distributions
+                    as $index => $distribution
                 ) {
-                    if (!is_array($distribution)) {
+                    if (! is_array($distribution)) {
                         continue;
                     }
 
@@ -181,8 +184,8 @@ class StoreTssdDistributionRequest extends FormRequest
                         ] ?? 0,
                     ])
                         ->map(
-                            fn($value): int =>
-                            (int) $value
+                            fn ($value): int =>
+                                (int) $value
                         )
                         ->sum();
 
@@ -208,52 +211,93 @@ class StoreTssdDistributionRequest extends FormRequest
     }
 
     /**
-     * Friendly validation messages.
-     *
      * @return array<string, string>
      */
     public function messages(): array
     {
         return [
-            'purchase_order_id.required' => 'Please select a Purchase Order.',
+            'purchase_order_id.required' =>
+                'Please select a Purchase Order.',
 
-            'purchase_order_id.exists' => 'The selected Purchase Order does not exist.',
+            'purchase_order_id.exists' =>
+                'The selected Purchase Order does not exist.',
 
-            'delivery_date.required' => 'Please provide the scheduled delivery date.',
+            'delivery_date.required' =>
+                'Please provide the scheduled delivery date.',
 
-            'distributions.required' => 'Please assign PPE to at least one province.',
+            'delivery_date.date' =>
+                'Please provide a valid scheduled delivery date.',
 
-            'distributions.array' => 'The submitted distribution data is invalid.',
+            'distributions.required' =>
+                'Please assign PPE to at least one province.',
 
-            'distributions.min' => 'Please assign PPE to at least one province.',
+            'distributions.array' =>
+                'The submitted distribution data is invalid.',
 
-            'distributions.*.province_id.required' => 'Every distribution entry must have a province.',
+            'distributions.min' =>
+                'Please assign PPE to at least one province.',
 
-            'distributions.*.province_id.distinct' => 'A province cannot be added more than once to the same distribution batch.',
+            'distributions.*.province_id.required' =>
+                'Every distribution entry must have a province.',
 
-            'distributions.*.province_id.exists' => 'One of the selected provinces does not exist.',
+            'distributions.*.province_id.distinct' =>
+                'A province cannot be added more than once to the same distribution batch.',
 
-            'distributions.*.long_sleeve_medium.min' => 'Long Sleeve Medium quantity cannot be negative.',
+            'distributions.*.province_id.exists' =>
+                'One of the selected provinces does not exist.',
 
-            'distributions.*.long_sleeve_large.min' => 'Long Sleeve Large quantity cannot be negative.',
+            'distributions.*.long_sleeve_medium.integer' =>
+                'Long Sleeve Medium quantity must be a whole number.',
 
-            'distributions.*.bucket_hat.min' => 'Bucket Hat quantity cannot be negative.',
+            'distributions.*.long_sleeve_medium.min' =>
+                'Long Sleeve Medium quantity cannot be negative.',
 
-            'distributions.*.rubber_boots_us9.min' => 'Rubber Boots US9 quantity cannot be negative.',
+            'distributions.*.long_sleeve_large.integer' =>
+                'Long Sleeve Large quantity must be a whole number.',
 
-            'distributions.*.rubber_boots_us10.min' => 'Rubber Boots US10 quantity cannot be negative.',
+            'distributions.*.long_sleeve_large.min' =>
+                'Long Sleeve Large quantity cannot be negative.',
 
-            'distributions.*.hand_gloves.min' => 'Hand Gloves quantity cannot be negative.',
+            'distributions.*.bucket_hat.integer' =>
+                'Bucket Hat quantity must be a whole number.',
 
-            'distributions.*.mask.min' => 'Mask quantity cannot be negative.',
+            'distributions.*.bucket_hat.min' =>
+                'Bucket Hat quantity cannot be negative.',
+
+            'distributions.*.rubber_boots_us9.integer' =>
+                'Rubber Boots US9 quantity must be a whole number.',
+
+            'distributions.*.rubber_boots_us9.min' =>
+                'Rubber Boots US9 quantity cannot be negative.',
+
+            'distributions.*.rubber_boots_us10.integer' =>
+                'Rubber Boots US10 quantity must be a whole number.',
+
+            'distributions.*.rubber_boots_us10.min' =>
+                'Rubber Boots US10 quantity cannot be negative.',
+
+            'distributions.*.hand_gloves.integer' =>
+                'Hand Gloves quantity must be a whole number.',
+
+            'distributions.*.hand_gloves.min' =>
+                'Hand Gloves quantity cannot be negative.',
+
+            'distributions.*.mask.integer' =>
+                'Mask quantity must be a whole number.',
+
+            'distributions.*.mask.min' =>
+                'Mask quantity cannot be negative.',
         ];
     }
 
     /**
-     * Keep JSON requests readable by returning Laravel's normal 422 response.
+     * Preserve Laravel's normal JSON 422 validation response.
      */
-    protected function failedValidation(Validator $validator): never
-    {
-        throw new ValidationException($validator);
+    protected function failedValidation(
+        Validator $validator
+    ): never {
+        throw new ValidationException(
+            $validator
+        );
     }
 }

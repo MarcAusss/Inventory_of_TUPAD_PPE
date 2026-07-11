@@ -266,6 +266,10 @@
 
                                 </th>
 
+                                <th class="px-4 py-3">
+                                    Actions
+                                </th>
+
                             </tr>
 
                         </thead>
@@ -343,7 +347,7 @@
                             @empty
 
                                 <tr>
-                                    <td colspan="8" class="text-center py-8 text-gray-500">
+                                    <td colspan="9" class="text-center py-8 text-gray-500">
                                         No province assigned yet.
                                     </td>
                                 </tr>
@@ -554,816 +558,1551 @@
 </div>
 
 <script>
-    const purchaseOrders = @json($purchaseOrders);
+    document.addEventListener(
+        'DOMContentLoaded',
+        function () {
+            const purchaseOrders =
+                @json($purchaseOrders);
 
-    const distributionIndexUrl =
-        @json(route('tssd.distributions.index'));
-
-    const remainingUrlTemplate =
-        @json(route('tssd.purchase-orders.remaining', [
-            'poId' => '__PO_ID__',
-        ]));
-
-    let selectedPO = null;
-    let distributions = [];
-
-    let baseStock = {
-        lsm: 0,
-        lsl: 0,
-        bucket: 0,
-        us9: 0,
-        us10: 0,
-        gloves: 0,
-        mask: 0,
-    };
-
-    let remainingStock = { ...baseStock };
-
-    const fields = [
-        'lsm',
-        'lsl',
-        'bucket',
-        'us9',
-        'us10',
-        'gloves',
-        'mask',
-    ];
-
-    /*
-    |--------------------------------------------------------------------------
-    | PPE Key Helper
-    |--------------------------------------------------------------------------
-    */
-
-    function getKey(itemName, label) {
-        if (
-            itemName === 'Long Sleeve' &&
-            label === 'Medium'
-        ) {
-            return 'lsm';
-        }
-
-        if (
-            itemName === 'Long Sleeve' &&
-            label === 'Large'
-        ) {
-            return 'lsl';
-        }
-
-        if (itemName === 'Bucket Hat') {
-            return 'bucket';
-        }
-
-        if (
-            itemName === 'Rubber Boots' &&
-            label === 'US9'
-        ) {
-            return 'us9';
-        }
-
-        if (
-            itemName === 'Rubber Boots' &&
-            label === 'US10'
-        ) {
-            return 'us10';
-        }
-
-        if (itemName === 'Hand Gloves') {
-            return 'gloves';
-        }
-
-        if (itemName === 'Mask') {
-            return 'mask';
-        }
-
-        return null;
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Utility Helpers
-    |--------------------------------------------------------------------------
-    */
-
-    function emptyStock() {
-        return {
-            lsm: 0,
-            lsl: 0,
-            bucket: 0,
-            us9: 0,
-            us10: 0,
-            gloves: 0,
-            mask: 0,
-        };
-    }
-
-    function normaliseLabel(label) {
-        const value = String(label ?? '').trim();
-
-        return value === '-' ? '' : value;
-    }
-
-    function resetAssignmentInputs() {
-        fields.forEach(field => {
-            const input = document.getElementById(field);
-
-            input.value = 0;
-            input.classList.remove('border-red-500');
-
-            const warning = input.parentNode.querySelector(
-                '[data-quantity-warning]'
-            );
-
-            if (warning) {
-                warning.textContent = '';
-                warning.classList.add('hidden');
-            }
-        });
-
-        validateAssignmentForm();
-    }
-
-    function enableAllProvinceOptions() {
-        const provinceSelect =
-            document.getElementById('provinceSelect');
-
-        Array.from(provinceSelect.options).forEach(option => {
-            option.disabled = false;
-        });
-
-        provinceSelect.selectedIndex = 0;
-    }
-
-    function resetDistributionSummary() {
-        document.getElementById('distributionSummary').innerHTML = `
-            <tr id="emptyDistributionRow">
-                <td
-                    colspan="8"
-                    class="text-center py-8 text-gray-500"
-                >
-                    No province assigned yet.
-                </td>
-            </tr>
-        `;
-    }
-
-    function resetDistributionState() {
-        distributions = [];
-        remainingStock = emptyStock();
-        baseStock = emptyStock();
-
-        enableAllProvinceOptions();
-        resetAssignmentInputs();
-        resetDistributionSummary();
-    }
-
-    function buildValidationMessage(data) {
-        if (data?.errors) {
-            return Object.values(data.errors)
-                .flat()
-                .join('\n');
-        }
-
-        return data?.message ||
-            'The request could not be completed.';
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Remaining Quantity
-    |--------------------------------------------------------------------------
-    */
-
-    async function loadRemaining(poId) {
-        const url = remainingUrlTemplate.replace(
-            '__PO_ID__',
-            poId
-        );
-
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                Accept: 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-        });
-
-        let data;
-
-        try {
-            data = await response.json();
-        } catch (error) {
-            throw new Error(
-                'The server returned an invalid response while loading remaining quantities.'
-            );
-        }
-
-        if (!response.ok) {
-            throw new Error(buildValidationMessage(data));
-        }
-
-        remainingStock = {
-            lsm: Number(data.remaining?.lsm || 0),
-            lsl: Number(data.remaining?.lsl || 0),
-            bucket: Number(data.remaining?.bucket || 0),
-            us9: Number(data.remaining?.us9 || 0),
-            us10: Number(data.remaining?.us10 || 0),
-            gloves: Number(data.remaining?.gloves || 0),
-            mask: Number(data.remaining?.mask || 0),
-        };
-
-        baseStock = { ...remainingStock };
-
-        updateRemainingUI();
-        validateAssignmentForm();
-    }
-
-    function updateRemainingUI() {
-        document
-            .querySelectorAll('.remainingQty')
-            .forEach(cell => {
-                const row = cell.closest('tr');
-
-                if (!row) {
-                    return;
-                }
-
-                const name =
-                    row.children[0]?.innerText.trim() || '';
-
-                const label = normaliseLabel(
-                    row.children[1]?.innerText
+            const distributionIndexUrl =
+                @json(
+                    route(
+                        'tssd.distributions.index'
+                    )
                 );
 
-                const key = getKey(name, label);
+            const remainingUrlTemplate =
+                @json(
+                    route(
+                        'tssd.purchase-orders.remaining',
+                        [
+                            'poId' => '__PO_ID__',
+                        ]
+                    )
+                );
 
-                if (key) {
-                    cell.innerText = remainingStock[key];
-                }
-            });
-    }
+            const fieldDefinitions = {
+                lsm: {
+                    requestField:
+                        'long_sleeve_medium',
 
-    /*
-    |--------------------------------------------------------------------------
-    | Purchase Order Selection
-    |--------------------------------------------------------------------------
-    */
+                    label:
+                        'Long Sleeve Medium',
+                },
 
-    document
-        .getElementById('purchase_order')
-        .addEventListener('change', async function () {
-            const id = Number(this.value);
+                lsl: {
+                    requestField:
+                        'long_sleeve_large',
 
-            selectedPO = purchaseOrders.find(
-                purchaseOrder =>
-                    Number(purchaseOrder.id) === id
-            );
+                    label:
+                        'Long Sleeve Large',
+                },
 
-            resetDistributionState();
+                bucket: {
+                    requestField:
+                        'bucket_hat',
+
+                    label:
+                        'Bucket Hat',
+                },
+
+                us9: {
+                    requestField:
+                        'rubber_boots_us9',
+
+                    label:
+                        'Rubber Boots US9',
+                },
+
+                us10: {
+                    requestField:
+                        'rubber_boots_us10',
+
+                    label:
+                        'Rubber Boots US10',
+                },
+
+                gloves: {
+                    requestField:
+                        'hand_gloves',
+
+                    label:
+                        'Hand Gloves',
+                },
+
+                mask: {
+                    requestField:
+                        'mask',
+
+                    label:
+                        'Mask',
+                },
+            };
+
+            const fields =
+                Object.keys(
+                    fieldDefinitions
+                );
+
+            const form =
+                document.getElementById(
+                    'distributionForm'
+                );
+
+            const purchaseOrderSelect =
+                document.getElementById(
+                    'purchase_order'
+                );
 
             const purchaseSummary =
-                document.getElementById('purchaseSummary');
-
-            if (!selectedPO) {
-                document.getElementById('po_date').value = '';
-                document.getElementById('supplier').value = '';
-                document.getElementById('nefa').value = '';
-
-                purchaseSummary.innerHTML = `
-                    <tr>
-                        <td
-                            colspan="4"
-                            class="text-center py-8 text-gray-500"
-                        >
-                            Select a Purchase Order.
-                        </td>
-                    </tr>
-                `;
-
-                return;
-            }
-
-            document.getElementById('po_date').value =
-                selectedPO.po_date ?? '';
-
-            document.getElementById('supplier').value =
-                selectedPO.supplier?.supplier_name ?? '';
-
-            document.getElementById('nefa').value =
-                selectedPO.nefa_number ?? '';
-
-            const items =
-                selectedPO.items ||
-                selectedPO.purchase_order_items ||
-                selectedPO.purchaseOrderItems ||
-                [];
-
-            purchaseSummary.innerHTML = '';
-
-            if (!items.length) {
-                purchaseSummary.innerHTML = `
-                    <tr>
-                        <td
-                            colspan="4"
-                            class="text-center py-8 text-red-500"
-                        >
-                            No purchased items were found.
-                        </td>
-                    </tr>
-                `;
-
-                return;
-            }
-
-            items.forEach(item => {
-                const name =
-                    item.item?.item_name ?? '';
-
-                const label =
-                    item.item?.label ?? '';
-
-                const key = getKey(name, label);
-
-                purchaseSummary.insertAdjacentHTML(
-                    'beforeend',
-                    `
-                        <tr>
-                            <td class="border px-4 py-2">
-                                ${name}
-                            </td>
-
-                            <td class="border px-4 py-2 text-center">
-                                ${label || '-'}
-                            </td>
-
-                            <td class="border px-4 py-2 text-center">
-                                ${Number(item.quantity || 0)}
-                            </td>
-
-                            <td
-                                class="border px-4 py-2 text-center remainingQty"
-                            >
-                                0
-                            </td>
-                        </tr>
-                    `
+                document.getElementById(
+                    'purchaseSummary'
                 );
 
-                if (key) {
-                    baseStock[key] =
-                        Number(item.quantity || 0);
-                }
-            });
-
-            try {
-                await loadRemaining(id);
-            } catch (error) {
-                alert(
-                    error.message ||
-                    'Unable to load remaining quantities.'
-                );
-            }
-        });
-
-    /*
-    |--------------------------------------------------------------------------
-    | Assignment Modal
-    |--------------------------------------------------------------------------
-    */
-
-    const modal = document.getElementById('assignModal');
-
-    function openModal() {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    }
-
-    function closeModal() {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
-
-    document
-        .getElementById('openModal')
-        .addEventListener('click', function () {
-            if (!selectedPO) {
-                alert(
-                    'Please select a Purchase Order first.'
-                );
-
-                return;
-            }
-
-            resetAssignmentInputs();
-            openModal();
-        });
-
-    document
-        .getElementById('closeModal')
-        .addEventListener('click', closeModal);
-
-    document
-        .getElementById('cancelAssign')
-        .addEventListener('click', closeModal);
-
-    /*
-    |--------------------------------------------------------------------------
-    | Assignment Validation
-    |--------------------------------------------------------------------------
-    */
-
-    function validateAssignmentForm() {
-        let valid = true;
-        let total = 0;
-
-        fields.forEach(field => {
-            const input =
-                document.getElementById(field);
-
-            const value = Number(input.value || 0);
-            const remaining =
-                Number(remainingStock[field] || 0);
-
-            if (
-                !Number.isInteger(value) ||
-                value < 0 ||
-                value > remaining
-            ) {
-                valid = false;
-            }
-
-            total += value;
-        });
-
-        if (total <= 0) {
-            valid = false;
-        }
-
-        const provinceSelect =
-            document.getElementById('provinceSelect');
-
-        if (!provinceSelect.value) {
-            valid = false;
-        }
-
-        const button =
-            document.getElementById('saveAssign');
-
-        button.disabled = !valid;
-
-        button.className = valid
-            ? 'bg-red-900 hover:bg-red-800 text-white px-6 py-2 rounded-xl'
-            : 'bg-gray-400 cursor-not-allowed text-white px-6 py-2 rounded-xl';
-    }
-
-    fields.forEach(field => {
-        const input =
-            document.getElementById(field);
-
-        const warning =
-            document.createElement('p');
-
-        warning.dataset.quantityWarning = 'true';
-        warning.className =
-            'text-xs text-red-600 mt-1 hidden';
-
-        input.parentNode.appendChild(warning);
-
-        input.addEventListener('input', function () {
-            let value = Number(this.value || 0);
-
-            if (!Number.isFinite(value) || value < 0) {
-                value = 0;
-                this.value = 0;
-            }
-
-            value = Math.floor(value);
-            this.value = value;
-
-            const remaining =
-                Number(remainingStock[field] || 0);
-
-            if (value > remaining) {
-                warning.textContent =
-                    `Only ${remaining} remaining.`;
-
-                warning.classList.remove('hidden');
-                this.classList.add('border-red-500');
-            } else {
-                warning.textContent = '';
-                warning.classList.add('hidden');
-                this.classList.remove('border-red-500');
-            }
-
-            validateAssignmentForm();
-        });
-    });
-
-    document
-        .getElementById('provinceSelect')
-        .addEventListener(
-            'change',
-            validateAssignmentForm
-        );
-
-    /*
-    |--------------------------------------------------------------------------
-    | Add Province Allocation
-    |--------------------------------------------------------------------------
-    */
-
-    document
-        .getElementById('saveAssign')
-        .addEventListener('click', function () {
-            if (this.disabled) {
-                alert(
-                    'Please select a province and enter valid quantities.'
-                );
-
-                return;
-            }
-
-            const provinceSelect =
-                document.getElementById('provinceSelect');
-
-            const provinceId =
-                Number(provinceSelect.value);
-
-            if (!provinceId) {
-                alert('Please select a province.');
-
-                return;
-            }
-
-            if (
-                distributions.some(
-                    distribution =>
-                        Number(distribution.province_id) ===
-                        provinceId
-                )
-            ) {
-                alert(
-                    'This province has already been assigned.'
-                );
-
-                return;
-            }
-
-            const values = {};
-
-            fields.forEach(field => {
-                values[field] = Number(
-                    document.getElementById(field).value || 0
-                );
-            });
-
-            const allocationTotal = fields.reduce(
-                (total, field) =>
-                    total + values[field],
-                0
-            );
-
-            if (allocationTotal <= 0) {
-                alert(
-                    'Enter at least one PPE quantity greater than zero.'
-                );
-
-                return;
-            }
-
-            for (const field of fields) {
-                if (
-                    values[field] >
-                    Number(remainingStock[field] || 0)
-                ) {
-                    alert(
-                        `The ${field} quantity exceeds the remaining stock.`
-                    );
-
-                    return;
-                }
-            }
-
-            distributions.push({
-                province_id: provinceId,
-
-                long_sleeve_medium:
-                    values.lsm,
-
-                long_sleeve_large:
-                    values.lsl,
-
-                bucket_hat:
-                    values.bucket,
-
-                rubber_boots_us9:
-                    values.us9,
-
-                rubber_boots_us10:
-                    values.us10,
-
-                hand_gloves:
-                    values.gloves,
-
-                mask:
-                    values.mask,
-            });
-
-            remainingStock.lsm -= values.lsm;
-            remainingStock.lsl -= values.lsl;
-            remainingStock.bucket -= values.bucket;
-            remainingStock.us9 -= values.us9;
-            remainingStock.us10 -= values.us10;
-            remainingStock.gloves -= values.gloves;
-            remainingStock.mask -= values.mask;
-
-            updateRemainingUI();
-
-            const selectedOption =
-                provinceSelect.options[
-                provinceSelect.selectedIndex
-                ];
-
-            const provinceName =
-                selectedOption.dataset.name ||
-                selectedOption.textContent.trim();
-
-            const summary =
+            const distributionSummary =
                 document.getElementById(
                     'distributionSummary'
                 );
 
-            const emptyRow =
+            const provinceSelect =
                 document.getElementById(
-                    'emptyDistributionRow'
+                    'provinceSelect'
                 );
 
-            if (emptyRow) {
-                emptyRow.remove();
-            }
+            const deliveryDateInput =
+                document.getElementById(
+                    'delivery_date'
+                );
 
-            const rowIndex =
-                distributions.length - 1;
-
-            summary.insertAdjacentHTML(
-                'beforeend',
-                `
-                    <tr
-                        class="border-t hover:bg-gray-50"
-                        data-distribution-row="${rowIndex}"
-                    >
-                        <td class="px-4 py-3 font-semibold">
-                            ${provinceName}
-                        </td>
-
-                        <td class="text-center">
-                            ${values.lsm}
-                        </td>
-
-                        <td class="text-center">
-                            ${values.lsl}
-                        </td>
-
-                        <td class="text-center">
-                            ${values.bucket}
-                        </td>
-
-                        <td class="text-center">
-                            ${values.us9}
-                        </td>
-
-                        <td class="text-center">
-                            ${values.us10}
-                        </td>
-
-                        <td class="text-center">
-                            ${values.gloves}
-                        </td>
-
-                        <td class="text-center">
-                            ${values.mask}
-                        </td>
-                    </tr>
-                `
-            );
-
-            selectedOption.disabled = true;
-            provinceSelect.selectedIndex = 0;
-
-            resetAssignmentInputs();
-            closeModal();
-        });
-
-    /*
-    |--------------------------------------------------------------------------
-    | Submit Distribution
-    |--------------------------------------------------------------------------
-    */
-
-    document
-        .getElementById('distributionForm')
-        .addEventListener(
-            'submit',
-            async function (event) {
-                event.preventDefault();
-
-                if (!selectedPO) {
-                    alert(
-                        'Please select a Purchase Order.'
-                    );
-
-                    return;
-                }
-
-                if (distributions.length === 0) {
-                    alert(
-                        'Please assign PPE to at least one province.'
-                    );
-
-                    return;
-                }
-
-                const deliveryDate =
-                    document.getElementById(
-                        'delivery_date'
-                    ).value;
-
-                if (!deliveryDate) {
-                    alert(
-                        'Please provide the delivery date.'
-                    );
-
-                    return;
-                }
-
+            const distributionsInput =
                 document.getElementById(
                     'distributionsInput'
-                ).value =
-                    JSON.stringify(distributions);
+                );
 
-                const submitButton =
-                    document.getElementById('submitDistributionButton');
+            const submitButton =
+                document.getElementById(
+                    'submitDistributionButton'
+                );
 
-                if (!submitButton) {
-                    alert('The Save Distribution button could not be found.');
+            const saveAssignButton =
+                document.getElementById(
+                    'saveAssign'
+                );
+
+            const modal =
+                document.getElementById(
+                    'assignModal'
+                );
+
+            let selectedPO = null;
+
+            let distributions = [];
+
+            /*
+             * The values returned by the backend already account for
+             * previous saved distributions under this Purchase Order.
+             *
+             * This is the starting stock for the new form session.
+             */
+            let baseStock =
+                emptyStock();
+
+            /*
+             * Always recalculated from:
+             *
+             * baseStock - total allocations in distributions[]
+             */
+            let remainingStock =
+                emptyStock();
+
+            /*
+             * Null means a new allocation is being added.
+             * An integer means an existing row is being edited.
+             */
+            let editingIndex = null;
+
+            function emptyStock() {
+                return {
+                    lsm: 0,
+                    lsl: 0,
+                    bucket: 0,
+                    us9: 0,
+                    us10: 0,
+                    gloves: 0,
+                    mask: 0,
+                };
+            }
+
+            function normaliseLabel(label) {
+                const value = String(
+                    label ?? ''
+                ).trim();
+
+                return value === '-'
+                    ? ''
+                    : value;
+            }
+
+            function getKey(
+                itemName,
+                label
+            ) {
+                if (
+                    itemName === 'Long Sleeve'
+                    && label === 'Medium'
+                ) {
+                    return 'lsm';
+                }
+
+                if (
+                    itemName === 'Long Sleeve'
+                    && label === 'Large'
+                ) {
+                    return 'lsl';
+                }
+
+                if (
+                    itemName === 'Bucket Hat'
+                ) {
+                    return 'bucket';
+                }
+
+                if (
+                    itemName === 'Rubber Boots'
+                    && label === 'US9'
+                ) {
+                    return 'us9';
+                }
+
+                if (
+                    itemName === 'Rubber Boots'
+                    && label === 'US10'
+                ) {
+                    return 'us10';
+                }
+
+                if (
+                    itemName === 'Hand Gloves'
+                ) {
+                    return 'gloves';
+                }
+
+                if (itemName === 'Mask') {
+                    return 'mask';
+                }
+
+                return null;
+            }
+
+            function requestValue(
+                distribution,
+                field
+            ) {
+                const requestField =
+                    fieldDefinitions[field]
+                        .requestField;
+
+                return Number(
+                    distribution[
+                    requestField
+                    ] || 0
+                );
+            }
+
+            function calculateAllocatedTotals(
+                exceptIndex = null
+            ) {
+                const totals =
+                    emptyStock();
+
+                distributions.forEach(
+                    (
+                        distribution,
+                        index
+                    ) => {
+                        if (
+                            exceptIndex !== null
+                            && index === exceptIndex
+                        ) {
+                            return;
+                        }
+
+                        fields.forEach(
+                            field => {
+                                totals[field] +=
+                                    requestValue(
+                                        distribution,
+                                        field
+                                    );
+                            }
+                        );
+                    }
+                );
+
+                return totals;
+            }
+
+            /**
+             * Recalculate remaining stock exclusively from source data.
+             *
+             * remaining = baseStock - allocations
+             */
+            function recalculateRemainingStock() {
+                const allocatedTotals =
+                    calculateAllocatedTotals();
+
+                const recalculated =
+                    emptyStock();
+
+                fields.forEach(field => {
+                    recalculated[field] =
+                        Number(
+                            baseStock[field]
+                            || 0
+                        )
+                        - Number(
+                            allocatedTotals[field]
+                            || 0
+                        );
+                });
+
+                remainingStock =
+                    recalculated;
+
+                updateRemainingUI();
+                updateSubmitState();
+
+                return remainingStock;
+            }
+
+            /**
+             * Available quantity while adding or editing.
+             *
+             * During edit, the old values of that row are temporarily
+             * excluded so the user may reuse them.
+             */
+            function stockAvailableForModal(
+                field
+            ) {
+                const allocatedWithoutCurrent =
+                    calculateAllocatedTotals(
+                        editingIndex
+                    );
+
+                return Number(
+                    baseStock[field] || 0
+                )
+                    - Number(
+                        allocatedWithoutCurrent[
+                        field
+                        ] || 0
+                    );
+            }
+
+            function combinedAllocationIsValid() {
+                const allocatedTotals =
+                    calculateAllocatedTotals();
+
+                return fields.every(
+                    field =>
+                        Number(
+                            allocatedTotals[
+                            field
+                            ] || 0
+                        )
+                        <= Number(
+                            baseStock[field]
+                            || 0
+                        )
+                );
+            }
+
+            function buildValidationMessage(
+                data
+            ) {
+                if (data?.errors) {
+                    return Object
+                        .values(data.errors)
+                        .flat()
+                        .join('\n');
+                }
+
+                return data?.message
+                    || 'The request could not be completed.';
+            }
+
+            function openModal() {
+                modal.classList.remove(
+                    'hidden'
+                );
+
+                modal.classList.add(
+                    'flex'
+                );
+            }
+
+            function closeModal() {
+                modal.classList.add(
+                    'hidden'
+                );
+
+                modal.classList.remove(
+                    'flex'
+                );
+
+                editingIndex = null;
+
+                resetAssignmentInputs();
+
+                provinceSelect.disabled =
+                    false;
+
+                saveAssignButton.textContent =
+                    'Add Province';
+            }
+
+            function clearQuantityWarning(
+                input
+            ) {
+                input.classList.remove(
+                    'border-red-500',
+                    'bg-red-50'
+                );
+
+                const warning =
+                    input.parentElement
+                        .querySelector(
+                            '[data-quantity-warning]'
+                        );
+
+                if (warning) {
+                    warning.textContent =
+                        '';
+
+                    warning.classList.add(
+                        'hidden'
+                    );
+                }
+            }
+
+            function showQuantityWarning(
+                input,
+                message
+            ) {
+                input.classList.add(
+                    'border-red-500',
+                    'bg-red-50'
+                );
+
+                const warning =
+                    input.parentElement
+                        .querySelector(
+                            '[data-quantity-warning]'
+                        );
+
+                if (warning) {
+                    warning.textContent =
+                        message;
+
+                    warning.classList.remove(
+                        'hidden'
+                    );
+                }
+            }
+
+            function resetAssignmentInputs() {
+                fields.forEach(field => {
+                    const input =
+                        document.getElementById(
+                            field
+                        );
+
+                    input.value = 0;
+
+                    clearQuantityWarning(
+                        input
+                    );
+                });
+
+                provinceSelect.selectedIndex =
+                    0;
+
+                validateAssignmentForm();
+            }
+
+            function enableAllProvinceOptions() {
+                Array.from(
+                    provinceSelect.options
+                ).forEach(option => {
+                    option.disabled =
+                        false;
+                });
+
+                provinceSelect.selectedIndex =
+                    0;
+            }
+
+            function refreshProvinceOptions() {
+                const assignedProvinceIds =
+                    new Set(
+                        distributions.map(
+                            distribution =>
+                                Number(
+                                    distribution
+                                        .province_id
+                                )
+                        )
+                    );
+
+                Array.from(
+                    provinceSelect.options
+                ).forEach(option => {
+                    if (!option.value) {
+                        option.disabled =
+                            false;
+
+                        return;
+                    }
+
+                    const provinceId =
+                        Number(option.value);
+
+                    const editingProvinceId =
+                        editingIndex !== null
+                            ? Number(
+                                distributions[
+                                    editingIndex
+                                ]?.province_id
+                            )
+                            : null;
+
+                    option.disabled =
+                        assignedProvinceIds
+                            .has(provinceId)
+                        && provinceId
+                        !== editingProvinceId;
+                });
+            }
+
+            function resetDistributionSummary() {
+                distributionSummary.innerHTML = `
+                    <tr id="emptyDistributionRow">
+                        <td
+                            colspan="9"
+                            class="py-8 text-center text-gray-500"
+                        >
+                            No province assigned yet.
+                        </td>
+                    </tr>
+                `;
+            }
+
+            function resetDistributionState() {
+                selectedPO =
+                    selectedPO;
+
+                distributions = [];
+
+                baseStock =
+                    emptyStock();
+
+                remainingStock =
+                    emptyStock();
+
+                editingIndex = null;
+
+                enableAllProvinceOptions();
+                resetAssignmentInputs();
+                resetDistributionSummary();
+                updateRemainingUI();
+                updateSubmitState();
+            }
+
+            function updateRemainingUI() {
+                document
+                    .querySelectorAll(
+                        '.remainingQty'
+                    )
+                    .forEach(cell => {
+                        const row =
+                            cell.closest('tr');
+
+                        if (!row) {
+                            return;
+                        }
+
+                        const name =
+                            row.children[0]
+                                ?.innerText
+                                .trim()
+                            || '';
+
+                        const label =
+                            normaliseLabel(
+                                row.children[1]
+                                    ?.innerText
+                            );
+
+                        const key =
+                            getKey(
+                                name,
+                                label
+                            );
+
+                        if (!key) {
+                            return;
+                        }
+
+                        const remaining =
+                            Number(
+                                remainingStock[
+                                key
+                                ] || 0
+                            );
+
+                        cell.textContent =
+                            Math.max(
+                                0,
+                                remaining
+                            ).toLocaleString();
+
+                        cell.className =
+                            remaining < 0
+                                ? 'remainingQty border px-4 py-2 text-center font-semibold text-red-700'
+                                : 'remainingQty border px-4 py-2 text-center font-semibold text-green-700';
+                    });
+            }
+
+            function renderDistributionSummary() {
+                if (
+                    distributions.length
+                    === 0
+                ) {
+                    resetDistributionSummary();
+                    refreshProvinceOptions();
+                    recalculateRemainingStock();
+
                     return;
                 }
 
-                const originalButtonText =
-                    submitButton.textContent.trim();
+                distributionSummary.innerHTML =
+                    '';
 
-                submitButton.disabled = true;
-                submitButton.textContent =
-                    'Saving Distribution...';
+                distributions.forEach(
+                    (
+                        distribution,
+                        index
+                    ) => {
+                        const option =
+                            Array.from(
+                                provinceSelect.options
+                            ).find(
+                                provinceOption =>
+                                    Number(
+                                        provinceOption.value
+                                    )
+                                    === Number(
+                                        distribution
+                                            .province_id
+                                    )
+                            );
 
-                try {
-                    const response = await fetch(
-                        this.action,
+                        const provinceName =
+                            option?.dataset.name
+                            || option?.textContent
+                                ?.trim()
+                            || 'Province';
+
+                        distributionSummary
+                            .insertAdjacentHTML(
+                                'beforeend',
+                                `
+                                    <tr
+                                        class="border-t hover:bg-gray-50"
+                                        data-distribution-row="${index}"
+                                    >
+                                        <td class="px-4 py-3 font-semibold">
+                                            ${provinceName}
+                                        </td>
+
+                                        <td class="text-center">
+                                            ${requestValue(distribution, 'lsm')}
+                                        </td>
+
+                                        <td class="text-center">
+                                            ${requestValue(distribution, 'lsl')}
+                                        </td>
+
+                                        <td class="text-center">
+                                            ${requestValue(distribution, 'bucket')}
+                                        </td>
+
+                                        <td class="text-center">
+                                            ${requestValue(distribution, 'us9')}
+                                        </td>
+
+                                        <td class="text-center">
+                                            ${requestValue(distribution, 'us10')}
+                                        </td>
+
+                                        <td class="text-center">
+                                            ${requestValue(distribution, 'gloves')}
+                                        </td>
+
+                                        <td class="text-center">
+                                            ${requestValue(distribution, 'mask')}
+                                        </td>
+
+                                        <td class="px-3 py-3 text-center">
+                                            <div class="flex justify-center gap-2">
+                                                <button
+                                                    type="button"
+                                                    data-edit-index="${index}"
+                                                    class="rounded-lg bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700"
+                                                >
+                                                    Edit
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    data-remove-index="${index}"
+                                                    class="rounded-lg bg-red-600 px-3 py-1 text-xs font-semibold text-white hover:bg-red-700"
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `
+                            );
+                    }
+                );
+
+                refreshProvinceOptions();
+                recalculateRemainingStock();
+            }
+
+            function readModalValues() {
+                const values = {};
+
+                fields.forEach(field => {
+                    const input =
+                        document.getElementById(
+                            field
+                        );
+
+                    let value =
+                        Number(
+                            input.value || 0
+                        );
+
+                    if (
+                        !Number.isFinite(
+                            value
+                        )
+                        || value < 0
+                    ) {
+                        value = 0;
+                    }
+
+                    value =
+                        Math.floor(value);
+
+                    input.value =
+                        value;
+
+                    values[field] =
+                        value;
+                });
+
+                return values;
+            }
+
+            function validateAssignmentForm() {
+                let valid = true;
+                let total = 0;
+
+                fields.forEach(field => {
+                    const input =
+                        document.getElementById(
+                            field
+                        );
+
+                    const value =
+                        Number(
+                            input.value || 0
+                        );
+
+                    const available =
+                        stockAvailableForModal(
+                            field
+                        );
+
+                    clearQuantityWarning(
+                        input
+                    );
+
+                    if (
+                        !Number.isInteger(
+                            value
+                        )
+                        || value < 0
+                    ) {
+                        showQuantityWarning(
+                            input,
+                            'Enter a valid non-negative whole number.'
+                        );
+
+                        valid = false;
+                    } else if (
+                        value > available
+                    ) {
+                        showQuantityWarning(
+                            input,
+                            `${fieldDefinitions[field].label} has only ${Math.max(0, available).toLocaleString()} remaining.`
+                        );
+
+                        valid = false;
+                    }
+
+                    total +=
+                        Number.isFinite(value)
+                            ? value
+                            : 0;
+                });
+
+                if (total <= 0) {
+                    valid = false;
+                }
+
+                if (!provinceSelect.value) {
+                    valid = false;
+                }
+
+                saveAssignButton.disabled =
+                    !valid;
+
+                saveAssignButton.className =
+                    valid
+                        ? 'bg-red-900 hover:bg-red-800 text-white px-6 py-2 rounded-xl'
+                        : 'bg-gray-400 cursor-not-allowed text-white px-6 py-2 rounded-xl';
+
+                return valid;
+            }
+
+            function updateSubmitState() {
+                const hasSelectedPO =
+                    Boolean(selectedPO);
+
+                const hasDistributions =
+                    distributions.length > 0;
+
+                const validCombinedTotals =
+                    combinedAllocationIsValid();
+
+                const hasDeliveryDate =
+                    Boolean(
+                        deliveryDateInput.value
+                    );
+
+                submitButton.disabled =
+                    !hasSelectedPO
+                    || !hasDistributions
+                    || !validCombinedTotals
+                    || !hasDeliveryDate;
+            }
+
+            async function loadRemaining(
+                poId
+            ) {
+                const url =
+                    remainingUrlTemplate
+                        .replace(
+                            '__PO_ID__',
+                            poId
+                        );
+
+                const response =
+                    await fetch(
+                        url,
                         {
-                            method: 'POST',
-                            body: new FormData(this),
+                            method: 'GET',
+
                             headers: {
-                                Accept: 'application/json',
+                                Accept:
+                                    'application/json',
+
                                 'X-Requested-With':
                                     'XMLHttpRequest',
                             },
                         }
                     );
 
-                    let data;
+                let data;
+
+                try {
+                    data =
+                        await response.json();
+                } catch (error) {
+                    throw new Error(
+                        'The server returned an invalid response while loading remaining quantities.'
+                    );
+                }
+
+                if (!response.ok) {
+                    throw new Error(
+                        buildValidationMessage(
+                            data
+                        )
+                    );
+                }
+
+                baseStock = {
+                    lsm: Number(
+                        data.remaining?.lsm
+                        || 0
+                    ),
+
+                    lsl: Number(
+                        data.remaining?.lsl
+                        || 0
+                    ),
+
+                    bucket: Number(
+                        data.remaining
+                            ?.bucket
+                        || 0
+                    ),
+
+                    us9: Number(
+                        data.remaining?.us9
+                        || 0
+                    ),
+
+                    us10: Number(
+                        data.remaining
+                            ?.us10
+                        || 0
+                    ),
+
+                    gloves: Number(
+                        data.remaining
+                            ?.gloves
+                        || 0
+                    ),
+
+                    mask: Number(
+                        data.remaining?.mask
+                        || 0
+                    ),
+                };
+
+                recalculateRemainingStock();
+                validateAssignmentForm();
+            }
+
+            purchaseOrderSelect
+                .addEventListener(
+                    'change',
+                    async function () {
+                        const id =
+                            Number(this.value);
+
+                        selectedPO =
+                            purchaseOrders.find(
+                                purchaseOrder =>
+                                    Number(
+                                        purchaseOrder.id
+                                    ) === id
+                            ) || null;
+
+                        resetDistributionState();
+
+                        if (!selectedPO) {
+                            document
+                                .getElementById(
+                                    'po_date'
+                                )
+                                .value = '';
+
+                            document
+                                .getElementById(
+                                    'supplier'
+                                )
+                                .value = '';
+
+                            document
+                                .getElementById(
+                                    'nefa'
+                                )
+                                .value = '';
+
+                            purchaseSummary.innerHTML = `
+                                <tr>
+                                    <td
+                                        colspan="4"
+                                        class="py-8 text-center text-gray-500"
+                                    >
+                                        Select a Purchase Order.
+                                    </td>
+                                </tr>
+                            `;
+
+                            return;
+                        }
+
+                        document
+                            .getElementById(
+                                'po_date'
+                            )
+                            .value =
+                            selectedPO.po_date
+                            ?? '';
+
+                        document
+                            .getElementById(
+                                'supplier'
+                            )
+                            .value =
+                            selectedPO
+                                .supplier
+                                ?.supplier_name
+                            ?? '';
+
+                        document
+                            .getElementById(
+                                'nefa'
+                            )
+                            .value =
+                            selectedPO
+                                .nefa_number
+                            ?? '';
+
+                        const items =
+                            selectedPO.items
+                            || selectedPO
+                                .purchase_order_items
+                            || selectedPO
+                                .purchaseOrderItems
+                            || [];
+
+                        purchaseSummary.innerHTML =
+                            '';
+
+                        if (!items.length) {
+                            purchaseSummary.innerHTML = `
+                                <tr>
+                                    <td
+                                        colspan="4"
+                                        class="py-8 text-center text-red-500"
+                                    >
+                                        No purchased items were found.
+                                    </td>
+                                </tr>
+                            `;
+
+                            return;
+                        }
+
+                        items.forEach(item => {
+                            const name =
+                                item.item
+                                    ?.item_name
+                                ?? '';
+
+                            const label =
+                                item.item
+                                    ?.label
+                                ?? '';
+
+                            purchaseSummary
+                                .insertAdjacentHTML(
+                                    'beforeend',
+                                    `
+                                        <tr>
+                                            <td class="border px-4 py-2">
+                                                ${name}
+                                            </td>
+
+                                            <td class="border px-4 py-2 text-center">
+                                                ${label || '-'}
+                                            </td>
+
+                                            <td class="border px-4 py-2 text-center">
+                                                ${Number(item.quantity || 0).toLocaleString()}
+                                            </td>
+
+                                            <td class="remainingQty border px-4 py-2 text-center font-semibold text-green-700">
+                                                0
+                                            </td>
+                                        </tr>
+                                    `
+                                );
+                        });
+
+                        try {
+                            await loadRemaining(
+                                id
+                            );
+                        } catch (error) {
+                            alert(
+                                error.message
+                                || 'Unable to load remaining quantities.'
+                            );
+                        }
+                    }
+                );
+
+            document
+                .getElementById(
+                    'openModal'
+                )
+                .addEventListener(
+                    'click',
+                    function () {
+                        if (!selectedPO) {
+                            alert(
+                                'Please select a Purchase Order first.'
+                            );
+
+                            return;
+                        }
+
+                        editingIndex = null;
+
+                        resetAssignmentInputs();
+                        refreshProvinceOptions();
+
+                        provinceSelect.disabled =
+                            false;
+
+                        saveAssignButton
+                            .textContent =
+                            'Add Province';
+
+                        openModal();
+                    }
+                );
+
+            document
+                .getElementById(
+                    'closeModal'
+                )
+                .addEventListener(
+                    'click',
+                    closeModal
+                );
+
+            document
+                .getElementById(
+                    'cancelAssign'
+                )
+                .addEventListener(
+                    'click',
+                    closeModal
+                );
+
+            fields.forEach(field => {
+                const input =
+                    document.getElementById(
+                        field
+                    );
+
+                const warning =
+                    document.createElement(
+                        'p'
+                    );
+
+                warning.dataset
+                    .quantityWarning =
+                    'true';
+
+                warning.className =
+                    'mt-1 hidden text-xs font-semibold text-red-600';
+
+                input.parentElement
+                    .appendChild(
+                        warning
+                    );
+
+                input.setAttribute(
+                    'min',
+                    '0'
+                );
+
+                input.setAttribute(
+                    'step',
+                    '1'
+                );
+
+                input.addEventListener(
+                    'input',
+                    function () {
+                        let value =
+                            Number(
+                                this.value
+                                || 0
+                            );
+
+                        if (
+                            !Number.isFinite(
+                                value
+                            )
+                            || value < 0
+                        ) {
+                            value = 0;
+                        }
+
+                        value =
+                            Math.floor(value);
+
+                        this.value =
+                            value;
+
+                        validateAssignmentForm();
+                    }
+                );
+            });
+
+            provinceSelect
+                .addEventListener(
+                    'change',
+                    validateAssignmentForm
+                );
+
+            saveAssignButton
+                .addEventListener(
+                    'click',
+                    function () {
+                        if (
+                            !validateAssignmentForm()
+                        ) {
+                            alert(
+                                'Select a province and enter valid PPE quantities.'
+                            );
+
+                            return;
+                        }
+
+                        const provinceId =
+                            Number(
+                                provinceSelect
+                                    .value
+                            );
+
+                        const values =
+                            readModalValues();
+
+                        const newDistribution = {
+                            province_id:
+                                provinceId,
+
+                            long_sleeve_medium:
+                                values.lsm,
+
+                            long_sleeve_large:
+                                values.lsl,
+
+                            bucket_hat:
+                                values.bucket,
+
+                            rubber_boots_us9:
+                                values.us9,
+
+                            rubber_boots_us10:
+                                values.us10,
+
+                            hand_gloves:
+                                values.gloves,
+
+                            mask:
+                                values.mask,
+                        };
+
+                        if (
+                            editingIndex !== null
+                        ) {
+                            distributions[
+                                editingIndex
+                            ] = newDistribution;
+                        } else {
+                            distributions.push(
+                                newDistribution
+                            );
+                        }
+
+                        renderDistributionSummary();
+                        closeModal();
+                    }
+                );
+
+            distributionSummary
+                .addEventListener(
+                    'click',
+                    function (event) {
+                        const editButton =
+                            event.target.closest(
+                                '[data-edit-index]'
+                            );
+
+                        const removeButton =
+                            event.target.closest(
+                                '[data-remove-index]'
+                            );
+
+                        if (editButton) {
+                            const index =
+                                Number(
+                                    editButton
+                                        .dataset
+                                        .editIndex
+                                );
+
+                            const distribution =
+                                distributions[index];
+
+                            if (!distribution) {
+                                return;
+                            }
+
+                            editingIndex =
+                                index;
+
+                            refreshProvinceOptions();
+
+                            provinceSelect.value =
+                                String(
+                                    distribution
+                                        .province_id
+                                );
+
+                            /*
+                             * Keep province fixed while editing.
+                             */
+                            provinceSelect.disabled =
+                                true;
+
+                            fields.forEach(
+                                field => {
+                                    document
+                                        .getElementById(
+                                            field
+                                        )
+                                        .value =
+                                        requestValue(
+                                            distribution,
+                                            field
+                                        );
+                                }
+                            );
+
+                            saveAssignButton
+                                .textContent =
+                                'Update Province';
+
+                            validateAssignmentForm();
+                            openModal();
+
+                            return;
+                        }
+
+                        if (removeButton) {
+                            const index =
+                                Number(
+                                    removeButton
+                                        .dataset
+                                        .removeIndex
+                                );
+
+                            const distribution =
+                                distributions[index];
+
+                            if (!distribution) {
+                                return;
+                            }
+
+                            const option =
+                                Array.from(
+                                    provinceSelect.options
+                                ).find(
+                                    provinceOption =>
+                                        Number(
+                                            provinceOption
+                                                .value
+                                        )
+                                        === Number(
+                                            distribution
+                                                .province_id
+                                        )
+                                );
+
+                            const provinceName =
+                                option?.dataset.name
+                                || option?.textContent
+                                    ?.trim()
+                                || 'this province';
+
+                            const confirmed =
+                                confirm(
+                                    `Remove the PPE allocation for ${provinceName}?`
+                                );
+
+                            if (!confirmed) {
+                                return;
+                            }
+
+                            distributions.splice(
+                                index,
+                                1
+                            );
+
+                            renderDistributionSummary();
+                        }
+                    }
+                );
+
+            deliveryDateInput
+                .addEventListener(
+                    'change',
+                    updateSubmitState
+                );
+
+            form.addEventListener(
+                'submit',
+                async function (
+                    event
+                ) {
+                    event.preventDefault();
+
+                    if (!selectedPO) {
+                        alert(
+                            'Please select a Purchase Order.'
+                        );
+
+                        return;
+                    }
+
+                    if (
+                        distributions.length
+                        === 0
+                    ) {
+                        alert(
+                            'Please assign PPE to at least one province.'
+                        );
+
+                        return;
+                    }
+
+                    if (
+                        !combinedAllocationIsValid()
+                    ) {
+                        recalculateRemainingStock();
+
+                        alert(
+                            'One or more combined PPE allocations exceed the Purchase Order remaining quantity.'
+                        );
+
+                        return;
+                    }
+
+                    if (
+                        !deliveryDateInput
+                            .value
+                    ) {
+                        alert(
+                            'Please provide the delivery date.'
+                        );
+
+                        deliveryDateInput
+                            .focus();
+
+                        return;
+                    }
+
+                    distributionsInput.value =
+                        JSON.stringify(
+                            distributions
+                        );
+
+                    const originalText =
+                        submitButton
+                            .textContent
+                            .trim();
+
+                    submitButton.disabled =
+                        true;
+
+                    submitButton.textContent =
+                        'Saving Distribution...';
 
                     try {
-                        data = await response.json();
+                        const response =
+                            await fetch(
+                                this.action,
+                                {
+                                    method:
+                                        'POST',
+
+                                    body:
+                                        new FormData(
+                                            this
+                                        ),
+
+                                    headers: {
+                                        Accept:
+                                            'application/json',
+
+                                        'X-Requested-With':
+                                            'XMLHttpRequest',
+                                    },
+                                }
+                            );
+
+                        let data;
+
+                        try {
+                            data =
+                                await response
+                                    .json();
+                        } catch (error) {
+                            throw new Error(
+                                'The server returned an invalid response. Check the Laravel log for details.'
+                            );
+                        }
+
+                        if (!response.ok) {
+                            throw new Error(
+                                buildValidationMessage(
+                                    data
+                                )
+                            );
+                        }
+
+                        alert(
+                            data.message
+                            || 'Distribution saved successfully.'
+                        );
+
+                        window.location.href =
+                            data.redirect_url
+                            || distributionIndexUrl;
                     } catch (error) {
-                        throw new Error(
-                            'The server returned an invalid response. Check the Laravel log for details.'
+                        alert(
+                            error.message
+                            || 'An unexpected error occurred.'
                         );
+
+                        submitButton.disabled =
+                            false;
+
+                        submitButton.textContent =
+                            originalText;
                     }
-
-                    if (!response.ok) {
-                        throw new Error(
-                            buildValidationMessage(data)
-                        );
-                    }
-
-                    alert(
-                        data.message ||
-                        'Distribution saved successfully.'
-                    );
-
-                    window.location.href =
-                        data.redirect_url ||
-                        distributionIndexUrl;
-                } catch (error) {
-                    alert(
-                        error.message ||
-                        'An unexpected error occurred.'
-                    );
-
-                    submitButton.disabled = false;
-                    submitButton.textContent =
-                        originalButtonText;
                 }
-            }
-        );
+            );
+
+            resetDistributionSummary();
+            updateSubmitState();
+        }
+    );
 </script>
