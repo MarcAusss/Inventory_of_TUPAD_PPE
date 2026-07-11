@@ -170,4 +170,22 @@ class User extends Authenticatable
     {
         return $this->isAccounting();
     }
+
+    /**
+     * for notification of receiving PPE
+     */
+    public function workflowNotifications(): HasMany
+    {
+        return $this->hasMany(
+            WorkflowNotification::class,
+            'recipient_user_id'
+        );
+    }
+
+    public function unreadWorkflowNotifications(): HasMany
+    {
+        return $this
+            ->workflowNotifications()
+            ->where('status', 'Unread');
+    }
 }

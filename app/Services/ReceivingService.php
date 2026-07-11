@@ -11,6 +11,10 @@ use Illuminate\Validation\ValidationException;
 
 class ReceivingService extends BaseService
 {
+    public function __construct(
+        private readonly WorkflowNotificationService $notificationService
+    ) {}
+
     /**
      * Receive one approved provincial allocation.
      *
@@ -39,9 +43,18 @@ class ReceivingService extends BaseService
                 ->lockForUpdate()
                 ->findOrFail($provinceDistribution->id);
 
-            $this->validateProvinceAccess($provinceDistribution);
-            $this->validateAllocationStatus($provinceDistribution);
-            $this->validateNoExistingReceipt($provinceDistribution);
+            $this->validateProvinceAccess(
+                $provinceDistribution
+            );
+
+            $this->validateAllocationStatus(
+                $provinceDistribution
+            );
+
+            $this->validateNoExistingReceipt(
+                $provinceDistribution
+            );
+
             $this->validateReceivedItems(
                 $provinceDistribution,
                 $data['items']
@@ -59,9 +72,6 @@ class ReceivingService extends BaseService
             $receipt = DeliveryReceipt::create([
                 'province_distribution_id' => $provinceDistribution->id,
 
-                /*
-                 * Retained for compatibility and reporting.
-                 */
                 'purchase_order_id' => $purchaseOrder->id,
 
                 'province_id' => $provinceDistribution->province_id,
@@ -76,9 +86,6 @@ class ReceivingService extends BaseService
 
                 'document' => $documentPath,
 
-                /*
-                 * Legacy field retained while older views still use it.
-                 */
                 'received_by' => $data['physical_receiver_name'],
 
                 'remarks' => $data['remarks'] ?? null,
@@ -88,9 +95,12 @@ class ReceivingService extends BaseService
                 'submitted_at' => now(),
             ]);
 
-            foreach ($provinceDistribution->items as $allocationItem) {
+            foreach (
+                $provinceDistribution->items as $allocationItem
+            ) {
                 $receivedQuantity = (int) (
-                    $data['items'][$allocationItem->id] ?? 0
+                    $data['items'][$allocationItem->id]
+                    ?? 0
                 );
 
                 $receipt->items()->create([
@@ -98,9 +108,6 @@ class ReceivingService extends BaseService
 
                     'item_id' => $allocationItem->item_id,
 
-                    /*
-                     * Legacy quantity now mirrors the actual quantity received.
-                     */
                     'quantity' => $receivedQuantity,
 
                     'assigned_quantity' => $allocationItem->quantity,
@@ -117,14 +124,19 @@ class ReceivingService extends BaseService
                 }
             }
 
+            $receipt->load([
+                'province',
+                'items.item',
+                'provinceDistribution.distributionBatch.callOff',
+                'provinceDistribution.distributionBatch.purchaseOrder.supplier',
+            ]);
+
             $hasDiscrepancy = $receipt
-                ->items()
-                ->whereColumn(
-                    'assigned_quantity',
-                    '!=',
-                    'received_quantity'
-                )
-                ->exists();
+                ->items
+                ->contains(
+                    fn ($item): bool => (int) $item->assigned_quantity
+                        !== (int) $item->received_quantity
+                );
 
             $provinceDistribution->update([
                 'status' => $hasDiscrepancy
@@ -143,7 +155,11 @@ class ReceivingService extends BaseService
                 $provinceDistribution
             );
 
-            return $receipt->load([
+            $this
+                ->notificationService
+                ->notifyTssdOfReceiving($receipt);
+
+            return $receipt->fresh([
                 'provinceDistribution.distributionBatch.callOff',
                 'provinceDistribution.distributionBatch.purchaseOrder.supplier',
                 'province',
@@ -180,7 +196,10 @@ class ReceivingService extends BaseService
             ->distributionBatch
             ?->callOff;
 
-        if (! $callOff || $callOff->status !== 'Approved') {
+        if (
+            ! $callOff
+            || $callOff->status !== 'Approved'
+        ) {
             throw ValidationException::withMessages([
                 'province_distribution' => 'This allocation does not have an approved Call-Off.',
             ]);
@@ -220,7 +239,9 @@ class ReceivingService extends BaseService
     ): void {
         $errors = [];
 
-        foreach ($provinceDistribution->items as $allocationItem) {
+        foreach (
+            $provinceDistribution->items as $allocationItem
+        ) {
             if (! array_key_exists(
                 $allocationItem->id,
                 $submittedItems
@@ -244,7 +265,10 @@ class ReceivingService extends BaseService
                 continue;
             }
 
-            if ($receivedQuantity > $allocationItem->quantity) {
+            if (
+                $receivedQuantity
+                > $allocationItem->quantity
+            ) {
                 $itemName = $allocationItem
                     ->item
                     ?->item_name
@@ -272,7 +296,9 @@ class ReceivingService extends BaseService
             )
             ->all();
 
-        foreach (array_keys($submittedItems) as $submittedId) {
+        foreach (
+            array_keys($submittedItems) as $submittedId
+        ) {
             if (! in_array(
                 (int) $submittedId,
                 $validIds,
@@ -285,7 +311,9 @@ class ReceivingService extends BaseService
         }
 
         if ($errors !== []) {
-            throw ValidationException::withMessages($errors);
+            throw ValidationException::withMessages(
+                $errors
+            );
         }
     }
 
@@ -331,7 +359,9 @@ class ReceivingService extends BaseService
         $allReceived = $batch
             ->provinceDistributions
             ->every(
-                fn (ProvinceDistribution $allocation): bool => $allocation->status === 'Received'
+                fn (
+                    ProvinceDistribution $allocation
+                ): bool => $allocation->status === 'Received'
             );
 
         if ($allReceived) {
@@ -349,7 +379,9 @@ class ReceivingService extends BaseService
         $hasReceiving = $batch
             ->provinceDistributions
             ->contains(
-                fn (ProvinceDistribution $allocation): bool => in_array(
+                fn (
+                    ProvinceDistribution $allocation
+                ): bool => in_array(
                     $allocation->status,
                     [
                         'Received',

@@ -40,7 +40,41 @@
                         Supply Designations
                     </a>
 
+                    <a href="{{ route('provincial.current-inventory.index') }}" class="flex items-center rounded-lg px-4 py-3 transition
+        {{ request()->routeIs('provincial.current-inventory.*')
+    ? 'bg-red-900 text-white'
+    : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}">
+                        Current Inventory
+                    </a>
 
+                    <a href="{{ route('provincial.receiving.index') }}" class="flex items-center rounded-lg px-4 py-3 transition
+        {{ request()->routeIs('provincial.receiving.index')
+    || request()->routeIs('provincial.receiving.show')
+    || request()->routeIs('provincial.receiving.create')
+    ? 'bg-red-900 text-white'
+    : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}">
+                        Call-Off Allocations
+                    </a>
+
+                    <a href="{{ route('provincial.receiving.history') }}" class="flex items-center rounded-lg px-4 py-3 transition
+        {{ request()->routeIs('provincial.receiving.history')
+    ? 'bg-red-900 text-white'
+    : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}">
+                        Receiving History
+                    </a>
+                    <a href="{{ route('provincial.current-inventory.index') }}" class="flex items-center rounded-lg px-4 py-3 transition
+        {{ request()->routeIs('provincial.current-inventory.*')
+    ? 'bg-red-900 text-white'
+    : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}">
+                        Current Inventory
+                    </a>
+
+                    <a href="{{ route('provincial.project-designations.index') }}" class="flex items-center rounded-lg px-4 py-3 transition
+        {{ request()->routeIs('provincial.project-designations.*')
+    ? 'bg-red-900 text-white'
+    : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}">
+                        Project PPE Designations
+                    </a>
                 </div>
             </div>
             <div class="flex items-center justify-center w-full">

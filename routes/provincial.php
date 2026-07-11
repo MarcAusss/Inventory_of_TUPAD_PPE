@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\ProvincialOffice\DashboardController;
+use App\Http\Controllers\ProvincialOffice\InventoryController;
 use App\Http\Controllers\ProvincialOffice\ProvincialOfficeController;
 use App\Http\Controllers\ProvincialOffice\ReceivingController;
+use App\Http\Controllers\ProvincialOffice\SupplyDesignationController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware([
@@ -26,7 +28,7 @@ Route::middleware([
 
         /*
         |--------------------------------------------------------------------------
-        | New Call-Off Based Receiving
+        | Call-Off Based Receiving
         |--------------------------------------------------------------------------
         */
 
@@ -78,11 +80,24 @@ Route::middleware([
 
         /*
         |--------------------------------------------------------------------------
+        | Current Provincial Inventory
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/current-inventory',
+            [
+                InventoryController::class,
+                'index',
+            ]
+        )->name('current-inventory.index');
+
+        /*
+        |--------------------------------------------------------------------------
         | Legacy Provincial Routes
         |--------------------------------------------------------------------------
         |
-        | Temporarily retained until the new receiving and inventory screens
-        | are fully verified.
+        | These remain temporarily while project designation is migrated.
         |
         */
 
@@ -169,4 +184,44 @@ Route::middleware([
                 'designationIndex',
             ]
         )->name('designations.index');
+
+        /*
+|--------------------------------------------------------------------------
+| Project PPE Designations
+|--------------------------------------------------------------------------
+*/
+
+        Route::get(
+            '/project-designations',
+            [
+                SupplyDesignationController::class,
+                'index',
+            ]
+        )->name('project-designations.index');
+
+        Route::get(
+            '/project-designations/create',
+            [
+                SupplyDesignationController::class,
+                'create',
+            ]
+        )->name('project-designations.create');
+
+        Route::post(
+            '/project-designations',
+            [
+                SupplyDesignationController::class,
+                'store',
+            ]
+        )->name('project-designations.store');
+
+        Route::get(
+            '/project-designations/{supplyDesignation}',
+            [
+                SupplyDesignationController::class,
+                'show',
+            ]
+        )
+            ->whereNumber('supplyDesignation')
+            ->name('project-designations.show');
     });
