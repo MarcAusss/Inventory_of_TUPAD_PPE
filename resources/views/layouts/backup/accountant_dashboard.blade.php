@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title')</title>
+    <title>{{ $title ?? 'Dashboard' }}</title>
+
     <!-- Add your Tailwind CSS or Bootstrap compiler links here -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -22,34 +23,39 @@
                     <div class="px-16 mb-5">
                         <h1 class="">MENU</h1>
                     </div>
-                    <a href="{{route('dashboard')}}" class="flex gap-2 px-20 text-xl">
-                        <i class=""></i>
-                        Dashboard
-                    </a>
-                    <a href="{{ Route('tssd.distributions.index')}}" class="flex mt-5 gap-2 px-20 text-xl">
-                        <i class=""></i>
-                        Distributions
-                    </a>
-                    <a href="" class="flex mt-5 gap-2 px-20 text-xl">
-                        <i class=""></i>
-                        Distributed
-                    </a>
+                    <nav class="space-y-2">
+
+                        <a href="{{ route('accounting.dashboard') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+            {{ request()->routeIs('accounting.dashboard')
+    ? 'bg-red-900 text-white'
+    : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
+                            Dashboard
+                        </a>
+
+                        <a href="{{ route('accounting.inventory-ledger.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+            {{ request()->routeIs('accounting.inventory-ledger.*')
+    ? 'bg-red-900 text-white'
+    : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
+                            Provincial Inventory
+                        </a>
+
+                    </nav>
                 </div>
             </div>
             <div class="flex items-center justify-center w-full">
                 {{-- <a href="{{ route('auth.logout')}}">Logout</a> --}}
                 <form method="POST" action="{{ route('logout') }}">
-                    @csrf 
+                    @csrf
                     <div
                         class="bg-[linear-gradient(to_top_right,#000000_5%,#EE1C09_60%)] text-white py-2 px-10 rounded-xl">
                         <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault();
                                         this.closest('form').submit();">
                             {{ __('Log Out') }}
-                        </x-responsive-nav-link> 
+                        </x-responsive-nav-link>
                     </div>
                 </form>
             </div>
-        </div> 
+        </div>
     </aside>
 
     <div class="ml-[330px] ">
@@ -60,12 +66,12 @@
             </div>
         </header>
         <main class="w-full min-h-175 mt-2 rounded-xl bg-[#F7F7F7] px-7 py-3">
-            @yield('dashboard-tssd')
+            @yield('dashboard-accountant')
         </main>
     </div>
 
     <footer>
-        
+
     </footer>
 
     <script>

@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? 'Dashboard' }}</title>
-
     <!-- Add your Tailwind CSS or Bootstrap compiler links here -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -23,58 +22,45 @@
                     <div class="px-16 mb-5">
                         <h1 class="">MENU</h1>
                     </div>
-                    <a href="{{route('dashboard')}}" class="flex gap-2 px-20 text-xl">
-                        <i class=""></i>
-                        Dashboard
-                    </a>
-                    <a href="{{ route('provincial.inventory.index') }}" class="flex gap-2 px-20 text-xl">
-                        <i class=""></i>
-                        Inventory
-                    </a>
-                    <a href="{{ route('provincial.deliveries.index') }}" class="flex gap-2 px-20 text-xl">
-                        <i class=""></i>
-                        Delivery
-                    </a>
-                    <a href="{{ route('provincial.designations.index') }}" class="flex gap-2 px-20 text-xl">
-                        <i class=""></i>
-                        Supply Designations
-                    </a>
+                    <nav class="space-y-2">
 
-                    <a href="{{ route('provincial.current-inventory.index') }}" class="flex items-center rounded-lg px-4 py-3 transition
-        {{ request()->routeIs('provincial.current-inventory.*')
+                        <a href="{{ route('supply.dashboard') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+            {{ request()->routeIs('supply.dashboard')
     ? 'bg-red-900 text-white'
-    : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}">
-                        Current Inventory
-                    </a>
+    : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
+                            Dashboard
+                        </a>
 
-                    <a href="{{ route('provincial.receiving.index') }}" class="flex items-center rounded-lg px-4 py-3 transition
-        {{ request()->routeIs('provincial.receiving.index')
-    || request()->routeIs('provincial.receiving.show')
-    || request()->routeIs('provincial.receiving.create')
+                        <a href="{{ route('supply.purchase-orders.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+            {{ request()->routeIs('supply.purchase-orders.*')
     ? 'bg-red-900 text-white'
-    : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}">
-                        Call-Off Allocations
-                    </a>
+    : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
+                            Purchase Orders
+                        </a>
 
-                    <a href="{{ route('provincial.receiving.history') }}" class="flex items-center rounded-lg px-4 py-3 transition
-        {{ request()->routeIs('provincial.receiving.history')
+                        <a href="{{ route('supply.suppliers.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+            {{ request()->routeIs('supply.suppliers.*')
     ? 'bg-red-900 text-white'
-    : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}">
-                        Receiving History
-                    </a>
-                    <a href="{{ route('provincial.current-inventory.index') }}" class="flex items-center rounded-lg px-4 py-3 transition
-        {{ request()->routeIs('provincial.current-inventory.*')
-    ? 'bg-red-900 text-white'
-    : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}">
-                        Current Inventory
-                    </a>
+    : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
+                            Suppliers
+                        </a>
 
-                    <a href="{{ route('provincial.project-designations.index') }}" class="flex items-center rounded-lg px-4 py-3 transition
-        {{ request()->routeIs('provincial.project-designations.*')
+                        <a href="{{ route('supply.items.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+            {{ request()->routeIs('supply.items.*')
     ? 'bg-red-900 text-white'
-    : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}">
-                        Project PPE Designations
-                    </a>
+    : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
+                            PPE Items
+                        </a>
+
+                        <a href="{{ route('supply.call-offs.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+            {{ request()->routeIs('supply.call-offs.*')
+    ? 'bg-red-900 text-white'
+    : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
+                            Call-Off Approvals
+                        </a>
+
+                    </nav>
+
                 </div>
             </div>
             <div class="flex items-center justify-center w-full">
@@ -101,7 +87,7 @@
             </div>
         </header>
         <main class="w-full min-h-175 mt-2 rounded-xl bg-[#F7F7F7] px-7 py-3">
-            @yield('dashboard-provincial_office')
+            @yield('dashboard-supply')
         </main>
     </div>
 

@@ -19,8 +19,10 @@ class PO_Dashboard_layout extends Component
     /**
      * Get the view / contents that represent the component.
      */
-    public function render(): View|Closure|string
+    public function render(): View
     {
-        return view('components.p-o_-dashboard_layout');
+        return view(
+            'components.po_dashboard_layout'
+        );
     }
 }

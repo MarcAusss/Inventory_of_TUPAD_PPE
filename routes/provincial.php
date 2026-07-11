@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProvincialOffice\DashboardController;
 use App\Http\Controllers\ProvincialOffice\InventoryController;
+use App\Http\Controllers\ProvincialOffice\InventoryLedgerController;
 use App\Http\Controllers\ProvincialOffice\ProvincialOfficeController;
 use App\Http\Controllers\ProvincialOffice\ReceivingController;
 use App\Http\Controllers\ProvincialOffice\SupplyDesignationController;
@@ -224,4 +225,19 @@ Route::middleware([
         )
             ->whereNumber('supplyDesignation')
             ->name('project-designations.show');
+
+        /*
+|--------------------------------------------------------------------------
+| Inventory Ledger
+|--------------------------------------------------------------------------
+*/
+
+        Route::get(
+            '/inventory-ledger',
+            [
+                InventoryLedgerController::class,
+                'index',
+            ]
+        )->name('inventory-ledger.index');
+
     });

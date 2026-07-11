@@ -1,6 +1,4 @@
-@extends('layouts.provincial_office_dashboard')
-
-@section('dashboard-provincial_office')
+<x-po_dashboard_layout title="Provincial Office Dashboard">
 
     @php
         $batch = $provinceDistribution->distributionBatch;
@@ -420,4 +418,4 @@
 
     </div>
 
-@endsection
+</x-po_dashboard_layout>

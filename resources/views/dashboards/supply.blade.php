@@ -1,6 +1,4 @@
-@extends('layouts.supply_dashboard')
-
-@section('dashboard-supply')
+<x-po_dashboard_layout title="Supply Unit Dashboard">
 
     <div class="mb-4">
         <h1 class="text-[25px]">Dashboard</h1>
@@ -30,4 +28,4 @@
 
     </div>
 
-@endsection
+</x-po_dashboard_layout>

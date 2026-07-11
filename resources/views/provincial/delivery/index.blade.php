@@ -1,6 +1,4 @@
-@extends('layouts.provincial_office_dashboard')
-
-@section('dashboard-provincial_office')
+<x-po_dashboard_layout title="Provincial Office Dashboard">
 
     <div class="bg-white rounded-xl shadow">
 
@@ -116,4 +114,4 @@
 
     </div>
 
-@endsection
+</x-po_dashboard_layout>

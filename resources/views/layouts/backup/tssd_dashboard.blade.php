@@ -4,14 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $title ?? 'Dashboard' }}</title>
-
+    <title>@yield('title')</title>
     <!-- Add your Tailwind CSS or Bootstrap compiler links here -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
 <body class="bg-gray-100 font-sans">
-    <aside class="fixed left-0 top-0 w-75 h-full bg-[#F7F7F7]"> 
+    <aside class="fixed left-0 top-0 w-75 h-full bg-[#F7F7F7]">
         <div class="flex flex-col justify-between h-full py-10">
             <div class="">
                 <div class="flex mx-10 ">
@@ -23,35 +22,54 @@
                     <div class="px-16 mb-5">
                         <h1 class="">MENU</h1>
                     </div>
-                    <a href="{{route('dashboard')}}" class="flex gap-2 px-20 text-xl">
-                        <i class=""></i>
-                        Dashboard
-                    </a>
-                    <!-- <a href="{{ Route('supply.suppliers.index')}}" class="flex mt-5 gap-2 px-20 text-xl">
-                        <i class=""></i>
-                        Suppliers
-                    </a>
-                    <a href="{{ Route('supply.purchase-orders.index')}}" class="flex mt-5 gap-2 px-20 text-xl">
-                        <i class=""></i>
-                        Purchase Orders
-                    </a> -->
-                    
+                    <nav class="space-y-2">
+
+                        <a href="{{ route('tssd.dashboard') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+            {{ request()->routeIs('tssd.dashboard')
+    ? 'bg-red-900 text-white'
+    : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
+                            Dashboard
+                        </a>
+
+                        <a href="{{ route('tssd.distributions.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+            {{ request()->routeIs('tssd.distributions.*')
+    ? 'bg-red-900 text-white'
+    : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
+                            Provincial Distributions
+                        </a>
+
+                        <a href="{{ route('tssd.call-offs.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+            {{ request()->routeIs('tssd.call-offs.*')
+    ? 'bg-red-900 text-white'
+    : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
+                            Call-Off Management
+                        </a>
+
+                        <a href="{{ route('tssd.pdf-templates.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+            {{ request()->routeIs('tssd.pdf-templates.*')
+    ? 'bg-red-900 text-white'
+    : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
+                            PDF Print Templates
+                        </a>
+
+                    </nav>
+
                 </div>
             </div>
             <div class="flex items-center justify-center w-full">
                 {{-- <a href="{{ route('auth.logout')}}">Logout</a> --}}
                 <form method="POST" action="{{ route('logout') }}">
-                    @csrf 
+                    @csrf
                     <div
                         class="bg-[linear-gradient(to_top_right,#000000_5%,#EE1C09_60%)] text-white py-2 px-10 rounded-xl">
                         <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault();
                                         this.closest('form').submit();">
                             {{ __('Log Out') }}
-                        </x-responsive-nav-link> 
+                        </x-responsive-nav-link>
                     </div>
                 </form>
             </div>
-        </div> 
+        </div>
     </aside>
 
     <div class="ml-[330px] ">
@@ -62,12 +80,12 @@
             </div>
         </header>
         <main class="w-full min-h-175 mt-2 rounded-xl bg-[#F7F7F7] px-7 py-3">
-            @yield('dashboard-accountant')
+            @yield('dashboard-tssd')
         </main>
     </div>
 
     <footer>
-        
+
     </footer>
 
     <script>

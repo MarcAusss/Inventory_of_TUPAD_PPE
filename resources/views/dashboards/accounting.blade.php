@@ -1,6 +1,4 @@
-@extends('layouts.accounting_dashboard')
-
-@section('dashboard-accounting')
+<x-po_dashboard_layout title="Accounting Dashboard">
 
     <div class="mb-4">
         <h1 class="text-[25px]">Dashboard</h1>
@@ -31,4 +29,4 @@
     </div>
 
 
-@endsection
+</x-po_dashboard_layout>

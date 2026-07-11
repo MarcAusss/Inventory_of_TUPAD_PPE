@@ -1,102 +1,561 @@
+@props([
+    'title' => 'Dashboard',
+])
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $title ?? 'Dashboard' }}</title>
-    <!-- Add your Tailwind CSS or Bootstrap compiler links here -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="csrf-token"
+        content="{{ csrf_token() }}"
+    >
+
+    <title>
+        {{ $title }} | {{ config('app.name', 'TUPAD Inventory System') }}
+    </title>
+
+    @vite([
+        'resources/css/app.css',
+        'resources/js/app.js',
+    ])
+
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
 </head>
 
-<body class="bg-gray-100 font-sans">
-    <aside class="fixed left-0 top-0 w-75 h-full bg-[#F7F7F7]">
-        <div class="flex flex-col justify-between h-full py-10">
-            <div class="">
-                <div class="flex mx-10 ">
-                    <img src="{{ url('images/Primary Logo _ Full Color (3).png')}}" alt="" class="w-16 h-relative">
-                    <img src="{{ url('images/Primary Logo _ Full Color (3) - Copy.png')}}" alt=""
-                        class="w-relative h-16">
-                </div>
-                <div class="mt-10">
-                    <div class="px-16 mb-5">
-                        <h1 class="">MENU</h1>
-                    </div>
-                    <a href="{{route('dashboard')}}" class="flex gap-2 px-20 text-xl">
-                        <i class=""></i>
-                        Dashboard
-                    </a>
-                    <a href="" class="flex mt-5 gap-2 px-20 text-xl">
-                        <i class=""></i>
-                        Inventory
-                    </a>
-                    <a href="{{ Route('supply.suppliers.index')}}" class="flex mt-5 gap-2 px-20 text-xl">
-                        <i class=""></i>
-                        Suppliers
-                    </a>
-                    <a href="{{ Route('supply.purchase-orders.index')}}" class="flex mt-5 gap-2 px-20 text-xl">
-                        <i class=""></i>
-                        Purchase Orders
-                    </a>
-                    
-                </div>
-            </div>
-            <div class="flex items-center justify-center w-full">
-                {{-- <a href="{{ route('auth.logout')}}">Logout</a> --}}
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf 
-                    <div
-                        class="bg-[linear-gradient(to_top_right,#000000_5%,#EE1C09_60%)] text-white py-2 px-10 rounded-xl">
-                        <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault();
-                                        this.closest('form').submit();">
-                            {{ __('Log Out') }}
-                        </x-responsive-nav-link> 
-                    </div>
-                </form>
-            </div>
-        </div> 
-    </aside>
+<body class="bg-gray-100 font-sans text-gray-900">
 
-    <div class="ml-[330px] ">
-        <header class="w-full h-22 mt-2 rounded-xl bg-[#F7F7F7] flex justify-between px-7 py-2">
-            <div class="flex flex-col h-full justify-center">
-                <div class="text-[16px]" id="live-clock">--:--:--</div>
-                <div class="text-[16px]" id="live-date">--/--/--</div>
+    @php
+        $user = auth()->user();
+
+        $roleName = $user?->role?->name ?? 'Unknown Role';
+
+        $dashboardRoute = match (true) {
+            $user?->isSupply() =>
+                'supply.dashboard',
+
+            $user?->isTssd() =>
+                'tssd.dashboard',
+
+            $user?->isProvincial() =>
+                'provincial.dashboard',
+
+            $user?->isAccounting() =>
+                'accounting.dashboard',
+
+            default =>
+                'dashboard',
+        };
+    @endphp
+
+    <div
+        x-data="{ sidebarOpen: false }"
+        class="min-h-screen"
+    >
+
+        {{-- Mobile overlay --}}
+        <div
+            x-cloak
+            x-show="sidebarOpen"
+            x-transition.opacity
+            class="fixed inset-0 z-40 bg-black/50 lg:hidden"
+            @click="sidebarOpen = false"
+        ></div>
+
+        {{-- Sidebar --}}
+        <aside
+            class="fixed inset-y-0 left-0 z-50 flex w-72 transform flex-col bg-[#F7F7F7] shadow-xl transition-transform duration-300 lg:translate-x-0"
+            :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+        >
+
+            <div class="flex h-full flex-col">
+
+                {{-- Logos --}}
+                <div class="border-b border-gray-200 px-7 py-6">
+
+                    <a
+                        href="{{ route($dashboardRoute) }}"
+                        class="flex items-center justify-center gap-3"
+                    >
+
+                        <img
+                            src="{{ asset('images/Primary Logo _ Full Color (3).png') }}"
+                            alt="Primary logo"
+                            class="h-14 w-auto object-contain"
+                        >
+
+                        <img
+                            src="{{ asset('images/Primary Logo _ Full Color (3) - Copy.png') }}"
+                            alt="Secondary logo"
+                            class="h-14 w-auto object-contain"
+                        >
+
+                    </a>
+
+                    <div class="mt-4 text-center">
+
+                        <p class="font-bold text-gray-900">
+                            TUPAD PPE Inventory
+                        </p>
+
+                        <p class="mt-1 text-sm text-gray-500">
+                            {{ $roleName }}
+                        </p>
+
+                        @if($user?->isProvincial())
+
+                            <p class="mt-1 text-xs font-semibold text-red-900">
+                                {{ $user->provinceName() ?? 'No province assigned' }}
+                            </p>
+
+                        @endif
+
+                    </div>
+
+                </div>
+
+                {{-- Navigation --}}
+                <nav class="flex-1 overflow-y-auto px-4 py-6">
+
+                    <p class="mb-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">
+                        Menu
+                    </p>
+
+                    {{-- Supply Unit --}}
+                    @if($user?->isSupply())
+
+                        <div class="space-y-2">
+
+                            <a
+                                href="{{ route('supply.dashboard') }}"
+                                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                    {{ request()->routeIs('supply.dashboard')
+                                        ? 'bg-red-900 text-white shadow'
+                                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+                            >
+                                Dashboard
+                            </a>
+
+                            <a
+                                href="{{ route('supply.purchase-orders.index') }}"
+                                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                    {{ request()->routeIs('supply.purchase-orders.*')
+                                        ? 'bg-red-900 text-white shadow'
+                                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+                            >
+                                Purchase Orders
+                            </a>
+
+                            <a
+                                href="{{ route('supply.suppliers.index') }}"
+                                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                    {{ request()->routeIs('supply.suppliers.*')
+                                        ? 'bg-red-900 text-white shadow'
+                                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+                            >
+                                Suppliers
+                            </a>
+
+                            <a
+                                href="{{ route('supply.items.index') }}"
+                                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                    {{ request()->routeIs('supply.items.*')
+                                        ? 'bg-red-900 text-white shadow'
+                                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+                            >
+                                PPE Items
+                            </a>
+
+                            @if(Route::has('supply.call-offs.index'))
+
+                                <a
+                                    href="{{ route('supply.call-offs.index') }}"
+                                    class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                        {{ request()->routeIs('supply.call-offs.*')
+                                            ? 'bg-red-900 text-white shadow'
+                                            : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+                                >
+                                    Call-Off Approvals
+                                </a>
+
+                            @endif
+
+                        </div>
+
+                    {{-- TSSD Unit --}}
+                    @elseif($user?->isTssd())
+
+                        <div class="space-y-2">
+
+                            <a
+                                href="{{ route('tssd.dashboard') }}"
+                                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                    {{ request()->routeIs('tssd.dashboard')
+                                        ? 'bg-red-900 text-white shadow'
+                                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+                            >
+                                Dashboard
+                            </a>
+
+                            <a
+                                href="{{ route('tssd.distributions.index') }}"
+                                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                    {{ request()->routeIs('tssd.distributions.*')
+                                        ? 'bg-red-900 text-white shadow'
+                                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+                            >
+                                Provincial Distributions
+                            </a>
+
+                            <a
+                                href="{{ route('tssd.call-offs.index') }}"
+                                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                    {{ request()->routeIs('tssd.call-offs.*')
+                                        ? 'bg-red-900 text-white shadow'
+                                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+                            >
+                                Call-Off Management
+                            </a>
+
+                            @if(Route::has('tssd.users.index'))
+
+    <a
+        href="{{ route('tssd.users.index') }}"
+        class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+            {{ request()->routeIs('tssd.users.*')
+                ? 'bg-red-900 text-white shadow'
+                : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+    >
+        User Management
+    </a>
+
+@endif
+
+                            @if(Route::has('tssd.pdf-templates.index'))
+
+                                <a
+                                    href="{{ route('tssd.pdf-templates.index') }}"
+                                    class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                        {{ request()->routeIs('tssd.pdf-templates.*')
+                                            ? 'bg-red-900 text-white shadow'
+                                            : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+                                >
+                                    PDF Print Templates
+                                </a>
+
+                            @endif
+
+                        </div>
+
+                    {{-- Provincial Office --}}
+                    @elseif($user?->isProvincial())
+
+                        <div class="space-y-2">
+
+                            <a
+                                href="{{ route('provincial.dashboard') }}"
+                                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                    {{ request()->routeIs('provincial.dashboard')
+                                        ? 'bg-red-900 text-white shadow'
+                                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+                            >
+                                Dashboard
+                            </a>
+
+                            @if(Route::has('provincial.receiving.index'))
+
+                                <a
+                                    href="{{ route('provincial.receiving.index') }}"
+                                    class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                        {{ request()->routeIs('provincial.receiving.index')
+                                            || request()->routeIs('provincial.receiving.create')
+                                            || request()->routeIs('provincial.receiving.show')
+                                            || request()->routeIs('provincial.receiving.store')
+                                                ? 'bg-red-900 text-white shadow'
+                                                : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+                                >
+                                    Approved Call-Offs
+                                </a>
+
+                            @endif
+
+                            @if(Route::has('provincial.receiving.history'))
+
+                                <a
+                                    href="{{ route('provincial.receiving.history') }}"
+                                    class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                        {{ request()->routeIs('provincial.receiving.history')
+                                            ? 'bg-red-900 text-white shadow'
+                                            : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+                                >
+                                    Receiving History
+                                </a>
+
+                            @endif
+
+                            @if(Route::has('provincial.current-inventory.index'))
+
+                                <a
+                                    href="{{ route('provincial.current-inventory.index') }}"
+                                    class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                        {{ request()->routeIs('provincial.current-inventory.*')
+                                            ? 'bg-red-900 text-white shadow'
+                                            : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+                                >
+                                    Current Inventory
+                                </a>
+
+                            @endif
+
+                            @if(Route::has('provincial.inventory-ledger.index'))
+
+                                <a
+                                    href="{{ route('provincial.inventory-ledger.index') }}"
+                                    class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                        {{ request()->routeIs('provincial.inventory-ledger.*')
+                                            ? 'bg-red-900 text-white shadow'
+                                            : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+                                >
+                                    Inventory Ledger
+                                </a>
+
+                            @endif
+
+                            @if(Route::has('provincial.project-designations.index'))
+
+                                <a
+                                    href="{{ route('provincial.project-designations.index') }}"
+                                    class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                        {{ request()->routeIs('provincial.project-designations.*')
+                                            ? 'bg-red-900 text-white shadow'
+                                            : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+                                >
+                                    Project PPE Designations
+                                </a>
+
+                            @endif
+
+                        </div>
+
+                    {{-- Accounting Unit --}}
+                    @elseif($user?->isAccounting())
+
+                        <div class="space-y-2">
+
+                            <a
+                                href="{{ route('accounting.dashboard') }}"
+                                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                    {{ request()->routeIs('accounting.dashboard')
+                                        ? 'bg-red-900 text-white shadow'
+                                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+                            >
+                                Dashboard
+                            </a>
+
+                            @if(Route::has('accounting.inventory-ledger.index'))
+
+                                <a
+                                    href="{{ route('accounting.inventory-ledger.index') }}"
+                                    class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                        {{ request()->routeIs('accounting.inventory-ledger.*')
+                                            ? 'bg-red-900 text-white shadow'
+                                            : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+                                >
+                                    Provincial Inventory
+                                </a>
+
+                            @endif
+
+                        </div>
+
+                    @else
+
+                        <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                            No authorized navigation is available for this account.
+                        </div>
+
+                    @endif
+
+                    {{-- Shared account navigation --}}
+                    <div class="mt-7 border-t border-gray-200 pt-6">
+
+                        <p class="mb-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">
+                            Account
+                        </p>
+
+                        <a
+                            href="{{ route('profile.edit') }}"
+                            class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                {{ request()->routeIs('profile.*')
+                                    ? 'bg-red-900 text-white shadow'
+                                    : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+                        >
+                            Profile
+                        </a>
+
+                    </div>
+
+                </nav>
+
+                {{-- Logout --}}
+                <div class="border-t border-gray-200 p-5">
+
+                    <form
+                        method="POST"
+                        action="{{ route('logout') }}"
+                    >
+                        @csrf
+
+                        <button
+                            type="submit"
+                            class="w-full rounded-xl bg-gradient-to-tr from-black to-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90"
+                        >
+                            Log Out
+                        </button>
+
+                    </form>
+
+                </div>
+
             </div>
-        </header>
-        <main class="w-full min-h-175 mt-2 rounded-xl bg-[#F7F7F7] px-7 py-3">
-            {{ $slot }}
-        </main>
+
+        </aside>
+
+        {{-- Main area --}}
+        <div class="min-h-screen lg:pl-72">
+
+            {{-- Top header --}}
+            <header class="sticky top-0 z-30 border-b border-gray-200 bg-white/95 shadow-sm backdrop-blur">
+
+                <div class="flex min-h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
+
+                    <div class="flex items-center gap-4">
+
+                        <button
+                            type="button"
+                            class="rounded-lg border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 shadow-sm lg:hidden"
+                            @click="sidebarOpen = true"
+                        >
+                            Menu
+                        </button>
+
+                        <div>
+
+                            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                {{ $roleName }}
+                            </p>
+
+                            <h1 class="text-lg font-bold text-gray-900">
+                                {{ $title }}
+                            </h1>
+
+                        </div>
+
+                    </div>
+
+                    <div class="hidden text-right sm:block">
+
+                        <p class="text-sm font-semibold text-gray-900">
+                            {{ $user?->name }}
+                        </p>
+
+                        <p
+                            id="live-clock"
+                            class="text-xs text-gray-500"
+                        >
+                            --:--:--
+                        </p>
+
+                        <p
+                            id="live-date"
+                            class="text-xs text-gray-500"
+                        >
+                            --/--/----
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </header>
+
+            {{-- Page content --}}
+            <main class="p-4 sm:p-6 lg:p-8">
+
+                @if(session('success'))
+
+                    <div class="mb-6 rounded-xl border border-green-200 bg-green-50 px-5 py-4 text-green-800">
+                        {{ session('success') }}
+                    </div>
+
+                @endif
+
+                @if(session('error'))
+
+                    <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-red-800">
+                        {{ session('error') }}
+                    </div>
+
+                @endif
+
+                {{ $slot }}
+
+            </main>
+
+        </div>
+
     </div>
-
 
     <script>
         function updateClockAndDate() {
             const now = new Date();
 
-            // --- TIME CALCULATION (12-Hour Format) ---
-            let hours = now.getHours();
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const clockElement = document.getElementById('live-clock');
+            const dateElement = document.getElementById('live-date');
 
-            hours = hours % 12;
-            hours = hours ? hours : 12; // Convert 0 to 12
-            const formattedHours = String(hours).padStart(2, '0'); // Keeps two digits for alignment
+            if (!clockElement || !dateElement) {
+                return;
+            }
 
-            // --- DATE CALCULATION (MM/DD/YY) ---
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const year = String(now.getFullYear()).slice(0); // Gets last two digits of the year
+            clockElement.textContent = new Intl.DateTimeFormat(
+                'en-US',
+                {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true,
+                }
+            ).format(now);
 
-            // --- OUTPUT ---
-            document.getElementById('live-clock').textContent = `${formattedHours}:${minutes}:${seconds}`;
-            document.getElementById('live-date').textContent = `${month}/${day}/${year}`;
+            dateElement.textContent = new Intl.DateTimeFormat(
+                'en-US',
+                {
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: 'numeric',
+                }
+            ).format(now);
         }
 
-        // Run instantly, then refresh every second
         updateClockAndDate();
-        setInterval(updateClockAndDate, 1000);
+
+        window.setInterval(
+            updateClockAndDate,
+            1000
+        );
     </script>
+
 </body>
 
 </html>

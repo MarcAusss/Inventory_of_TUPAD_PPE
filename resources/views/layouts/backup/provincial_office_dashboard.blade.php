@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? 'Dashboard' }}</title>
+
     <!-- Add your Tailwind CSS or Bootstrap compiler links here -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -22,39 +23,70 @@
                     <div class="px-16 mb-5">
                         <h1 class="">MENU</h1>
                     </div>
-                    <a href="{{route('dashboard')}}" class="flex gap-2 px-20 text-xl">
-                        <i class=""></i>
-                        Dashboard
-                    </a>
-                    <a href="" class="flex mt-5 gap-2 px-20 text-xl">
-                        <i class=""></i>
-                        Inventory
-                    </a>
-                    <a href="{{ Route('supply.suppliers.index')}}" class="flex mt-5 gap-2 px-20 text-xl">
-                        <i class=""></i>
-                        Suppliers
-                    </a>
-                    <a href="{{ Route('supply.purchase-orders.index')}}" class="flex mt-5 gap-2 px-20 text-xl">
-                        <i class=""></i>
-                        Purchase Orders
-                    </a>
-                    
+                    <nav class="space-y-2">
+
+                        <a href="{{ route('provincial.dashboard') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+            {{ request()->routeIs('provincial.dashboard')
+    ? 'bg-red-900 text-white'
+    : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
+                            Dashboard
+                        </a>
+
+                        <a href="{{ route('provincial.receiving.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+            {{ request()->routeIs('provincial.receiving.index')
+    || request()->routeIs('provincial.receiving.create')
+    || request()->routeIs('provincial.receiving.show')
+    || request()->routeIs('provincial.receiving.store')
+    ? 'bg-red-900 text-white'
+    : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
+                            Approved Call-Offs
+                        </a>
+
+                        <a href="{{ route('provincial.receiving.history') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+            {{ request()->routeIs('provincial.receiving.history')
+    ? 'bg-red-900 text-white'
+    : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
+                            Receiving History
+                        </a>
+
+                        <a href="{{ route('provincial.current-inventory.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+            {{ request()->routeIs('provincial.current-inventory.*')
+    ? 'bg-red-900 text-white'
+    : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
+                            Current Inventory
+                        </a>
+
+                        <a href="{{ route('provincial.inventory-ledger.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+            {{ request()->routeIs('provincial.inventory-ledger.*')
+    ? 'bg-red-900 text-white'
+    : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
+                            Inventory Ledger
+                        </a>
+
+                        <a href="{{ route('provincial.project-designations.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+            {{ request()->routeIs('provincial.project-designations.*')
+    ? 'bg-red-900 text-white'
+    : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
+                            Project PPE Designations
+                        </a>
+
+                    </nav>
                 </div>
             </div>
             <div class="flex items-center justify-center w-full">
                 {{-- <a href="{{ route('auth.logout')}}">Logout</a> --}}
                 <form method="POST" action="{{ route('logout') }}">
-                    @csrf 
+                    @csrf
                     <div
                         class="bg-[linear-gradient(to_top_right,#000000_5%,#EE1C09_60%)] text-white py-2 px-10 rounded-xl">
                         <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault();
                                         this.closest('form').submit();">
                             {{ __('Log Out') }}
-                        </x-responsive-nav-link> 
+                        </x-responsive-nav-link>
                     </div>
                 </form>
             </div>
-        </div> 
+        </div>
     </aside>
 
     <div class="ml-[330px] ">
@@ -65,7 +97,7 @@
             </div>
         </header>
         <main class="w-full min-h-175 mt-2 rounded-xl bg-[#F7F7F7] px-7 py-3">
-            @yield('dashboard-supply')
+            @yield('dashboard-provincial_office')
         </main>
     </div>
 

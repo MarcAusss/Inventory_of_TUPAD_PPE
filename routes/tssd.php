@@ -2,8 +2,9 @@
 
 use App\Http\Controllers\TSSD\CallOffController;
 use App\Http\Controllers\TSSD\DashboardController;
-use App\Http\Controllers\TSSD\ReceivingInboxController;
+use App\Http\Controllers\TSSD\PdfTemplateController;
 use App\Http\Controllers\TSSD\TssdDistributionController;
+use App\Http\Controllers\TSSD\UserManagementController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware([
@@ -57,58 +58,201 @@ Route::middleware([
         |--------------------------------------------------------------------------
         */
 
-        Route::resource(
-            'call-offs',
-            CallOffController::class
-        )->only([
-            'index',
-            'create',
-            'store',
-            'show',
-            'destroy',
-        ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Provincial Receiving Inbox
-        |--------------------------------------------------------------------------
-        */
-
         Route::get(
-            '/receiving-inbox',
+            '/call-offs',
             [
-                ReceivingInboxController::class,
+                CallOffController::class,
                 'index',
             ]
-        )->name('receiving-inbox.index');
+        )->name('call-offs.index');
 
         Route::get(
-            '/receiving-inbox/{workflowNotification}',
+            '/call-offs/create',
             [
-                ReceivingInboxController::class,
+                CallOffController::class,
+                'create',
+            ]
+        )->name('call-offs.create');
+
+        Route::post(
+            '/call-offs',
+            [
+                CallOffController::class,
+                'store',
+            ]
+        )->name('call-offs.store');
+
+        Route::get(
+            '/call-offs/{callOff}',
+            [
+                CallOffController::class,
                 'show',
             ]
         )
-            ->whereNumber('workflowNotification')
-            ->name('receiving-inbox.show');
+            ->whereNumber('callOff')
+            ->name('call-offs.show');
 
-        Route::patch(
-            '/receiving-inbox/{workflowNotification}/read',
+        Route::delete(
+            '/call-offs/{callOff}',
             [
-                ReceivingInboxController::class,
-                'markAsRead',
+                CallOffController::class,
+                'destroy',
             ]
         )
-            ->whereNumber('workflowNotification')
-            ->name('receiving-inbox.read');
+            ->whereNumber('callOff')
+            ->name('call-offs.destroy');
 
-        Route::patch(
-            '/receiving-inbox/{workflowNotification}/resolve',
+        /*
+|--------------------------------------------------------------------------
+| Uploaded PDF Print Templates
+|--------------------------------------------------------------------------
+*/
+
+        Route::get(
+            '/pdf-templates',
             [
-                ReceivingInboxController::class,
-                'resolve',
+                PdfTemplateController::class,
+                'index',
+            ]
+        )->name('pdf-templates.index');
+
+        Route::get(
+            '/pdf-templates/create',
+            [
+                PdfTemplateController::class,
+                'create',
+            ]
+        )->name('pdf-templates.create');
+
+        Route::post(
+            '/pdf-templates',
+            [
+                PdfTemplateController::class,
+                'store',
+            ]
+        )->name('pdf-templates.store');
+
+        Route::get(
+            '/pdf-templates/{pdfTemplate}',
+            [
+                PdfTemplateController::class,
+                'show',
             ]
         )
-            ->whereNumber('workflowNotification')
-            ->name('receiving-inbox.resolve');
+            ->whereNumber('pdfTemplate')
+            ->name('pdf-templates.show');
+
+        Route::get(
+            '/pdf-templates/{pdfTemplate}/preview',
+            [
+                PdfTemplateController::class,
+                'preview',
+            ]
+        )
+            ->whereNumber('pdfTemplate')
+            ->name('pdf-templates.preview');
+
+        Route::get(
+            '/pdf-templates/{pdfTemplate}/download',
+            [
+                PdfTemplateController::class,
+                'download',
+            ]
+        )
+            ->whereNumber('pdfTemplate')
+            ->name('pdf-templates.download');
+
+        Route::get(
+            '/pdf-templates/{pdfTemplate}/edit',
+            [
+                PdfTemplateController::class,
+                'edit',
+            ]
+        )
+            ->whereNumber('pdfTemplate')
+            ->name('pdf-templates.edit');
+
+        Route::put(
+            '/pdf-templates/{pdfTemplate}',
+            [
+                PdfTemplateController::class,
+                'update',
+            ]
+        )
+            ->whereNumber('pdfTemplate')
+            ->name('pdf-templates.update');
+
+        Route::patch(
+            '/pdf-templates/{pdfTemplate}/activate',
+            [
+                PdfTemplateController::class,
+                'activate',
+            ]
+        )
+            ->whereNumber('pdfTemplate')
+            ->name('pdf-templates.activate');
+
+        Route::patch(
+            '/pdf-templates/{pdfTemplate}/deactivate',
+            [
+                PdfTemplateController::class,
+                'deactivate',
+            ]
+        )
+            ->whereNumber('pdfTemplate')
+            ->name('pdf-templates.deactivate');
+
+        Route::delete(
+            '/pdf-templates/{pdfTemplate}',
+            [
+                PdfTemplateController::class,
+                'destroy',
+            ]
+        )
+            ->whereNumber('pdfTemplate')
+            ->name('pdf-templates.destroy');
+
+        /*
+|--------------------------------------------------------------------------
+| TSSD User Management
+|--------------------------------------------------------------------------
+*/
+
+        Route::get(
+            '/users',
+            [
+                UserManagementController::class,
+                'index',
+            ]
+        )->name('users.index');
+
+        Route::get(
+            '/users/{user}',
+            [
+                UserManagementController::class,
+                'show',
+            ]
+        )
+            ->whereNumber('user')
+            ->name('users.show');
+
+        Route::get(
+            '/users/{user}/edit',
+            [
+                UserManagementController::class,
+                'edit',
+            ]
+        )
+            ->whereNumber('user')
+            ->name('users.edit');
+
+        Route::put(
+            '/users/{user}',
+            [
+                UserManagementController::class,
+                'update',
+            ]
+        )
+            ->whereNumber('user')
+            ->name('users.update');
     });
