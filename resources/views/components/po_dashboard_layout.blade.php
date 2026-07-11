@@ -261,95 +261,91 @@
                     {{-- Provincial Office --}}
                     @elseif($user?->isProvincial())
 
-                        <div class="space-y-2">
+    <div class="space-y-2">
 
-                            <a
-                                href="{{ route('provincial.dashboard') }}"
-                                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
-                                    {{ request()->routeIs('provincial.dashboard')
-                                        ? 'bg-red-900 text-white shadow'
-                                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-                            >
-                                Dashboard
-                            </a>
+        <a
+            href="{{ route('provincial.dashboard') }}"
+            class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                {{ request()->routeIs('provincial.dashboard')
+                    ? 'bg-red-900 text-white shadow'
+                    : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+        >
+            Dashboard
+        </a>
 
-                            @if(Route::has('provincial.receiving.index'))
+        @if(Route::has('provincial.receiving.index'))
 
-                                <a
-                                    href="{{ route('provincial.receiving.index') }}"
-                                    class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
-                                        {{ request()->routeIs('provincial.receiving.index')
-                                            || request()->routeIs('provincial.receiving.create')
-                                            || request()->routeIs('provincial.receiving.show')
-                                            || request()->routeIs('provincial.receiving.store')
-                                                ? 'bg-red-900 text-white shadow'
-                                                : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-                                >
-                                    Approved Call-Offs
-                                </a>
+            <a
+                href="{{ route('provincial.receiving.index') }}"
+                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                    {{ request()->routeIs('provincial.receiving.index')
+                        || request()->routeIs('provincial.receiving.create')
+                        || request()->routeIs('provincial.receiving.show')
+                            ? 'bg-red-900 text-white shadow'
+                            : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+            >
+                Approved Call-Offs
+            </a>
 
-                            @endif
+        @endif
 
-                            @if(Route::has('provincial.receiving.history'))
+        @if(Route::has('provincial.receiving.history'))
 
-                                <a
-                                    href="{{ route('provincial.receiving.history') }}"
-                                    class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
-                                        {{ request()->routeIs('provincial.receiving.history')
-                                            ? 'bg-red-900 text-white shadow'
-                                            : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-                                >
-                                    Receiving History
-                                </a>
+            <a
+                href="{{ route('provincial.receiving.history') }}"
+                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                    {{ request()->routeIs('provincial.receiving.history')
+                        ? 'bg-red-900 text-white shadow'
+                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+            >
+                Receiving History
+            </a>
 
-                            @endif
+        @endif
 
-                            @if(Route::has('provincial.current-inventory.index'))
+        @if(Route::has('provincial.current-inventory.index'))
 
-                                <a
-                                    href="{{ route('provincial.current-inventory.index') }}"
-                                    class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
-                                        {{ request()->routeIs('provincial.current-inventory.*')
-                                            ? 'bg-red-900 text-white shadow'
-                                            : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-                                >
-                                    Current Inventory
-                                </a>
+            <a
+                href="{{ route('provincial.current-inventory.index') }}"
+                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                    {{ request()->routeIs('provincial.current-inventory.*')
+                        ? 'bg-red-900 text-white shadow'
+                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+            >
+                Current Inventory
+            </a>
 
-                            @endif
+        @endif
 
-                            @if(Route::has('provincial.inventory-ledger.index'))
+        @if(Route::has('provincial.inventory-ledger.index'))
 
-                                <a
-                                    href="{{ route('provincial.inventory-ledger.index') }}"
-                                    class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
-                                        {{ request()->routeIs('provincial.inventory-ledger.*')
-                                            ? 'bg-red-900 text-white shadow'
-                                            : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-                                >
-                                    Inventory Ledger
-                                </a>
+            <a
+                href="{{ route('provincial.inventory-ledger.index') }}"
+                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                    {{ request()->routeIs('provincial.inventory-ledger.*')
+                        ? 'bg-red-900 text-white shadow'
+                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+            >
+                Inventory Ledger
+            </a>
 
-                            @endif
+        @endif
 
-                            @if(Route::has('provincial.project-designations.index'))
+        @if(Route::has('provincial.project-designations.index'))
 
-                                <a
-                                    href="{{ route('provincial.project-designations.index') }}"
-                                    class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
-                                        {{ request()->routeIs('provincial.project-designations.*')
-                                            ? 'bg-red-900 text-white shadow'
-                                            : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-                                >
-                                    Project PPE Designations
-                                </a>
+            <a
+                href="{{ route('provincial.project-designations.index') }}"
+                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                    {{ request()->routeIs('provincial.project-designations.*')
+                        ? 'bg-red-900 text-white shadow'
+                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
+            >
+                Project PPE Designations
+            </a>
 
-                            @endif
+        @endif
 
-                        </div>
-
-                    {{-- Accounting Unit --}}
-                    @elseif($user?->isAccounting())
+    </div>@elseif($user?->isAccounting())
 
                         <div class="space-y-2">
 

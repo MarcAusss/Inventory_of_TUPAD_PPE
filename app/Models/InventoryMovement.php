@@ -12,10 +12,16 @@ class InventoryMovement extends Model
         'province_id',
         'item_id',
         'created_by',
+
         'delivery_receipt_id',
         'supply_designation_id',
+
         'movement_type',
         'quantity',
+
+        'balance_before',
+        'balance_after',
+
         'movement_date',
         'reference_number',
         'description',
@@ -26,24 +32,27 @@ class InventoryMovement extends Model
     {
         return [
             'quantity' => 'integer',
+
+            'balance_before' => 'integer',
+
+            'balance_after' => 'integer',
+
             'movement_date' => 'date',
         ];
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
-
     public function province(): BelongsTo
     {
-        return $this->belongsTo(Province::class);
+        return $this->belongsTo(
+            Province::class
+        );
     }
 
     public function item(): BelongsTo
     {
-        return $this->belongsTo(Item::class);
+        return $this->belongsTo(
+            Item::class
+        );
     }
 
     public function creator(): BelongsTo
@@ -56,19 +65,17 @@ class InventoryMovement extends Model
 
     public function deliveryReceipt(): BelongsTo
     {
-        return $this->belongsTo(DeliveryReceipt::class);
+        return $this->belongsTo(
+            DeliveryReceipt::class
+        );
     }
 
     public function supplyDesignation(): BelongsTo
     {
-        return $this->belongsTo(SupplyDesignation::class);
+        return $this->belongsTo(
+            SupplyDesignation::class
+        );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Scopes
-    |--------------------------------------------------------------------------
-    */
 
     public function scopeForProvince(
         Builder $query,
@@ -113,12 +120,6 @@ class InventoryMovement extends Model
             ]
         );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Helpers
-    |--------------------------------------------------------------------------
-    */
 
     public function isStockIn(): bool
     {

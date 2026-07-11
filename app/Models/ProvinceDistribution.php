@@ -46,21 +46,58 @@ class ProvinceDistribution extends Model
 
     public function province(): BelongsTo
     {
-        return $this->belongsTo(Province::class);
+        return $this->belongsTo(
+            Province::class
+        );
     }
 
     public function items(): HasMany
     {
         return $this->hasMany(
-            ProvinceDistributionItem::class
+            ProvinceDistributionItem::class,
+            'province_distribution_id'
         );
     }
 
     public function deliveryReceipt(): HasOne
     {
         return $this->hasOne(
-            DeliveryReceipt::class
+            DeliveryReceipt::class,
+            'province_distribution_id'
         );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Helper Accessors
+    |--------------------------------------------------------------------------
+    |
+    | These are accessors instead of methods named callOff() or
+    | purchaseOrder(). This avoids Laravel treating normal helper methods as
+    | Eloquent relationships when used through property access.
+    |
+    */
+
+    public function getCallOffRecordAttribute(): ?CallOff
+    {
+        if (! $this->relationLoaded('distributionBatch')) {
+            $this->load(
+                'distributionBatch.callOff'
+            );
+        }
+
+        return $this->distributionBatch?->callOff;
+    }
+
+    public function getPurchaseOrderRecordAttribute(): ?PurchaseOrder
+    {
+        if (! $this->relationLoaded('distributionBatch')) {
+            $this->load(
+                'distributionBatch.purchaseOrder'
+            );
+        }
+
+        return $this->distributionBatch?->purchaseOrder;
     }
 
     /*
@@ -69,10 +106,32 @@ class ProvinceDistribution extends Model
     |--------------------------------------------------------------------------
     */
 
-    public function belongsToProvince(int $provinceId): bool
-    {
+    public function belongsToProvince(
+        int $provinceId
+    ): bool {
         return (int) $this->province_id
             === $provinceId;
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === 'Pending';
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->status === 'Approved';
+    }
+
+    public function isForDelivery(): bool
+    {
+        return $this->status === 'For Delivery';
+    }
+
+    public function isPartiallyReceived(): bool
+    {
+        return $this->status
+            === 'Partially Received';
     }
 
     public function isReceived(): bool
@@ -80,26 +139,32 @@ class ProvinceDistribution extends Model
         return $this->status === 'Received';
     }
 
+    public function isCancelled(): bool
+    {
+        return $this->status === 'Cancelled';
+    }
+
     public function canBeReceived(): bool
     {
-        return in_array($this->status, [
-            'Approved',
-            'For Delivery',
-            'Partially Received',
-        ], true);
+        return in_array(
+            $this->status,
+            [
+                'Approved',
+                'For Delivery',
+                'Partially Received',
+            ],
+            true
+        );
     }
 
-    public function callOff(): ?CallOff
+    public function totalQuantity(): int
     {
-        return $this
-            ->distributionBatch
-            ?->callOff;
-    }
+        if ($this->relationLoaded('items')) {
+            return (int) $this->items
+                ->sum('quantity');
+        }
 
-    public function purchaseOrder(): ?PurchaseOrder
-    {
-        return $this
-            ->distributionBatch
-            ?->purchaseOrder;
+        return (int) $this->items()
+            ->sum('quantity');
     }
 }

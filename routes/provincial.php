@@ -1,12 +1,12 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+
 use App\Http\Controllers\ProvincialOffice\DashboardController;
 use App\Http\Controllers\ProvincialOffice\InventoryController;
 use App\Http\Controllers\ProvincialOffice\InventoryLedgerController;
-use App\Http\Controllers\ProvincialOffice\ProvincialOfficeController;
 use App\Http\Controllers\ProvincialOffice\ReceivingController;
 use App\Http\Controllers\ProvincialOffice\SupplyDesignationController;
-use Illuminate\Support\Facades\Route;
 
 Route::middleware([
     'auth',
@@ -15,73 +15,41 @@ Route::middleware([
 ])
     ->prefix('provincial')
     ->name('provincial.')
-    ->group(function (): void {
+    ->group(function () {
+
         /*
         |--------------------------------------------------------------------------
         | Dashboard
         |--------------------------------------------------------------------------
         */
 
-        Route::get(
-            '/',
-            DashboardController::class
-        )->name('dashboard');
+        Route::get('/', DashboardController::class)
+            ->name('dashboard');
 
         /*
         |--------------------------------------------------------------------------
-        | Call-Off Based Receiving
+        | Receiving
         |--------------------------------------------------------------------------
         */
 
-        Route::get(
-            '/receiving',
-            [
-                ReceivingController::class,
-                'index',
-            ]
-        )->name('receiving.index');
+        Route::get('/receiving', [ReceivingController::class, 'index'])
+            ->name('receiving.index');
 
-        Route::get(
-            '/receiving/history',
-            [
-                ReceivingController::class,
-                'history',
-            ]
-        )->name('receiving.history');
+        Route::get('/receiving/history', [ReceivingController::class, 'history'])
+            ->name('receiving.history');
 
-        Route::get(
-            '/receiving/{provinceDistribution}',
-            [
-                ReceivingController::class,
-                'show',
-            ]
-        )
-            ->whereNumber('provinceDistribution')
+        Route::get('/receiving/{provinceDistribution}', [ReceivingController::class, 'show'])
             ->name('receiving.show');
 
-        Route::get(
-            '/receiving/{provinceDistribution}/create',
-            [
-                ReceivingController::class,
-                'create',
-            ]
-        )
-            ->whereNumber('provinceDistribution')
+        Route::get('/receiving/{provinceDistribution}/create', [ReceivingController::class, 'create'])
             ->name('receiving.create');
 
-        Route::post(
-            '/receiving/{provinceDistribution}',
-            [
-                ReceivingController::class,
-                'store',
-            ]
-        )
-            ->whereNumber('provinceDistribution')
+        Route::post('/receiving/{provinceDistribution}', [ReceivingController::class, 'store'])
             ->name('receiving.store');
 
         /*
         |--------------------------------------------------------------------------
-        | Current Provincial Inventory
+        | Current Inventory
         |--------------------------------------------------------------------------
         */
 
@@ -95,149 +63,28 @@ Route::middleware([
 
         /*
         |--------------------------------------------------------------------------
-        | Legacy Provincial Routes
+        | Inventory Ledger
         |--------------------------------------------------------------------------
-        |
-        | These remain temporarily while project designation is migrated.
-        |
         */
 
-        Route::get(
-            '/deliveries',
-            [
-                ProvincialOfficeController::class,
-                'index',
-            ]
-        )->name('deliveries.index');
-
-        Route::get(
-            '/deliveries/{purchaseOrder}',
-            [
-                ProvincialOfficeController::class,
-                'show',
-            ]
-        )
-            ->whereNumber('purchaseOrder')
-            ->name('deliveries.show');
-
-        Route::get(
-            '/deliveries/{purchaseOrder}/receive',
-            [
-                ProvincialOfficeController::class,
-                'receive',
-            ]
-        )
-            ->whereNumber('purchaseOrder')
-            ->name('deliveries.receive');
-
-        Route::post(
-            '/deliveries/{purchaseOrder}/receive',
-            [
-                ProvincialOfficeController::class,
-                'storeReceipt',
-            ]
-        )
-            ->whereNumber('purchaseOrder')
-            ->name('deliveries.receipt.store');
-
-        Route::get(
-            '/inventory',
-            [
-                ProvincialOfficeController::class,
-                'inventory',
-            ]
-        )->name('inventory.index');
-
-        Route::get(
-            '/inventory/{receipt}',
-            [
-                ProvincialOfficeController::class,
-                'inventoryShow',
-            ]
-        )
-            ->whereNumber('receipt')
-            ->name('inventory.show');
-
-        Route::get(
-            '/inventory/{receipt}/designate',
-            [
-                ProvincialOfficeController::class,
-                'designate',
-            ]
-        )
-            ->whereNumber('receipt')
-            ->name('inventory.designate');
-
-        Route::post(
-            '/inventory/{receipt}/designate',
-            [
-                ProvincialOfficeController::class,
-                'storeDesignation',
-            ]
-        )
-            ->whereNumber('receipt')
-            ->name('inventory.designate.store');
-
-        Route::get(
-            '/designations',
-            [
-                ProvincialOfficeController::class,
-                'designationIndex',
-            ]
-        )->name('designations.index');
+        Route::get('/inventory-ledger', [InventoryLedgerController::class, 'index'])
+            ->name('inventory-ledger.index');
 
         /*
-|--------------------------------------------------------------------------
-| Project PPE Designations
-|--------------------------------------------------------------------------
-*/
+        |--------------------------------------------------------------------------
+        | Project Designations
+        |--------------------------------------------------------------------------
+        */
 
-        Route::get(
-            '/project-designations',
-            [
-                SupplyDesignationController::class,
-                'index',
-            ]
-        )->name('project-designations.index');
+        Route::get('/project-designations', [SupplyDesignationController::class, 'index'])
+            ->name('project-designations.index');
 
-        Route::get(
-            '/project-designations/create',
-            [
-                SupplyDesignationController::class,
-                'create',
-            ]
-        )->name('project-designations.create');
+        Route::get('/project-designations/create', [SupplyDesignationController::class, 'create'])
+            ->name('project-designations.create');
 
-        Route::post(
-            '/project-designations',
-            [
-                SupplyDesignationController::class,
-                'store',
-            ]
-        )->name('project-designations.store');
+        Route::post('/project-designations', [SupplyDesignationController::class, 'store'])
+            ->name('project-designations.store');
 
-        Route::get(
-            '/project-designations/{supplyDesignation}',
-            [
-                SupplyDesignationController::class,
-                'show',
-            ]
-        )
-            ->whereNumber('supplyDesignation')
+        Route::get('/project-designations/{supplyDesignation}', [SupplyDesignationController::class, 'show'])
             ->name('project-designations.show');
-
-        /*
-|--------------------------------------------------------------------------
-| Inventory Ledger
-|--------------------------------------------------------------------------
-*/
-
-        Route::get(
-            '/inventory-ledger',
-            [
-                InventoryLedgerController::class,
-                'index',
-            ]
-        )->name('inventory-ledger.index');
-
     });

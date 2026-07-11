@@ -386,23 +386,34 @@
 
                                         <td class="px-5 py-4 text-center">
 
-                                            <input
-                                                type="number"
-                                                name="items[{{ $inventory->item_id }}]"
-                                                value="{{ old('items.'.$inventory->item_id, 0) }}"
-                                                min="0"
-                                                max="{{ $inventory->quantity }}"
-                                                data-stock-input
-                                                data-available="{{ $inventory->quantity }}"
-                                                data-item-name="{{ $inventory->item->item_name }} {{ $inventory->item->label }}"
-                                                class="w-32 rounded-lg border-gray-300 text-center focus:border-red-900 focus:ring-red-900"
-                                            >
+                                           <input
+    type="number"
+    name="items[{{ $inventory->item_id }}]"
+    value="{{ old('items.'.$inventory->item_id, 0) }}"
+    min="0"
+    max="{{ $inventory->quantity }}"
+    step="1"
+    inputmode="numeric"
+    data-stock-input
+    data-available="{{ $inventory->quantity }}"
+    data-item-name="{{ trim(
+        $inventory->item->item_name.' '.
+        ($inventory->item->label ?? '')
+    ) }}"
+    class="w-32 rounded-lg border-gray-300 text-center
+           focus:border-red-900 focus:ring-red-900"
+>
 
-                                            @error('items.'.$inventory->item_id)
-                                                <p class="mt-2 text-xs text-red-600">
-                                                    {{ $message }}
-                                                </p>
-                                            @enderror
+<p
+    data-stock-error
+    class="mt-2 hidden text-xs font-semibold text-red-600"
+></p>
+
+@error('items.'.$inventory->item_id)
+    <p class="mt-2 text-xs font-semibold text-red-600">
+        {{ $message }}
+    </p>
+@enderror
 
                                         </td>
 
@@ -513,77 +524,123 @@
             );
 
             function updateInventoryPreview() {
-                let total = 0;
-                let valid = true;
+    let total = 0;
+    let valid = true;
+    let hasStockError = false;
 
-                stockInputs.forEach(input => {
-                    const available = Number(
-                        input.dataset.available || 0
-                    );
+    stockInputs.forEach(input => {
+        const available = Number(
+            input.dataset.available || 0
+        );
 
-                    let quantity = Number(
-                        input.value || 0
-                    );
+        const itemName =
+            input.dataset.itemName || 'PPE item';
 
-                    if (
-                        !Number.isFinite(quantity)
-                        || quantity < 0
-                    ) {
-                        quantity = 0;
-                        input.value = 0;
-                    }
+        let quantity = Number(
+            input.value || 0
+        );
 
-                    quantity = Math.floor(quantity);
-                    input.value = quantity;
+        const row = input.closest('tr');
 
-                    const remainingOutput = input
-                        .closest('tr')
-                        ?.querySelector(
-                            '[data-remaining-output]'
-                        );
+        const remainingOutput = row?.querySelector(
+            '[data-remaining-output]'
+        );
 
-                    const remaining =
-                        available - quantity;
+        const stockError = row?.querySelector(
+            '[data-stock-error]'
+        );
 
-                    if (remainingOutput) {
-                        remainingOutput.textContent =
-                            Math.max(0, remaining)
-                                .toLocaleString();
+        if (
+            !Number.isFinite(quantity)
+            || quantity < 0
+        ) {
+            quantity = 0;
+            input.value = 0;
+        }
 
-                        remainingOutput.className =
-                            remaining < 0
-                                ? 'font-semibold text-red-700'
-                                : 'font-semibold text-green-700';
-                    }
+        quantity = Math.floor(quantity);
+        input.value = quantity;
 
-                    if (quantity > available) {
-                        input.classList.add(
-                            'border-red-500'
-                        );
+        const remaining = available - quantity;
+        const exceedsStock = quantity > available;
 
-                        valid = false;
-                    } else {
-                        input.classList.remove(
-                            'border-red-500'
-                        );
-                    }
+        if (remainingOutput) {
+            remainingOutput.textContent =
+                Math.max(0, remaining)
+                    .toLocaleString();
 
-                    total += quantity;
-                });
+            remainingOutput.className =
+                exceedsStock
+                    ? 'font-semibold text-red-700'
+                    : 'font-semibold text-green-700';
+        }
 
-                if (totalOutput) {
-                    totalOutput.textContent =
-                        total.toLocaleString();
-                }
+        if (exceedsStock) {
+            input.classList.add(
+                'border-red-500',
+                'bg-red-50',
+                'text-red-900'
+            );
 
-                if (total <= 0) {
-                    valid = false;
-                }
+            input.setAttribute(
+                'aria-invalid',
+                'true'
+            );
 
-                if (submitButton) {
-                    submitButton.disabled = !valid;
-                }
+            if (stockError) {
+                stockError.textContent =
+                    `${itemName} has only `
+                    +`${available.toLocaleString()} available.`;
+
+                stockError.classList.remove(
+                    'hidden'
+                );
             }
+
+            valid = false;
+            hasStockError = true;
+        } else {
+            input.classList.remove(
+                'border-red-500',
+                'bg-red-50',
+                'text-red-900'
+            );
+
+            input.removeAttribute(
+                'aria-invalid'
+            );
+
+            if (stockError) {
+                stockError.textContent = '';
+
+                stockError.classList.add(
+                    'hidden'
+                );
+            }
+        }
+
+        total += quantity;
+    });
+
+    if (totalOutput) {
+        totalOutput.textContent =
+            total.toLocaleString();
+    }
+
+    if (total <= 0) {
+        valid = false;
+    }
+
+    if (submitButton) {
+        submitButton.disabled = !valid;
+    }
+
+    return {
+        valid,
+        total,
+        hasStockError,
+    };
+}
 
             stockInputs.forEach(input => {
                 input.addEventListener(
@@ -592,58 +649,62 @@
                 );
             });
 
-            form.addEventListener(
-                'submit',
-                function (event) {
-                    let total = 0;
+           form.addEventListener(
+    'submit',
+    function (event) {
+        const result =
+            updateInventoryPreview();
 
-                    for (const input of stockInputs) {
-                        const available = Number(
-                            input.dataset.available || 0
-                        );
+        if (!result.valid) {
+            event.preventDefault();
 
-                        const quantity = Number(
-                            input.value || 0
-                        );
+            const invalidInput =
+                stockInputs.find(input => {
+                    const available = Number(
+                        input.dataset.available || 0
+                    );
 
-                        if (
-                            quantity < 0
-                            || quantity > available
-                        ) {
-                            event.preventDefault();
+                    const quantity = Number(
+                        input.value || 0
+                    );
 
-                            const itemName =
-                                input.dataset.itemName
-                                || 'PPE item';
+                    return quantity > available;
+                });
 
-                            alert(
-                                `${itemName} exceeds the available inventory.`
-                            );
+            if (invalidInput) {
+                const itemName =
+                    invalidInput.dataset.itemName
+                    || 'PPE item';
 
-                            return;
-                        }
+                const available = Number(
+                    invalidInput.dataset.available || 0
+                );
 
-                        total += quantity;
-                    }
+                alert(
+                    `${itemName} has only `
+                    +`${available.toLocaleString()} available.`
+                );
 
-                    if (total <= 0) {
-                        event.preventDefault();
+                invalidInput.focus();
 
-                        alert(
-                            'Enter at least one PPE quantity greater than zero.'
-                        );
+                return;
+            }
 
-                        return;
-                    }
-
-                    if (submitButton) {
-                        submitButton.disabled = true;
-                        submitButton.textContent =
-                            'Saving Designation...';
-                    }
-                }
+            alert(
+                'Enter at least one PPE quantity greater than zero.'
             );
 
+            return;
+        }
+
+        if (submitButton) {
+            submitButton.disabled = true;
+
+            submitButton.textContent =
+                'Saving Designation...';
+        }
+    }
+);
             updateInventoryPreview();
         });
     </script>

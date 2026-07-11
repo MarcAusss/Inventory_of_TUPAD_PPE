@@ -126,38 +126,85 @@ class StoreTssdDistributionRequest extends FormRequest
      * Validate business-level input conditions that cannot be expressed
      * cleanly through individual field rules.
      */
-    public function withValidator(Validator $validator): void
-    {
-        $validator->after(function (Validator $validator): void {
-            $distributions = $this->input('distributions', []);
+    public function withValidator(
+        Validator $validator
+    ): void {
+        $validator->after(
+            function (Validator $validator): void {
+                $distributions =
+                    $this->input(
+                        'distributions',
+                        []
+                    );
 
-            if (! is_array($distributions)) {
-                return;
-            }
-
-            foreach ($distributions as $index => $distribution) {
-                if (! is_array($distribution)) {
-                    continue;
+                if (!is_array($distributions)) {
+                    return;
                 }
 
-                $total = collect([
-                    $distribution['long_sleeve_medium'] ?? 0,
-                    $distribution['long_sleeve_large'] ?? 0,
-                    $distribution['bucket_hat'] ?? 0,
-                    $distribution['rubber_boots_us9'] ?? 0,
-                    $distribution['rubber_boots_us10'] ?? 0,
-                    $distribution['hand_gloves'] ?? 0,
-                    $distribution['mask'] ?? 0,
-                ])->sum();
+                $wholeBatchTotal = 0;
 
-                if ($total <= 0) {
+                foreach (
+                    $distributions as $index
+                    => $distribution
+                ) {
+                    if (!is_array($distribution)) {
+                        continue;
+                    }
+
+                    $provinceTotal = collect([
+                        $distribution[
+                            'long_sleeve_medium'
+                        ] ?? 0,
+
+                        $distribution[
+                            'long_sleeve_large'
+                        ] ?? 0,
+
+                        $distribution[
+                            'bucket_hat'
+                        ] ?? 0,
+
+                        $distribution[
+                            'rubber_boots_us9'
+                        ] ?? 0,
+
+                        $distribution[
+                            'rubber_boots_us10'
+                        ] ?? 0,
+
+                        $distribution[
+                            'hand_gloves'
+                        ] ?? 0,
+
+                        $distribution[
+                            'mask'
+                        ] ?? 0,
+                    ])
+                        ->map(
+                            fn($value): int =>
+                            (int) $value
+                        )
+                        ->sum();
+
+                    $wholeBatchTotal +=
+                        $provinceTotal;
+
+                    if ($provinceTotal <= 0) {
+                        $validator->errors()->add(
+                            "distributions.{$index}",
+                            'At least one PPE quantity must be greater than zero for each selected province.'
+                        );
+                    }
+                }
+
+                if ($wholeBatchTotal <= 0) {
                     $validator->errors()->add(
-                        "distributions.{$index}",
-                        'At least one PPE quantity must be greater than zero for each selected province.'
+                        'distributions',
+                        'The distribution batch must contain at least one PPE item.'
                     );
                 }
             }
-        });
+        );
     }
 
     /**

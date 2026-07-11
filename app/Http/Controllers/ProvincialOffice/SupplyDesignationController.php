@@ -41,7 +41,7 @@ class SupplyDesignationController extends Controller
             ->withQueryString();
 
         return view(
-            'provincial.designations.index',
+            'provincial.project-designations.index',
             compact(
                 'designations',
                 'search'
@@ -67,7 +67,7 @@ class SupplyDesignationController extends Controller
             ->get();
 
         return view(
-            'provincial.designations.create',
+            'provincial.project-designations.create',
             compact('inventories')
         );
     }
@@ -112,7 +112,7 @@ class SupplyDesignationController extends Controller
         ]);
 
         return view(
-            'provincial.designations.show',
+            'provincial.project-designations.show',
             compact('supplyDesignation')
         );
     }

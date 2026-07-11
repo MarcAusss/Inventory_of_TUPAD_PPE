@@ -99,9 +99,9 @@ class InventoryLedgerController extends Controller
             ->distinct()
             ->orderByDesc('movement_year')
             ->pluck('movement_year')
-            ->map(fn ($value): int => (int) $value);
+            ->map(fn($value): int => (int) $value);
 
-        if (! $availableYears->contains($currentYear)) {
+        if (!$availableYears->contains($currentYear)) {
             $availableYears->prepend($currentYear);
         }
 
@@ -126,79 +126,147 @@ class InventoryLedgerController extends Controller
         int $year
     ): array {
         $items = Item::query()
-            ->where('is_active', true)
+            ->where(
+                'is_active',
+                true
+            )
             ->orderBy('id')
             ->get();
 
+        $beforeYear = InventoryMovement::query()
+            ->forProvince($provinceId)
+            ->whereDate(
+                'movement_date',
+                '<',
+                "{$year}-01-01"
+            )
+            ->selectRaw(
+                '
+            item_id,
+            SUM(
+                CASE
+                    WHEN movement_type IN (
+                        "IN",
+                        "ADJUSTMENT_IN"
+                    )
+                    THEN quantity
+                    ELSE 0
+                END
+            ) AS stock_in,
+            SUM(
+                CASE
+                    WHEN movement_type IN (
+                        "OUT",
+                        "ADJUSTMENT_OUT"
+                    )
+                    THEN quantity
+                    ELSE 0
+                END
+            ) AS stock_out
+            '
+            )
+            ->groupBy('item_id')
+            ->get()
+            ->keyBy('item_id');
+
+        $duringYear = InventoryMovement::query()
+            ->forProvince($provinceId)
+            ->forYear($year)
+            ->selectRaw(
+                '
+            item_id,
+            SUM(
+                CASE
+                    WHEN movement_type IN (
+                        "IN",
+                        "ADJUSTMENT_IN"
+                    )
+                    THEN quantity
+                    ELSE 0
+                END
+            ) AS stock_in,
+            SUM(
+                CASE
+                    WHEN movement_type IN (
+                        "OUT",
+                        "ADJUSTMENT_OUT"
+                    )
+                    THEN quantity
+                    ELSE 0
+                END
+            ) AS stock_out
+            '
+            )
+            ->groupBy('item_id')
+            ->get()
+            ->keyBy('item_id');
+
         return $items
-            ->map(function (Item $item) use (
-                $provinceId,
-                $year
-            ): array {
-                $beginningInventory = $this->balanceBeforeYear(
-                    $provinceId,
-                    $item->id,
-                    $year
-                );
+            ->map(
+                function (Item $item) use ($beforeYear, $duringYear): array {
+                    $historical =
+                        $beforeYear->get(
+                            $item->id
+                        );
 
-                $received = InventoryMovement::query()
-                    ->forProvince($provinceId)
-                    ->forYear($year)
-                    ->where('item_id', $item->id)
-                    ->stockIn()
-                    ->sum('quantity');
+                    $current =
+                        $duringYear->get(
+                            $item->id
+                        );
 
-                $issued = InventoryMovement::query()
-                    ->forProvince($provinceId)
-                    ->forYear($year)
-                    ->where('item_id', $item->id)
-                    ->stockOut()
-                    ->sum('quantity');
+                    $beginningInventory =
+                        (int) (
+                            $historical?->stock_in
+                            ?? 0
+                        )
+                        - (int) (
+                            $historical?->stock_out
+                            ?? 0
+                        );
 
-                $endingInventory =
-                    $beginningInventory
-                    + (int) $received
-                    - (int) $issued;
+                    $received =
+                        (int) (
+                            $current?->stock_in
+                            ?? 0
+                        );
 
-                return [
-                    'item' => $item,
-                    'beginning_inventory' => $beginningInventory,
-                    'received_inventory' => (int) $received,
-                    'issued_inventory' => (int) $issued,
-                    'actual_inventory' => $endingInventory,
-                    'ending_inventory' => $endingInventory,
-                ];
-            })
+                    $issued =
+                        (int) (
+                            $current?->stock_out
+                            ?? 0
+                        );
+
+                    $endingInventory =
+                        $beginningInventory
+                        + $received
+                        - $issued;
+
+                    return [
+                        'item' =>
+                            $item,
+
+                        'beginning_inventory' =>
+                            $beginningInventory,
+
+                        'received_inventory' =>
+                            $received,
+
+                        'issued_inventory' =>
+                            $issued,
+
+                        /*
+                         * Actual inventory means the current
+                         * remaining stock after distributions.
+                         */
+                        'actual_inventory' =>
+                            $endingInventory,
+
+                        'ending_inventory' =>
+                            $endingInventory,
+                    ];
+                }
+            )
             ->all();
     }
 
-    private function balanceBeforeYear(
-        int $provinceId,
-        int $itemId,
-        int $year
-    ): int {
-        $stockIn = InventoryMovement::query()
-            ->forProvince($provinceId)
-            ->where('item_id', $itemId)
-            ->whereDate(
-                'movement_date',
-                '<',
-                "{$year}-01-01"
-            )
-            ->stockIn()
-            ->sum('quantity');
-
-        $stockOut = InventoryMovement::query()
-            ->forProvince($provinceId)
-            ->where('item_id', $itemId)
-            ->whereDate(
-                'movement_date',
-                '<',
-                "{$year}-01-01"
-            )
-            ->stockOut()
-            ->sum('quantity');
-
-        return (int) $stockIn - (int) $stockOut;
-    }
 }

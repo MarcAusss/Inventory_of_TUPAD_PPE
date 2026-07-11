@@ -2,24 +2,27 @@
 
 namespace App\Services;
 
+use App\Models\Item;
 use App\Models\Province;
 use App\Models\ProvinceDistributionItem;
 use App\Models\PurchaseOrder;
+use App\Models\PurchaseOrderItem;
 use App\Models\TSSDDistribution;
 use App\Models\TssdDistributionBatch;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
-class DistributionService extends BaseService
+class DistributionService
 {
     /**
-     * Maps the submitted Blade/JavaScript fields to the PPE records stored in
-     * the items table.
+     * Maps the form field names to the system PPE records.
      *
      * @var array<string, array{name: string, label: string|null}>
      */
-    private const PPE_MAP = [
+    private array $ppeMap = [
         'long_sleeve_medium' => [
             'name' => 'Long Sleeve',
             'label' => 'Medium',
@@ -57,390 +60,525 @@ class DistributionService extends BaseService
     ];
 
     /**
-     * Create a complete TSSD distribution batch.
+     * Create a normalized TSSD distribution batch.
      *
      * @param  array<string, mixed>  $data
+     *
+     * @throws Throwable
      */
-    public function createBatch(array $data): TssdDistributionBatch
-    {
-        $this->requireTssd();
+    public function createBatch(
+        array $data
+    ): TssdDistributionBatch {
+        $user = Auth::user();
 
-        return DB::transaction(function () use ($data): TssdDistributionBatch {
-            /*
-             * Lock the Purchase Order while calculating and saving the
-             * distribution. This reduces the chance of simultaneous requests
-             * allocating the same remaining quantities.
-             */
-            $purchaseOrder = PurchaseOrder::query()
-                ->with([
-                    'items.item',
-                ])
-                ->lockForUpdate()
-                ->findOrFail($data['purchase_order_id']);
+        abort_unless(
+            $user
+            && $user->isTssd(),
+            403,
+            'Only the TSSD Unit may create distributions.'
+        );
 
-            $purchaseOrderItems = $purchaseOrder->items;
-
-            if ($purchaseOrderItems->isEmpty()) {
-                throw ValidationException::withMessages([
-                    'purchase_order_id' => 'The selected Purchase Order does not contain PPE items.',
-                ]);
-            }
-
-            $itemIdsByField = $this->resolvePurchaseOrderItemIds(
-                $purchaseOrderItems
-            );
-
-            $purchasedQuantities = $this->purchasedQuantities(
-                $purchaseOrderItems
-            );
-
-            /*
-             * Include both the legacy tssd_distributions table and the new
-             * normalized province_distribution_items table while the old
-             * workflow is still being migrated.
-             */
-            $alreadyDistributed = $this->alreadyDistributedQuantities(
-                $purchaseOrder->id
-            );
-
-            $requestedQuantities = $this->requestedQuantities(
-                $data['distributions'],
-                $itemIdsByField
-            );
-
-            $this->validateAvailableQuantities(
-                $purchasedQuantities,
-                $alreadyDistributed,
-                $requestedQuantities,
-                $purchaseOrderItems
-            );
-
-            $provinces = Province::query()
-                ->whereIn(
-                    'id',
-                    collect($data['distributions'])
-                        ->pluck('province_id')
-                        ->map(fn ($id): int => (int) $id)
-                        ->all()
-                )
-                ->get()
-                ->keyBy('id');
-
-            if ($provinces->count() !== count($data['distributions'])) {
-                throw ValidationException::withMessages([
-                    'distributions' => 'One or more selected provinces could not be loaded.',
-                ]);
-            }
-
-            $batch = TssdDistributionBatch::create([
-                'purchase_order_id' => $purchaseOrder->id,
-                'created_by' => $this->userId(),
-                'distribution_date' => now()->toDateString(),
-                'status' => 'Submitted',
-                'remarks' => $data['remarks'] ?? null,
-            ]);
-
-            foreach ($data['distributions'] as $distributionData) {
-                $provinceId = (int) $distributionData['province_id'];
-                $province = $provinces->get($provinceId);
-
-                $provinceDistribution = $batch
-                    ->provinceDistributions()
-                    ->create([
-                        'province_id' => $provinceId,
-                        'scheduled_delivery_date' => $data['delivery_date'],
-                        'place_of_delivery' => $province->deliveryLocation(),
-                        'status' => 'Pending',
-                        'remarks' => null,
-                    ]);
-
-                foreach (self::PPE_MAP as $field => $definition) {
-                    $quantity = (int) (
-                        $distributionData[$field] ?? 0
+        return DB::transaction(
+            function () use (
+                $data,
+                $user
+            ): TssdDistributionBatch {
+                /*
+                 * Lock the Purchase Order itself so another TSSD request
+                 * cannot allocate from the same PO simultaneously.
+                 */
+                $purchaseOrder = PurchaseOrder::query()
+                    ->with([
+                        'items.item',
+                    ])
+                    ->lockForUpdate()
+                    ->findOrFail(
+                        (int) $data['purchase_order_id']
                     );
 
-                    if ($quantity <= 0) {
-                        continue;
-                    }
-
-                    $itemId = $itemIdsByField[$field] ?? null;
-
-                    if (! $itemId) {
-                        throw ValidationException::withMessages([
-                            "distributions.{$field}" => $this->ppeDisplayName($definition)
-                                .' does not exist in the selected Purchase Order.',
-                        ]);
-                    }
-
-                    $provinceDistribution->items()->create([
-                        'item_id' => $itemId,
-                        'quantity' => $quantity,
+                if (
+                    ! in_array(
+                        $purchaseOrder->status,
+                        [
+                            'Pending Distribution',
+                            'Distributed',
+                        ],
+                        true
+                    )
+                ) {
+                    throw ValidationException::withMessages([
+                        'purchase_order_id' => 'This Purchase Order is no longer available for distribution.',
                     ]);
                 }
-            }
 
-            $this->updatePurchaseOrderStatus(
-                $purchaseOrder,
-                $purchasedQuantities,
-                $alreadyDistributed,
-                $requestedQuantities
-            );
+                $distributions =
+                    $this->normalizeDistributions(
+                        $data['distributions'] ?? []
+                    );
 
-            return $batch->load([
-                'purchaseOrder.supplier',
-                'creator',
-                'provinceDistributions.province',
-                'provinceDistributions.items.item',
-            ]);
-        });
-    }
-
-    /**
-     * Determine which Item ID corresponds to every supported PPE input field.
-     *
-     * @param  Collection<int, mixed>  $purchaseOrderItems
-     * @return array<string, int>
-     */
-    private function resolvePurchaseOrderItemIds(
-        Collection $purchaseOrderItems
-    ): array {
-        $resolved = [];
-
-        foreach (self::PPE_MAP as $field => $definition) {
-            $purchaseOrderItem = $purchaseOrderItems->first(
-                function ($purchaseOrderItem) use ($definition): bool {
-                    $item = $purchaseOrderItem->item;
-
-                    if (! $item) {
-                        return false;
-                    }
-
-                    if ($item->item_name !== $definition['name']) {
-                        return false;
-                    }
-
-                    if ($definition['label'] === null) {
-                        return true;
-                    }
-
-                    return $item->label === $definition['label'];
+                if ($distributions === []) {
+                    throw ValidationException::withMessages([
+                        'distributions' => 'Assign PPE to at least one province.',
+                    ]);
                 }
-            );
 
-            if ($purchaseOrderItem) {
-                $resolved[$field] = (int) $purchaseOrderItem->item_id;
-            }
-        }
+                $items = $this->resolvePpeItems();
 
-        return $resolved;
-    }
-
-    /**
-     * Purchase Order quantities grouped by Item ID.
-     *
-     * @param  Collection<int, mixed>  $purchaseOrderItems
-     * @return array<int, int>
-     */
-    private function purchasedQuantities(
-        Collection $purchaseOrderItems
-    ): array {
-        return $purchaseOrderItems
-            ->groupBy('item_id')
-            ->map(
-                fn (Collection $items): int => (int) $items->sum('quantity')
-            )
-            ->mapWithKeys(
-                fn (int $quantity, int|string $itemId): array => [(int) $itemId => $quantity]
-            )
-            ->all();
-    }
-
-    /**
-     * Calculate quantities that were already distributed through both the
-     * legacy and normalized distribution structures.
-     *
-     * @return array<int, int>
-     */
-    private function alreadyDistributedQuantities(
-        int $purchaseOrderId
-    ): array {
-        $legacy = TSSDDistribution::query()
-            ->where('purchase_order_id', $purchaseOrderId)
-            ->selectRaw('item_id, SUM(quantity) as total_quantity')
-            ->groupBy('item_id')
-            ->pluck('total_quantity', 'item_id')
-            ->map(
-                fn ($quantity): int => (int) $quantity
-            );
-
-        $normalized = ProvinceDistributionItem::query()
-            ->whereHas(
-                'provinceDistribution.distributionBatch',
-                function ($query) use ($purchaseOrderId): void {
-                    $query
+                /*
+                 * Lock the Purchase Order item rows so their purchased
+                 * quantities remain stable during validation.
+                 */
+                $purchaseOrderItems =
+                    PurchaseOrderItem::query()
+                        ->with('item')
                         ->where(
                             'purchase_order_id',
-                            $purchaseOrderId
+                            $purchaseOrder->id
                         )
-                        ->where('status', '!=', 'Cancelled');
-                }
-            )
-            ->selectRaw('item_id, SUM(quantity) as total_quantity')
-            ->groupBy('item_id')
-            ->pluck('total_quantity', 'item_id')
-            ->map(
-                fn ($quantity): int => (int) $quantity
-            );
+                        ->lockForUpdate()
+                        ->get()
+                        ->keyBy('item_id');
 
-        return $legacy
-            ->mergeRecursive($normalized)
-            ->map(function ($quantity): int {
-                if (is_array($quantity)) {
-                    return array_sum(
-                        array_map('intval', $quantity)
+                $requestedByItem =
+                    $this->calculateRequestedTotals(
+                        $distributions,
+                        $items
                     );
+
+                $remainingByItem =
+                    $this->calculateRemainingByItem(
+                        $purchaseOrder,
+                        $purchaseOrderItems
+                    );
+
+                $this->validateRequestedTotals(
+                    $requestedByItem,
+                    $remainingByItem,
+                    $items
+                );
+
+                $batch =
+                    TssdDistributionBatch::create([
+                        'purchase_order_id' => $purchaseOrder->id,
+
+                        'created_by' => $user->id,
+
+                        'distribution_date' => now()->toDateString(),
+
+                        'status' => 'Submitted',
+
+                        'remarks' => $data['remarks']
+                            ?? null,
+                    ]);
+
+                foreach (
+                    $distributions as $distributionIndex => $distribution
+                ) {
+                    $province = Province::query()
+                        ->findOrFail(
+                            $distribution[
+                                'province_id'
+                            ]
+                        );
+
+                    $provinceDistribution =
+                        $batch
+                            ->provinceDistributions()
+                            ->create([
+                                'province_id' => $province->id,
+
+                                'scheduled_delivery_date' => $data['delivery_date'],
+
+                                'place_of_delivery' => $province->delivery_address
+                                    ?? $province->office_name
+                                    ?? $province->name,
+
+                                'status' => 'Pending',
+
+                                'remarks' => $distribution['remarks']
+                                    ?? null,
+                            ]);
+
+                    $hasPositiveItem = false;
+
+                    foreach (
+                        $this->ppeMap as $field => $ppeDefinition
+                    ) {
+                        $quantity = (int) (
+                            $distribution[$field]
+                            ?? 0
+                        );
+
+                        if ($quantity <= 0) {
+                            continue;
+                        }
+
+                        $hasPositiveItem = true;
+
+                        $item = $items[$field];
+
+                        $provinceDistribution
+                            ->items()
+                            ->create([
+                                'item_id' => $item->id,
+
+                                'quantity' => $quantity,
+                            ]);
+                    }
+
+                    if (! $hasPositiveItem) {
+                        throw ValidationException::withMessages([
+                            "distributions.{$distributionIndex}" => "Enter at least one PPE quantity for {$province->name}.",
+                        ]);
+                    }
                 }
 
-                return (int) $quantity;
-            })
-            ->mapWithKeys(
-                fn (int $quantity, int|string $itemId): array => [(int) $itemId => $quantity]
-            )
-            ->all();
+                /*
+                 * Mark the PO as distributed once at least one batch exists.
+                 * It can still have remaining stock for another batch.
+                 */
+                $purchaseOrder->update([
+                    'status' => 'Distributed',
+                ]);
+
+                return $batch->fresh([
+                    'purchaseOrder.supplier',
+                    'creator',
+                    'provinceDistributions.province',
+                    'provinceDistributions.items.item',
+                ]);
+            },
+            attempts: 3
+        );
     }
 
     /**
-     * Calculate the quantities submitted in the current request.
+     * Normalize and sanitize submitted distribution entries.
      *
-     * @param  array<int, array<string, mixed>>  $distributions
-     * @param  array<string, int>  $itemIdsByField
-     * @return array<int, int>
+     * @return array<int, array<string, mixed>>
      */
-    private function requestedQuantities(
-        array $distributions,
-        array $itemIdsByField
+    private function normalizeDistributions(
+        mixed $distributions
     ): array {
-        $requested = [];
+        if (! is_array($distributions)) {
+            throw ValidationException::withMessages([
+                'distributions' => 'The submitted distribution data is invalid.',
+            ]);
+        }
 
-        foreach ($distributions as $distribution) {
-            foreach (self::PPE_MAP as $field => $definition) {
-                $quantity = (int) ($distribution[$field] ?? 0);
+        $normalized = [];
 
-                if ($quantity <= 0) {
-                    continue;
+        foreach (
+            $distributions as $index => $distribution
+        ) {
+            if (! is_array($distribution)) {
+                throw ValidationException::withMessages([
+                    "distributions.{$index}" => 'This province distribution entry is invalid.',
+                ]);
+            }
+
+            $provinceId = filter_var(
+                $distribution['province_id']
+                    ?? null,
+                FILTER_VALIDATE_INT
+            );
+
+            if ($provinceId === false) {
+                throw ValidationException::withMessages([
+                    "distributions.{$index}.province_id" => 'Select a valid province.',
+                ]);
+            }
+
+            $entry = [
+                'province_id' => (int) $provinceId,
+
+                'remarks' => isset($distribution['remarks'])
+                        ? trim(
+                            (string) $distribution[
+                                'remarks'
+                            ]
+                        )
+                        : null,
+            ];
+
+            foreach (
+                array_keys($this->ppeMap) as $field
+            ) {
+                $quantity =
+                    $distribution[$field]
+                    ?? 0;
+
+                if (
+                    $quantity === null
+                    || $quantity === ''
+                ) {
+                    $quantity = 0;
                 }
 
-                $itemId = $itemIdsByField[$field] ?? null;
-
-                if (! $itemId) {
+                if (
+                    filter_var(
+                        $quantity,
+                        FILTER_VALIDATE_INT
+                    ) === false
+                ) {
                     throw ValidationException::withMessages([
-                        "distributions.{$field}" => $this->ppeDisplayName($definition)
-                            .' is not available in the selected Purchase Order.',
+                        "distributions.{$index}.{$field}" => 'The PPE quantity must be a whole number.',
                     ]);
                 }
 
-                $requested[$itemId] =
-                    ($requested[$itemId] ?? 0) + $quantity;
+                $quantity = (int) $quantity;
+
+                if ($quantity < 0) {
+                    throw ValidationException::withMessages([
+                        "distributions.{$index}.{$field}" => 'PPE quantities cannot be negative.',
+                    ]);
+                }
+
+                $entry[$field] = $quantity;
             }
+
+            $normalized[] = $entry;
         }
 
-        return $requested;
+        $provinceIds = collect($normalized)
+            ->pluck('province_id');
+
+        if (
+            $provinceIds->duplicates()
+                ->isNotEmpty()
+        ) {
+            throw ValidationException::withMessages([
+                'distributions' => 'A province cannot appear more than once in the same distribution batch.',
+            ]);
+        }
+
+        return $normalized;
     }
 
     /**
-     * Ensure requested allocation totals do not exceed the available Purchase
-     * Order quantities.
+     * Resolve the seven system PPE records.
      *
-     * @param  array<int, int>  $purchased
-     * @param  array<int, int>  $alreadyDistributed
-     * @param  array<int, int>  $requested
-     * @param  Collection<int, mixed>  $purchaseOrderItems
+     * @return array<string, Item>
      */
-    private function validateAvailableQuantities(
-        array $purchased,
-        array $alreadyDistributed,
-        array $requested,
-        Collection $purchaseOrderItems
+    private function resolvePpeItems(): array
+    {
+        $items = [];
+
+        foreach (
+            $this->ppeMap as $field => $definition
+        ) {
+            $query = Item::query()
+                ->where(
+                    'item_name',
+                    $definition['name']
+                );
+
+            if ($definition['label'] === null) {
+                $query->whereNull('label');
+            } else {
+                $query->where(
+                    'label',
+                    $definition['label']
+                );
+            }
+
+            $item = $query->first();
+
+            if (! $item) {
+                $displayName =
+                    $definition['label']
+                        ? "{$definition['name']} ({$definition['label']})"
+                        : $definition['name'];
+
+                throw ValidationException::withMessages([
+                    'distributions' => "{$displayName} is missing from the PPE items table.",
+                ]);
+            }
+
+            $items[$field] = $item;
+        }
+
+        return $items;
+    }
+
+    /**
+     * Calculate total quantity requested across all selected provinces.
+     *
+     * @param  array<int, array<string, mixed>>  $distributions
+     * @param  array<string, Item>  $items
+     * @return array<int, int>
+     */
+    private function calculateRequestedTotals(
+        array $distributions,
+        array $items
+    ): array {
+        $totals = [];
+
+        foreach ($items as $item) {
+            $totals[$item->id] = 0;
+        }
+
+        foreach (
+            $distributions as $distribution
+        ) {
+            foreach (
+                $this->ppeMap as $field => $definition
+            ) {
+                $item = $items[$field];
+
+                $totals[$item->id] +=
+                    (int) (
+                        $distribution[$field]
+                        ?? 0
+                    );
+            }
+        }
+
+        return $totals;
+    }
+
+    /**
+     * Calculate PO remaining quantities after all existing distributions.
+     *
+     * This counts both the legacy table and the normalized batch tables
+     * while the legacy workflow is still present.
+     *
+     * @param  Collection<int, PurchaseOrderItem>  $purchaseOrderItems
+     * @return array<int, int>
+     */
+    private function calculateRemainingByItem(
+        PurchaseOrder $purchaseOrder,
+        $purchaseOrderItems
+    ): array {
+        $remaining = [];
+
+        foreach (
+            $purchaseOrderItems as $purchaseOrderItem
+        ) {
+            $remaining[
+                $purchaseOrderItem->item_id
+            ] = (int) $purchaseOrderItem->quantity;
+        }
+
+        /*
+         * Legacy distribution totals.
+         */
+        $legacyTotals = TSSDDistribution::query()
+            ->where(
+                'purchase_order_id',
+                $purchaseOrder->id
+            )
+            ->selectRaw(
+                'item_id, SUM(quantity) as total_quantity'
+            )
+            ->groupBy('item_id')
+            ->pluck(
+                'total_quantity',
+                'item_id'
+            );
+
+        /*
+         * Normalized distribution totals, excluding cancelled batches.
+         */
+        $normalizedTotals =
+            ProvinceDistributionItem::query()
+                ->whereHas(
+                    'provinceDistribution.distributionBatch',
+                    function ($query) use (
+                        $purchaseOrder
+                    ): void {
+                        $query
+                            ->where(
+                                'purchase_order_id',
+                                $purchaseOrder->id
+                            )
+                            ->where(
+                                'status',
+                                '!=',
+                                'Cancelled'
+                            );
+                    }
+                )
+                ->selectRaw(
+                    'item_id, SUM(quantity) as total_quantity'
+                )
+                ->groupBy('item_id')
+                ->pluck(
+                    'total_quantity',
+                    'item_id'
+                );
+
+        foreach (
+            array_keys($remaining) as $itemId
+        ) {
+            $used =
+                (int) (
+                    $legacyTotals[$itemId]
+                    ?? 0
+                )
+                + (int) (
+                    $normalizedTotals[$itemId]
+                    ?? 0
+                );
+
+            $remaining[$itemId] =
+                max(
+                    0,
+                    $remaining[$itemId]
+                    - $used
+                );
+        }
+
+        return $remaining;
+    }
+
+    /**
+     * Reject a combined allocation that exceeds remaining PO quantities.
+     *
+     * @param  array<int, int>  $requestedByItem
+     * @param  array<int, int>  $remainingByItem
+     * @param  array<string, Item>  $items
+     */
+    private function validateRequestedTotals(
+        array $requestedByItem,
+        array $remainingByItem,
+        array $items
     ): void {
         $errors = [];
 
-        foreach ($requested as $itemId => $requestedQuantity) {
-            $purchasedQuantity = $purchased[$itemId] ?? 0;
+        foreach (
+            $items as $field => $item
+        ) {
+            $requested =
+                $requestedByItem[$item->id]
+                ?? 0;
 
-            $previouslyDistributed =
-                $alreadyDistributed[$itemId] ?? 0;
+            $remaining =
+                $remainingByItem[$item->id]
+                ?? 0;
 
-            $availableQuantity =
-                $purchasedQuantity - $previouslyDistributed;
-
-            if ($requestedQuantity <= $availableQuantity) {
+            if ($requested <= $remaining) {
                 continue;
             }
 
-            $purchaseOrderItem = $purchaseOrderItems
-                ->firstWhere('item_id', $itemId);
+            $displayName =
+                $item->label
+                    ? "{$item->item_name} ({$item->label})"
+                    : $item->item_name;
 
-            $itemName = $purchaseOrderItem?->item?->item_name
-                ?? 'PPE item';
-
-            $label = $purchaseOrderItem?->item?->label;
-
-            $displayName = $label
-                ? "{$itemName} ({$label})"
-                : $itemName;
-
-            $errors["item_{$itemId}"] =
-                "{$displayName} has only {$availableQuantity} remaining, "
-                ."but {$requestedQuantity} was requested.";
+            $errors[
+                "totals.{$field}"
+            ] = "{$displayName} has "
+                .number_format($remaining)
+                .' remaining in this Purchase Order, but '
+                .number_format($requested)
+                .' was allocated across all provinces.';
         }
 
         if ($errors !== []) {
-            throw ValidationException::withMessages($errors);
+            throw ValidationException::withMessages(
+                $errors
+            );
         }
-    }
-
-    /**
-     * Update the Purchase Order workflow status after allocation.
-     *
-     * @param  array<int, int>  $purchased
-     * @param  array<int, int>  $alreadyDistributed
-     * @param  array<int, int>  $requested
-     */
-    private function updatePurchaseOrderStatus(
-        PurchaseOrder $purchaseOrder,
-        array $purchased,
-        array $alreadyDistributed,
-        array $requested
-    ): void {
-        $fullyDistributed = true;
-
-        foreach ($purchased as $itemId => $purchasedQuantity) {
-            $totalDistributed =
-                ($alreadyDistributed[$itemId] ?? 0)
-                + ($requested[$itemId] ?? 0);
-
-            if ($totalDistributed < $purchasedQuantity) {
-                $fullyDistributed = false;
-                break;
-            }
-        }
-
-        $purchaseOrder->update([
-            'status' => $fullyDistributed
-                ? 'Distributed'
-                : 'Pending Distribution',
-        ]);
-    }
-
-    /**
-     * Convert an internal PPE definition to a readable validation name.
-     *
-     * @param  array{name: string, label: string|null}  $definition
-     */
-    private function ppeDisplayName(array $definition): string
-    {
-        return $definition['label']
-            ? "{$definition['name']} ({$definition['label']})"
-            : $definition['name'];
     }
 }

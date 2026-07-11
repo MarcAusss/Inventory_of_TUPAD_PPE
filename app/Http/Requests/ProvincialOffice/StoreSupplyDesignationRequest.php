@@ -2,37 +2,25 @@
 
 namespace App\Http\Requests\ProvincialOffice;
 
+use App\Models\ProvincialInventory;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreSupplyDesignationRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->isProvincial() === true;
+        return $this->user()?->role?->name
+            === 'Provincial Office';
     }
 
-    /**
-     * @return array<string, mixed>
-     */
     public function rules(): array
     {
-        $provinceId = $this->user()?->province_id;
-
         return [
             'project_code' => [
                 'required',
                 'string',
-                'max:100',
-                Rule::unique(
-                    'supply_designations',
-                    'project_code'
-                )->where(
-                    fn ($query) => $query->where(
-                        'province_id',
-                        $provinceId
-                    )
-                ),
+                'max:255',
             ],
 
             'project_title' => [
@@ -41,15 +29,15 @@ class StoreSupplyDesignationRequest extends FormRequest
                 'max:255',
             ],
 
-            'designation_date' => [
-                'required',
-                'date',
-            ],
-
             'location' => [
                 'required',
                 'string',
-                'max:500',
+                'max:255',
+            ],
+
+            'designation_date' => [
+                'required',
+                'date',
             ],
 
             'number_of_days' => [
@@ -68,101 +56,144 @@ class StoreSupplyDesignationRequest extends FormRequest
                 'required',
                 'file',
                 'mimes:pdf',
+                'mimetypes:application/pdf',
                 'max:10240',
             ],
 
             'remarks' => [
                 'nullable',
                 'string',
-                'max:5000',
+                'max:2000',
             ],
 
             'items' => [
                 'required',
                 'array',
-                'min:1',
             ],
 
             'items.*' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:0',
             ],
         ];
     }
 
-    protected function prepareForValidation(): void
+    public function after(): array
     {
-        $this->merge([
-            'project_code' => strtoupper(
-                trim((string) $this->input('project_code'))
-            ),
+        return [
+            function (Validator $validator): void {
+                $provinceId = $this->user()?->province_id;
 
-            'project_title' => trim(
-                (string) $this->input('project_title')
-            ),
+                if (! $provinceId) {
+                    $validator->errors()->add(
+                        'items',
+                        'Your account has no assigned province.'
+                    );
 
-            'location' => trim(
-                (string) $this->input('location')
-            ),
-        ]);
-    }
+                    return;
+                }
 
-    public function withValidator($validator): void
-    {
-        $validator->after(function ($validator): void {
-            $items = $this->input('items', []);
-
-            if (! is_array($items)) {
-                return;
-            }
-
-            $total = collect($items)
-                ->map(fn ($quantity): int => (int) $quantity)
-                ->sum();
-
-            if ($total <= 0) {
-                $validator->errors()->add(
+                $items = $this->input(
                     'items',
-                    'Enter at least one PPE quantity greater than zero.'
+                    []
                 );
-            }
-        });
+
+                $hasQuantity = false;
+
+                foreach ($items as $itemId => $quantity) {
+                    $quantity = (int) $quantity;
+
+                    if ($quantity <= 0) {
+                        continue;
+                    }
+
+                    $hasQuantity = true;
+
+                    $inventory = ProvincialInventory::query()
+                        ->with('item')
+                        ->where(
+                            'province_id',
+                            $provinceId
+                        )
+                        ->where(
+                            'item_id',
+                            $itemId
+                        )
+                        ->first();
+
+                    if (! $inventory) {
+                        $validator->errors()->add(
+                            "items.{$itemId}",
+                            'This PPE item is not available in your provincial inventory.'
+                        );
+
+                        continue;
+                    }
+
+                    if (
+                        $quantity
+                        > (int) $inventory->quantity
+                    ) {
+                        $itemName = trim(
+                            $inventory->item->item_name
+                            .' '
+                            .($inventory->item->label ?? '')
+                        );
+
+                        $validator->errors()->add(
+                            "items.{$itemId}",
+                            "{$itemName} has only "
+                            .number_format(
+                                $inventory->quantity
+                            )
+                            ." available."
+                        );
+                    }
+                }
+
+                if (! $hasQuantity) {
+                    $validator->errors()->add(
+                        'items',
+                        'Enter at least one PPE quantity.'
+                    );
+                }
+            },
+        ];
     }
 
-    /**
-     * @return array<string, string>
-     */
     public function messages(): array
     {
         return [
-            'project_code.required' => 'Please enter the Project Code.',
+            'project_code.required' =>
+                'The project code is required.',
 
-            'project_code.unique' => 'This Project Code already exists for your province.',
+            'project_title.required' =>
+                'The project title is required.',
 
-            'project_title.required' => 'Please enter the Project Title.',
+            'location.required' =>
+                'The project location is required.',
 
-            'designation_date.required' => 'Please enter the designation date.',
+            'designation_date.required' =>
+                'The designation date is required.',
 
-            'location.required' => 'Please enter the project location.',
+            'number_of_days.min' =>
+                'The number of days must be at least 1.',
 
-            'number_of_days.required' => 'Please enter the number of project days.',
+            'number_of_beneficiaries.min' =>
+                'The number of beneficiaries must be at least 1.',
 
-            'number_of_days.min' => 'The project must have at least one day.',
+            'are_document.required' =>
+                'The ARE PDF document is required.',
 
-            'number_of_beneficiaries.required' => 'Please enter the number of beneficiaries.',
+            'are_document.mimes' =>
+                'The ARE document must be a PDF file.',
 
-            'number_of_beneficiaries.min' => 'The project must have at least one beneficiary.',
+            'are_document.max' =>
+                'The ARE PDF must not exceed 10 MB.',
 
-            'are_document.required' => 'Please upload the ARE PDF.',
-
-            'are_document.mimes' => 'The ARE document must be a PDF file.',
-
-            'are_document.max' => 'The ARE PDF must not exceed 10 MB.',
-
-            'items.required' => 'Please enter the PPE quantities to designate.',
-
-            'items.*.min' => 'PPE quantities cannot be negative.',
+            'items.required' =>
+                'Enter at least one PPE quantity.',
         ];
     }
 }
