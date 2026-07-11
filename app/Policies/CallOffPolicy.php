@@ -2,63 +2,68 @@
 
 namespace App\Policies;
 
-use Illuminate\Auth\Access\Response;
 use App\Models\CallOff;
 use App\Models\User;
 
 class CallOffPolicy
 {
     /**
-     * Determine whether the user can view any models.
+     * TSSD, Supply, and Accounting may view the Call-Off list.
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->isTssd()
+            || $user->isSupply()
+            || $user->isAccounting();
     }
 
     /**
-     * Determine whether the user can view the model.
+     * TSSD, Supply, and Accounting may view any Call-Off.
+     *
+     * Provincial Office access will later be handled through its own
+     * province-restricted allocation routes.
      */
     public function view(User $user, CallOff $callOff): bool
     {
-        return false;
+        return $user->isTssd()
+            || $user->isSupply()
+            || $user->isAccounting();
     }
 
     /**
-     * Determine whether the user can create models.
+     * Only TSSD may assign a Call-Off Number.
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->isTssd();
     }
 
     /**
-     * Determine whether the user can update the model.
+     * Only TSSD may edit a pending or rejected Call-Off.
      */
     public function update(User $user, CallOff $callOff): bool
     {
-        return false;
+        return $user->isTssd()
+            && $callOff->isEditable();
     }
 
     /**
-     * Determine whether the user can delete the model.
+     * Only TSSD may cancel a pending Call-Off.
+     *
+     * Permanent deletion is not allowed because Call-Offs form part of the
+     * audit trail.
      */
     public function delete(User $user, CallOff $callOff): bool
     {
-        return false;
+        return $user->isTssd()
+            && $callOff->status === 'Pending';
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
     public function restore(User $user, CallOff $callOff): bool
     {
         return false;
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
     public function forceDelete(User $user, CallOff $callOff): bool
     {
         return false;

@@ -3,105 +3,135 @@
 namespace App\Http\Controllers\TSSD;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreCallOffRequest;
 use App\Models\CallOff;
-use App\Models\PurchaseOrder;
-use Illuminate\Http\Request;
-use Illuminate\View\View;
+use App\Models\TssdDistributionBatch;
+use App\Services\CallOffService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class CallOffController extends Controller
 {
     /**
-     * Display all Call-Offs.
+     * Display all Call-Off records.
      */
     public function index(): View
     {
-        $callOffs = CallOff::with([
-            'purchaseOrder.supplier',
-            'assignedBy',
-            'approvedBy',
-        ])
-            ->latest()
+        $this->authorize('viewAny', CallOff::class);
+
+        $callOffs = CallOff::query()
+            ->with([
+                'distributionBatch.purchaseOrder.supplier',
+                'distributionBatch.provinceDistributions.province',
+                'assignedBy',
+                'approvedBy',
+            ])
+            ->latest('assigned_at')
             ->paginate(10);
 
-        return view('tssd.call-offs.index', compact('callOffs'));
+        return view(
+            'tssd.call-offs.index',
+            compact('callOffs')
+        );
     }
 
     /**
-     * Show form for creating a Call-Off.
+     * Show the Call-Off assignment form.
      */
     public function create(): View
     {
-        $purchaseOrders = PurchaseOrder::with('supplier')
+        $this->authorize('create', CallOff::class);
+
+        $distributionBatches = TssdDistributionBatch::query()
+            ->with([
+                'purchaseOrder.supplier',
+                'creator',
+                'provinceDistributions.province',
+                'provinceDistributions.items.item',
+            ])
+            ->whereIn('status', [
+                'Draft',
+                'Submitted',
+            ])
             ->doesntHave('callOff')
-            ->latest()
+            ->latest('distribution_date')
             ->get();
 
-        return view('tssd.call-offs.create', compact('purchaseOrders'));
+        return view(
+            'tssd.call-offs.create',
+            compact('distributionBatches')
+        );
     }
 
     /**
-     * Store a newly created Call-Off.
+     * Store a newly assigned Call-Off.
      */
-    public function store(Request $request): RedirectResponse
-    {
-        //
-        // Business logic will be added in Part 5.
-        //
+    public function store(
+        StoreCallOffRequest $request,
+        CallOffService $callOffService
+    ): RedirectResponse {
+        $callOff = $callOffService->create(
+            $request->validated()
+        );
 
         return redirect()
-            ->route('tssd.call-offs.index')
-            ->with('success', 'Call-Off created successfully.');
+            ->route(
+                'tssd.call-offs.show',
+                $callOff
+            )
+            ->with(
+                'success',
+                'Call-Off Number assigned successfully and submitted for Supply Unit approval.'
+            );
     }
 
     /**
-     * Display a specific Call-Off.
+     * Display one Call-Off and all provincial allocations.
      */
     public function show(CallOff $callOff): View
     {
+        $this->authorize('view', $callOff);
+
         $callOff->load([
-            'purchaseOrder.supplier',
+            'distributionBatch.purchaseOrder.supplier',
+            'distributionBatch.creator',
+            'distributionBatch.provinceDistributions.province',
+            'distributionBatch.provinceDistributions.items.item',
             'assignedBy',
             'approvedBy',
         ]);
 
-        return view('tssd.call-offs.show', compact('callOff'));
+        return view(
+            'tssd.call-offs.show',
+            compact('callOff')
+        );
     }
 
     /**
-     * Show edit form.
+     * Cancel a pending Call-Off.
+     *
+     * The record is retained for audit purposes.
      */
-    public function edit(CallOff $callOff): View
-    {
-        return view('tssd.call-offs.edit', compact('callOff'));
-    }
+    public function destroy(
+        CallOff $callOff
+    ): RedirectResponse {
+        $this->authorize('delete', $callOff);
 
-    /**
-     * Update the Call-Off.
-     */
-    public function update(Request $request, CallOff $callOff): RedirectResponse
-    {
-        //
-        // Will be implemented later.
-        //
+        $callOff->update([
+            'status' => 'Cancelled',
+        ]);
+
+        if ($callOff->distributionBatch) {
+            $callOff->distributionBatch->update([
+                'status' => 'Submitted',
+            ]);
+        }
 
         return redirect()
             ->route('tssd.call-offs.index')
-            ->with('success', 'Call-Off updated successfully.');
-    }
-
-    /**
-     * Delete Call-Off.
-     */
-    public function destroy(CallOff $callOff): RedirectResponse
-    {
-        //
-        // Delete will only be allowed while Pending.
-        // Business rule will be added later.
-        //
-
-        return redirect()
-            ->route('tssd.call-offs.index')
-            ->with('success', 'Call-Off deleted successfully.');
+            ->with(
+                'success',
+                'The pending Call-Off has been cancelled.'
+            );
     }
 }
