@@ -1031,11 +1031,11 @@
                  * red-family government colors.
                  */
                 const distributionColors = [
-                    '#e49a9d',
-                    '#ef4444',
-                    '#dc1f26',
-                    '#a80f18',
-                    '#682024',
+                    '#DF979B',
+                    '#ED1B24',
+                    '#C51017',
+                    '#970C13',
+                    '#641D21',
                 ];
 
                 const provinceCanvas =
@@ -1381,11 +1381,11 @@
                                                 .data,
 
                                         backgroundColor: [
-                                            '#f59e0b',
-                                            '#2563eb',
-                                            '#059669',
-                                            '#dc2626',
-                                            '#64748b',
+                                            '#DF979B',
+                                            '#ED1B24',
+                                            '#C51017',
+                                            '#970C13',
+                                            '#641D21',
                                         ],
 
                                         borderColor:

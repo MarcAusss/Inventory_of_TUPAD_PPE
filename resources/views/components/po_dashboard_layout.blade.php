@@ -506,6 +506,7 @@
                 @endif
 
                 {{ $slot }}
+                @stack('scripts')
 
             </main>
 
