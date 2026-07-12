@@ -2,7 +2,8 @@
 
 namespace App\Http\Requests\ProvincialOffice;
 
-use App\Models\ProvincialInventory;
+use App\Models\ProvinceDistribution;
+use App\Services\CallOffInventoryService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -10,13 +11,70 @@ class StoreSupplyDesignationRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->role?->name
-            === 'Provincial Office';
+        return $this->user()?->isProvincial()
+            === true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $items = $this->input(
+            'items',
+            []
+        );
+
+        if (! is_array($items)) {
+            $items = [];
+        }
+
+        $normalizedItems = [];
+
+        foreach (
+            $items as $itemId => $quantity
+        ) {
+            $normalizedItems[$itemId] =
+                $quantity === ''
+                    || $quantity === null
+                    ? 0
+                    : $quantity;
+        }
+
+        $this->merge([
+            'project_code' => strtoupper(
+                trim(
+                    (string) $this->input(
+                        'project_code'
+                    )
+                )
+            ),
+
+            'project_title' => trim(
+                (string) $this->input(
+                    'project_title'
+                )
+            ),
+
+            'location' => trim(
+                (string) $this->input(
+                    'location'
+                )
+            ),
+
+            'items' => $normalizedItems,
+        ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [
+            'province_distribution_id' => [
+                'required',
+                'integer',
+                'exists:province_distributions,id',
+            ],
+
             'project_code' => [
                 'required',
                 'string',
@@ -63,16 +121,17 @@ class StoreSupplyDesignationRequest extends FormRequest
             'remarks' => [
                 'nullable',
                 'string',
-                'max:2000',
+                'max:5000',
             ],
 
             'items' => [
                 'required',
                 'array',
+                'min:1',
             ],
 
             'items.*' => [
-                'nullable',
+                'required',
                 'integer',
                 'min:0',
             ],
@@ -82,17 +141,117 @@ class StoreSupplyDesignationRequest extends FormRequest
     public function after(): array
     {
         return [
-            function (Validator $validator): void {
-                $provinceId = $this->user()?->province_id;
+            function (
+                Validator $validator
+            ): void {
+                if ($validator->errors()->isNotEmpty()) {
+                    return;
+                }
+
+                $provinceId =
+                    $this->user()?->province_id;
 
                 if (! $provinceId) {
-                    $validator->errors()->add(
-                        'items',
-                        'Your account has no assigned province.'
-                    );
+                    $validator
+                        ->errors()
+                        ->add(
+                            'province_distribution_id',
+                            'Your account has no assigned province.'
+                        );
 
                     return;
                 }
+
+                $allocationId = (int) $this->input(
+                    'province_distribution_id'
+                );
+
+                $allocation =
+                    ProvinceDistribution::query()
+                        ->with([
+                            'distributionBatch.callOff',
+                            'items.item',
+                        ])
+                        ->whereKey($allocationId)
+                        ->where(
+                            'province_id',
+                            $provinceId
+                        )
+                        ->first();
+
+                if (! $allocation) {
+                    $validator
+                        ->errors()
+                        ->add(
+                            'province_distribution_id',
+                            'The selected Call-Off allocation does not belong to your Provincial Office.'
+                        );
+
+                    return;
+                }
+
+                $callOff = $allocation
+                    ->distributionBatch
+                    ?->callOff;
+
+                if (! $callOff) {
+                    $validator
+                        ->errors()
+                        ->add(
+                            'province_distribution_id',
+                            'The selected allocation has no Call-Off record.'
+                        );
+
+                    return;
+                }
+
+                if (
+                    ! in_array(
+                        $callOff->status,
+                        [
+                            'Approved',
+                            'Completed',
+                        ],
+                        true
+                    )
+                ) {
+                    $validator
+                        ->errors()
+                        ->add(
+                            'province_distribution_id',
+                            'The selected Call-Off is not approved for project designation.'
+                        );
+
+                    return;
+                }
+
+                if (
+                    ! in_array(
+                        $allocation->status,
+                        [
+                            'Partially Received',
+                            'Received',
+                        ],
+                        true
+                    )
+                ) {
+                    $validator
+                        ->errors()
+                        ->add(
+                            'province_distribution_id',
+                            'PPE must first be physically received before it can be designated to a project.'
+                        );
+
+                    return;
+                }
+
+                $service = app(
+                    CallOffInventoryService::class
+                );
+
+                $balances = $service->balances(
+                    $allocation
+                );
 
                 $items = $this->input(
                     'items',
@@ -101,7 +260,11 @@ class StoreSupplyDesignationRequest extends FormRequest
 
                 $hasQuantity = false;
 
-                foreach ($items as $itemId => $quantity) {
+                foreach (
+                    $items as $itemId => $quantity
+                ) {
+                    $itemId = (int) $itemId;
+
                     $quantity = (int) $quantity;
 
                     if ($quantity <= 0) {
@@ -110,90 +273,103 @@ class StoreSupplyDesignationRequest extends FormRequest
 
                     $hasQuantity = true;
 
-                    $inventory = ProvincialInventory::query()
-                        ->with('item')
-                        ->where(
-                            'province_id',
-                            $provinceId
+                    if (
+                        ! isset(
+                            $balances[$itemId]
                         )
-                        ->where(
-                            'item_id',
-                            $itemId
-                        )
-                        ->first();
-
-                    if (! $inventory) {
-                        $validator->errors()->add(
-                            "items.{$itemId}",
-                            'This PPE item is not available in your provincial inventory.'
-                        );
+                    ) {
+                        $validator
+                            ->errors()
+                            ->add(
+                                "items.{$itemId}",
+                                'This PPE item does not belong to the selected Call-Off.'
+                            );
 
                         continue;
                     }
 
-                    if (
-                        $quantity
-                        > (int) $inventory->quantity
-                    ) {
+                    $available = (int) $balances[
+                        $itemId
+                    ]['available_for_projects'];
+
+                    if ($quantity > $available) {
+                        $item = $balances[
+                            $itemId
+                        ]['item'];
+
                         $itemName = trim(
-                            $inventory->item->item_name
+                            ($item?->item_name
+                                ?? 'PPE item')
                             .' '
-                            .($inventory->item->label ?? '')
+                            .($item?->label ?? '')
                         );
 
-                        $validator->errors()->add(
-                            "items.{$itemId}",
-                            "{$itemName} has only "
-                            .number_format(
-                                $inventory->quantity
-                            )
-                            ." available."
-                        );
+                        $validator
+                            ->errors()
+                            ->add(
+                                "items.{$itemId}",
+                                "{$itemName} has only "
+                                .number_format(
+                                    $available
+                                )
+                                .' available under the selected Call-Off.'
+                            );
                     }
                 }
 
                 if (! $hasQuantity) {
-                    $validator->errors()->add(
-                        'items',
-                        'Enter at least one PPE quantity.'
-                    );
+                    $validator
+                        ->errors()
+                        ->add(
+                            'items',
+                            'Enter at least one PPE quantity greater than zero.'
+                        );
                 }
             },
         ];
     }
 
+    /**
+     * @return array<string, string>
+     */
     public function messages(): array
     {
         return [
-            'project_code.required' =>
-                'The project code is required.',
+            'province_distribution_id.required' => 'Please select a Call-Off.',
 
-            'project_title.required' =>
-                'The project title is required.',
+            'province_distribution_id.exists' => 'The selected Call-Off allocation does not exist.',
 
-            'location.required' =>
-                'The project location is required.',
+            'project_code.required' => 'The project code is required.',
 
-            'designation_date.required' =>
-                'The designation date is required.',
+            'project_title.required' => 'The project title is required.',
 
-            'number_of_days.min' =>
-                'The number of days must be at least 1.',
+            'location.required' => 'The project location is required.',
 
-            'number_of_beneficiaries.min' =>
-                'The number of beneficiaries must be at least 1.',
+            'designation_date.required' => 'The designation date is required.',
 
-            'are_document.required' =>
-                'The ARE PDF document is required.',
+            'number_of_days.required' => 'The number of days is required.',
 
-            'are_document.mimes' =>
-                'The ARE document must be a PDF file.',
+            'number_of_days.min' => 'The number of days must be at least 1.',
 
-            'are_document.max' =>
-                'The ARE PDF must not exceed 10 MB.',
+            'number_of_beneficiaries.required' => 'The number of beneficiaries is required.',
 
-            'items.required' =>
-                'Enter at least one PPE quantity.',
+            'number_of_beneficiaries.min' => 'The number of beneficiaries must be at least 1.',
+
+            'are_document.required' => 'The ARE PDF document is required.',
+
+            'are_document.mimes' => 'The ARE document must be a PDF file.',
+
+            'are_document.mimetypes' => 'The uploaded ARE document must be a valid PDF file.',
+
+            'are_document.max' => 'The ARE PDF must not exceed 10 MB.',
+
+            'items.required' => 'Enter at least one PPE quantity.',
+
+            'items.array' => 'The submitted PPE quantities are invalid.',
+
+            'items.*.integer' => 'Every PPE quantity must be a whole number.',
+
+            'items.*.min' => 'PPE quantities cannot be negative.',
         ];
     }
 }

@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Models\DeliveryReceipt;
+use App\Models\DeliveryReceiptItem;
 use App\Models\ProvinceDistribution;
 use App\Models\ProvincialInventory;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -19,7 +21,7 @@ class ReceivingService extends BaseService
     ) {}
 
     /**
-     * Receive one approved provincial allocation.
+     * Receive one physical delivery under an approved provincial allocation.
      *
      * @param  array<string, mixed>  $data
      *
@@ -43,10 +45,8 @@ class ReceivingService extends BaseService
                     &$documentPath
                 ): DeliveryReceipt {
                     /*
-                     * Reload and lock the main provincial allocation row.
-                     *
-                     * This prevents another request from receiving the same
-                     * allocation while this transaction is still running.
+                     * Lock the provincial allocation to prevent two receiving
+                     * requests from updating it simultaneously.
                      */
                     $provinceDistribution =
                         ProvinceDistribution::query()
@@ -55,7 +55,6 @@ class ReceivingService extends BaseService
                                 'distributionBatch.purchaseOrder',
                                 'distributionBatch.provinceDistributions',
                                 'province',
-                                'deliveryReceipt',
                             ])
                             ->lockForUpdate()
                             ->findOrFail(
@@ -63,20 +62,18 @@ class ReceivingService extends BaseService
                             );
 
                     /*
-                     * Lock all PPE allocation item rows.
-                     *
-                     * The item relation is assigned manually after the rows
-                     * are loaded with lockForUpdate(). This ensures the
-                     * assigned quantities cannot change while the receipt is
-                     * being validated and stored.
+                     * Lock allocation item rows.
                      */
-                    $provinceDistribution->setRelation(
-                        'items',
+                    $allocationItems =
                         $provinceDistribution
                             ->items()
                             ->with('item')
                             ->lockForUpdate()
-                            ->get()
+                            ->get();
+
+                    $provinceDistribution->setRelation(
+                        'items',
+                        $allocationItems
                     );
 
                     $this->validateProvinceAccess(
@@ -87,21 +84,22 @@ class ReceivingService extends BaseService
                         $provinceDistribution
                     );
 
-                    $this->validateNoExistingReceipt(
-                        $provinceDistribution
-                    );
+                    /*
+                     * Calculate all quantities already received under earlier
+                     * Delivery Receipts.
+                     */
+                    $previouslyReceived =
+                        $this->previouslyReceivedByItem(
+                            $provinceDistribution,
+                            $allocationItems
+                        );
 
                     $this->validateReceivedItems(
                         $provinceDistribution,
-                        $data['items'] ?? []
+                        $data['items'] ?? [],
+                        $previouslyReceived
                     );
 
-                    /*
-                     * Store the DR PDF.
-                     *
-                     * If any database operation fails after this point, the
-                     * catch block removes the uploaded file.
-                     */
                     $documentPath = $document->store(
                         'delivery-receipts',
                         'public'
@@ -124,49 +122,38 @@ class ReceivingService extends BaseService
                         ]);
                     }
 
-                    /*
-                     * Create the Delivery Receipt header.
-                     */
-                    $receipt = DeliveryReceipt::create([
-                        'province_distribution_id' => $provinceDistribution->id,
+                    $receipt = DeliveryReceipt::query()
+                        ->create([
+                            'province_distribution_id' => $provinceDistribution->id,
 
-                        /*
-                         * Retained for compatibility and reporting.
-                         */
-                        'purchase_order_id' => $purchaseOrder->id,
+                            'purchase_order_id' => $purchaseOrder->id,
 
-                        'province_id' => $provinceDistribution->province_id,
+                            'province_id' => $provinceDistribution->province_id,
 
-                        'received_by_user_id' => $this->userId(),
+                            'received_by_user_id' => $this->userId(),
 
-                        'physical_receiver_name' => $data['physical_receiver_name'],
+                            'physical_receiver_name' => $data['physical_receiver_name'],
 
-                        'dr_number' => $data['dr_number'],
+                            'dr_number' => $data['dr_number'],
 
-                        'delivery_date' => $data['delivery_date'],
+                            'delivery_date' => $data['delivery_date'],
 
-                        'document' => $documentPath,
+                            'document' => $documentPath,
 
-                        /*
-                         * Legacy text field retained for older pages.
-                         */
-                        'received_by' => $data['physical_receiver_name'],
+                            /*
+                             * Legacy compatibility field.
+                             */
+                            'received_by' => $data['physical_receiver_name'],
 
-                        'remarks' => $data['remarks']
-                            ?? null,
+                            'remarks' => $data['remarks'] ?? null,
 
-                        'status' => 'Received',
+                            'status' => 'Received',
 
-                        'submitted_at' => now(),
-                    ]);
+                            'submitted_at' => now(),
+                        ]);
 
-                    /*
-                     * Create one receipt item per assigned PPE item and
-                     * increase the provincial inventory by the actual
-                     * received quantity only.
-                     */
                     foreach (
-                        $provinceDistribution->items as $allocationItem
+                        $allocationItems as $allocationItem
                     ) {
                         $receivedQuantity = (int) (
                             $data['items'][
@@ -174,20 +161,26 @@ class ReceivingService extends BaseService
                             ] ?? 0
                         );
 
-                        $receipt->items()->create([
-                            'province_distribution_item_id' => $allocationItem->id,
+                        $receipt
+                            ->items()
+                            ->create([
+                                'province_distribution_item_id' => $allocationItem->id,
 
-                            'item_id' => $allocationItem->item_id,
+                                'item_id' => $allocationItem->item_id,
 
-                            /*
-                             * Legacy field mirrors actual received quantity.
-                             */
-                            'quantity' => $receivedQuantity,
+                                /*
+                                 * Retain the legacy quantity column.
+                                 */
+                                'quantity' => $receivedQuantity,
 
-                            'assigned_quantity' => (int) $allocationItem->quantity,
+                                /*
+                                 * Keep the original Call-Off allocation as
+                                 * the reference quantity on every DR row.
+                                 */
+                                'assigned_quantity' => (int) $allocationItem->quantity,
 
-                            'received_quantity' => $receivedQuantity,
-                        ]);
+                                'received_quantity' => $receivedQuantity,
+                            ]);
 
                         if ($receivedQuantity > 0) {
                             $this->increaseProvincialInventory(
@@ -202,31 +195,54 @@ class ReceivingService extends BaseService
                         'province',
                         'items.item',
                         'receivedByUser',
-                        'provinceDistribution.distributionBatch.callOff',
-                        'provinceDistribution.distributionBatch.purchaseOrder.supplier',
+                        'provinceDistribution'
+                            .'.distributionBatch'
+                            .'.callOff',
+                        'provinceDistribution'
+                            .'.distributionBatch'
+                            .'.purchaseOrder'
+                            .'.supplier',
                     ]);
 
                     /*
-                     * A discrepancy exists whenever the actual received
-                     * quantity does not match the TSSD assigned quantity.
+                     * Recalculate cumulative totals after the new receipt
+                     * has been inserted.
                      */
-                    $hasDiscrepancy = $receipt
-                        ->items
-                        ->contains(
-                            fn ($item): bool => (int) $item->assigned_quantity
-                                !== (int) $item->received_quantity
+                    $updatedReceived =
+                        $this->previouslyReceivedByItem(
+                            $provinceDistribution,
+                            $allocationItems
+                        );
+
+                    $fullyReceived =
+                        $allocationItems->every(
+                            function (
+                                $allocationItem
+                            ) use (
+                                $updatedReceived
+                            ): bool {
+                                $received = (int) (
+                                    $updatedReceived[
+                                        $allocationItem->id
+                                    ] ?? 0
+                                );
+
+                                return $received
+                                    >= (int) $allocationItem->quantity;
+                            }
                         );
 
                     $provinceDistribution->update([
-                        'status' => $hasDiscrepancy
-                                ? 'Partially Received'
-                                : 'Received',
+                        'status' => $fullyReceived
+                            ? 'Received'
+                            : 'Partially Received',
 
                         'received_at' => now(),
 
                         'remarks' => $this->mergeRemarks(
                             $provinceDistribution->remarks,
-                            $data['remarks'] ?? null
+                            $data['remarks'] ?? null,
+                            $receipt->dr_number
                         ),
                     ]);
 
@@ -235,8 +251,8 @@ class ReceivingService extends BaseService
                     );
 
                     /*
-                     * Record one stock-in inventory movement per positive
-                     * received PPE item.
+                     * Creates one IN movement per positive received item.
+                     * Each DR has its own movement reference.
                      */
                     $this
                         ->inventoryMovementService
@@ -244,9 +260,6 @@ class ReceivingService extends BaseService
                             $receipt
                         );
 
-                    /*
-                     * Notify TSSD that the province submitted receiving data.
-                     */
                     $this
                         ->notificationService
                         ->notifyTssdOfReceiving(
@@ -254,8 +267,15 @@ class ReceivingService extends BaseService
                         );
 
                     return $receipt->fresh([
-                        'provinceDistribution.distributionBatch.callOff',
-                        'provinceDistribution.distributionBatch.purchaseOrder.supplier',
+                        'provinceDistribution'
+                            .'.distributionBatch'
+                            .'.callOff',
+
+                        'provinceDistribution'
+                            .'.distributionBatch'
+                            .'.purchaseOrder'
+                            .'.supplier',
+
                         'province',
                         'receivedByUser',
                         'items.item',
@@ -265,7 +285,7 @@ class ReceivingService extends BaseService
             );
         } catch (Throwable $exception) {
             /*
-             * Database rollback cannot automatically delete stored files.
+             * A database rollback does not remove an uploaded file.
              */
             if (
                 $documentPath
@@ -280,9 +300,6 @@ class ReceivingService extends BaseService
         }
     }
 
-    /**
-     * Ensure the logged-in Provincial Office owns the allocation.
-     */
     private function validateProvinceAccess(
         ProvinceDistribution $provinceDistribution
     ): void {
@@ -303,9 +320,6 @@ class ReceivingService extends BaseService
         );
     }
 
-    /**
-     * Ensure the allocation has an approved Call-Off and may be received.
-     */
     private function validateAllocationStatus(
         ProvinceDistribution $provinceDistribution
     ): void {
@@ -323,48 +337,79 @@ class ReceivingService extends BaseService
             ]);
         }
 
-        if (! $provinceDistribution->canBeReceived()) {
+        if (
+            ! $provinceDistribution
+                ->canBeReceived()
+        ) {
             throw ValidationException::withMessages([
-                'province_distribution' => "This allocation cannot be received while its status is {$provinceDistribution->status}.",
+                'province_distribution' => 'This allocation cannot be received while its status is '
+                    ."{$provinceDistribution->status}.",
             ]);
         }
     }
 
     /**
-     * Prevent duplicate receiving under the current single-DR workflow.
+     * Get cumulative received quantities grouped by allocation item.
+     *
+     * @param  Collection<int, mixed>  $allocationItems
+     * @return Collection<int|string, int>
      */
-    private function validateNoExistingReceipt(
-        ProvinceDistribution $provinceDistribution
-    ): void {
-        if (
-            $provinceDistribution->deliveryReceipt
-            || DeliveryReceipt::query()
-                ->where(
+    private function previouslyReceivedByItem(
+        ProvinceDistribution $provinceDistribution,
+        Collection $allocationItems
+    ): Collection {
+        $allocationItemIds =
+            $allocationItems
+                ->pluck('id')
+                ->map(
+                    fn ($id): int => (int) $id
+                )
+                ->values()
+                ->all();
+
+        if ($allocationItemIds === []) {
+            return collect();
+        }
+
+        /*
+         * Load and lock previous DR item rows so another transaction cannot
+         * change cumulative totals while the new receipt is being processed.
+         */
+        return DeliveryReceiptItem::query()
+            ->whereIn(
+                'province_distribution_item_id',
+                $allocationItemIds
+            )
+            ->whereHas(
+                'deliveryReceipt',
+                fn ($query) => $query->where(
                     'province_distribution_id',
                     $provinceDistribution->id
                 )
-                ->exists()
-        ) {
-            throw ValidationException::withMessages([
-                'province_distribution' => 'This provincial allocation already has a Delivery Receipt.',
-            ]);
-        }
+            )
+            ->lockForUpdate()
+            ->get()
+            ->groupBy(
+                'province_distribution_item_id'
+            )
+            ->map(
+                fn ($items): int => (int) $items->sum(
+                    'received_quantity'
+                )
+            );
     }
 
     /**
-     * Validate submitted quantities against locked allocation items.
-     *
      * @param  array<int|string, mixed>  $submittedItems
+     * @param  Collection<int|string, int>  $previouslyReceived
      */
     private function validateReceivedItems(
         ProvinceDistribution $provinceDistribution,
-        array $submittedItems
+        array $submittedItems,
+        Collection $previouslyReceived
     ): void {
         $errors = [];
 
-        /*
-         * The receipt must contain at least one positive quantity.
-         */
         $positiveTotal = collect(
             $submittedItems
         )
@@ -426,9 +471,21 @@ class ReceivingService extends BaseService
                 continue;
             }
 
+            $alreadyReceived = (int) (
+                $previouslyReceived[
+                    $allocationItem->id
+                ] ?? 0
+            );
+
+            $remainingReceivable = max(
+                0,
+                (int) $allocationItem->quantity
+                    - $alreadyReceived
+            );
+
             if (
                 $receivedQuantity
-                > (int) $allocationItem->quantity
+                > $remainingReceivable
             ) {
                 $itemName =
                     $allocationItem
@@ -446,27 +503,25 @@ class ReceivingService extends BaseService
                     : $itemName;
 
                 $errors[$field] =
-                    "{$displayName} has an assigned quantity of "
+                    "{$displayName} has only "
                     .number_format(
-                        $allocationItem->quantity
+                        $remainingReceivable
                     )
-                    .', but '
+                    .' remaining to receive. '
                     .number_format(
-                        $receivedQuantity
+                        $alreadyReceived
                     )
-                    .' was submitted.';
+                    .' has already been recorded.';
             }
         }
 
-        /*
-         * Reject unexpected item IDs that do not belong to this allocation.
-         */
         $validIds = $provinceDistribution
             ->items
             ->pluck('id')
             ->map(
                 fn ($id): int => (int) $id
             )
+            ->values()
             ->all();
 
         foreach (
@@ -482,7 +537,7 @@ class ReceivingService extends BaseService
                 $errors[
                     "items.{$submittedId}"
                 ] =
-                    'One submitted PPE item does not belong to this provincial allocation.';
+                    'One submitted PPE item does not belong to this allocation.';
             }
         }
 
@@ -493,17 +548,11 @@ class ReceivingService extends BaseService
         }
     }
 
-    /**
-     * Increase or create the current Provincial Inventory record.
-     */
     private function increaseProvincialInventory(
         int $provinceId,
         int $itemId,
         int $quantity
     ): void {
-        /*
-         * Lock an existing inventory row before incrementing it.
-         */
         $inventory =
             ProvincialInventory::query()
                 ->where(
@@ -518,18 +567,14 @@ class ReceivingService extends BaseService
                 ->first();
 
         if (! $inventory) {
-            /*
-             * The province_id and item_id unique constraint prevents
-             * duplicate rows. The outer transaction retry helps with
-             * concurrent insert collisions.
-             */
-            ProvincialInventory::create([
-                'province_id' => $provinceId,
+            ProvincialInventory::query()
+                ->create([
+                    'province_id' => $provinceId,
 
-                'item_id' => $itemId,
+                    'item_id' => $itemId,
 
-                'quantity' => $quantity,
-            ]);
+                    'quantity' => $quantity,
+                ]);
 
             return;
         }
@@ -540,9 +585,6 @@ class ReceivingService extends BaseService
         );
     }
 
-    /**
-     * Update the overall batch and Call-Off statuses.
-     */
     private function updateBatchReceivingStatus(
         ProvinceDistribution $provinceDistribution
     ): void {
@@ -554,22 +596,20 @@ class ReceivingService extends BaseService
             return;
         }
 
-        /*
-         * Reload all current province statuses after updating the allocation.
-         */
         $batch->load([
             'provinceDistributions',
             'callOff',
         ]);
 
-        $allCompletelyReceived = $batch
-            ->provinceDistributions
-            ->every(
-                fn (
-                    ProvinceDistribution $allocation
-                ): bool => $allocation->status
-                    === 'Received'
-            );
+        $allCompletelyReceived =
+            $batch
+                ->provinceDistributions
+                ->every(
+                    fn (
+                        ProvinceDistribution $allocation
+                    ): bool => $allocation->status
+                            === 'Received'
+                );
 
         if ($allCompletelyReceived) {
             $batch->update([
@@ -583,20 +623,21 @@ class ReceivingService extends BaseService
             return;
         }
 
-        $hasReceiving = $batch
-            ->provinceDistributions
-            ->contains(
-                fn (
-                    ProvinceDistribution $allocation
-                ): bool => in_array(
-                    $allocation->status,
-                    [
-                        'Received',
-                        'Partially Received',
-                    ],
-                    true
-                )
-            );
+        $hasReceiving =
+            $batch
+                ->provinceDistributions
+                ->contains(
+                    fn (
+                        ProvinceDistribution $allocation
+                    ): bool => in_array(
+                        $allocation->status,
+                        [
+                            'Received',
+                            'Partially Received',
+                        ],
+                        true
+                    )
+                );
 
         if ($hasReceiving) {
             $batch->update([
@@ -605,12 +646,10 @@ class ReceivingService extends BaseService
         }
     }
 
-    /**
-     * Preserve earlier remarks and append the receiving remarks.
-     */
     private function mergeRemarks(
         ?string $existingRemarks,
-        ?string $receivingRemarks
+        ?string $receivingRemarks,
+        string $drNumber
     ): ?string {
         $receivingRemarks = trim(
             (string) $receivingRemarks
@@ -621,7 +660,8 @@ class ReceivingService extends BaseService
         }
 
         $entry = sprintf(
-            "[Provincial Receiving - %s]\n%s",
+            "[DR %s - %s]\n%s",
+            $drNumber,
             now()->format(
                 'Y-m-d H:i:s'
             ),

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\ProvincialOffice;
 
+use App\Models\DeliveryReceiptItem;
 use App\Models\ProvinceDistribution;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
@@ -70,9 +71,7 @@ class StoreDeliveryReceiptRequest extends FormRequest
         Validator $validator
     ): void {
         $validator->after(
-            function (
-                Validator $validator
-            ): void {
+            function (Validator $validator): void {
                 /** @var ProvinceDistribution|null $allocation */
                 $allocation = $this->route(
                     'provinceDistribution'
@@ -87,9 +86,10 @@ class StoreDeliveryReceiptRequest extends FormRequest
                     return;
                 }
 
-                $allocation->loadMissing(
-                    'items.item'
-                );
+                $allocation->loadMissing([
+                    'items.item',
+                    'distributionBatch.callOff',
+                ]);
 
                 $provinceId =
                     $this->user()?->province_id;
@@ -107,6 +107,29 @@ class StoreDeliveryReceiptRequest extends FormRequest
                     return;
                 }
 
+                if (
+                    $allocation
+                        ->distributionBatch
+                        ?->callOff
+                        ?->status !== 'Approved'
+                ) {
+                    $validator->errors()->add(
+                        'province_distribution',
+                        'The Call-Off must be approved before receiving PPE.'
+                    );
+
+                    return;
+                }
+
+                if (! $allocation->canBeReceived()) {
+                    $validator->errors()->add(
+                        'province_distribution',
+                        'This allocation is no longer available for receiving.'
+                    );
+
+                    return;
+                }
+
                 $submittedItems = $this->input(
                     'items',
                     []
@@ -116,13 +139,43 @@ class StoreDeliveryReceiptRequest extends FormRequest
                     return;
                 }
 
-                $validIds = $allocation
+                $allocationItemIds = $allocation
                     ->items
                     ->pluck('id')
                     ->map(
                         fn ($id): int => (int) $id
                     )
+                    ->values()
                     ->all();
+
+                /*
+                 * Sum quantities from all previous DRs under this allocation.
+                 */
+                $previouslyReceived = DeliveryReceiptItem::query()
+                    ->whereIn(
+                        'province_distribution_item_id',
+                        $allocationItemIds
+                    )
+                    ->whereHas(
+                        'deliveryReceipt',
+                        fn ($query) => $query->where(
+                            'province_distribution_id',
+                            $allocation->id
+                        )
+                    )
+                    ->selectRaw(
+                        '
+                        province_distribution_item_id,
+                        SUM(received_quantity) AS total_received
+                        '
+                    )
+                    ->groupBy(
+                        'province_distribution_item_id'
+                    )
+                    ->pluck(
+                        'total_received',
+                        'province_distribution_item_id'
+                    );
 
                 $wholeReceiptTotal = 0;
 
@@ -146,31 +199,45 @@ class StoreDeliveryReceiptRequest extends FormRequest
                         continue;
                     }
 
-                    $quantity =
+                    $submittedQuantity =
                         $submittedItems[
                             $allocationItem->id
                         ];
 
                     if (
                         filter_var(
-                            $quantity,
+                            $submittedQuantity,
                             FILTER_VALIDATE_INT
                         ) === false
                     ) {
                         continue;
                     }
 
-                    $quantity = (int) $quantity;
+                    $submittedQuantity =
+                        (int) $submittedQuantity;
 
-                    if ($quantity < 0) {
+                    if ($submittedQuantity < 0) {
                         continue;
                     }
 
-                    $wholeReceiptTotal += $quantity;
+                    $wholeReceiptTotal +=
+                        $submittedQuantity;
+
+                    $alreadyReceived = (int) (
+                        $previouslyReceived[
+                            $allocationItem->id
+                        ] ?? 0
+                    );
+
+                    $remainingReceivable = max(
+                        0,
+                        (int) $allocationItem->quantity
+                            - $alreadyReceived
+                    );
 
                     if (
-                        $quantity
-                        > (int) $allocationItem->quantity
+                        $submittedQuantity
+                        > $remainingReceivable
                     ) {
                         $itemName =
                             $allocationItem
@@ -189,13 +256,15 @@ class StoreDeliveryReceiptRequest extends FormRequest
 
                         $validator->errors()->add(
                             $field,
-                            "{$displayName} has an assigned quantity of "
+                            "{$displayName} has only "
                             .number_format(
-                                $allocationItem->quantity
+                                $remainingReceivable
                             )
-                            .', but '
-                            .number_format($quantity)
-                            .' was entered as received.'
+                            .' remaining to receive. '
+                            .number_format(
+                                $alreadyReceived
+                            )
+                            .' has already been recorded from previous Delivery Receipts.'
                         );
                     }
                 }
@@ -206,7 +275,7 @@ class StoreDeliveryReceiptRequest extends FormRequest
                     if (
                         ! in_array(
                             (int) $submittedId,
-                            $validIds,
+                            $allocationItemIds,
                             true
                         )
                     ) {

@@ -13,7 +13,7 @@ class DeliveryReceiptItem extends Model
         'item_id',
 
         /*
-         * Legacy field retained temporarily.
+         * Legacy quantity mirrors received_quantity.
          */
         'quantity',
 
@@ -30,15 +30,11 @@ class DeliveryReceiptItem extends Model
         ];
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
-
     public function deliveryReceipt(): BelongsTo
     {
-        return $this->belongsTo(DeliveryReceipt::class);
+        return $this->belongsTo(
+            DeliveryReceipt::class
+        );
     }
 
     public function provinceDistributionItem(): BelongsTo
@@ -50,14 +46,10 @@ class DeliveryReceiptItem extends Model
 
     public function item(): BelongsTo
     {
-        return $this->belongsTo(Item::class);
+        return $this->belongsTo(
+            Item::class
+        );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Helpers
-    |--------------------------------------------------------------------------
-    */
 
     public function shortageQuantity(): int
     {

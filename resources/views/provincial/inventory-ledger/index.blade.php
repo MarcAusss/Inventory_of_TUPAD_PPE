@@ -1,146 +1,323 @@
-<x-po_dashboard_layout title="Provincial Office Dashboard">
+<x-po_dashboard_layout title="Inventory Movement History">
+
     @php
-        $summaryTotals = [
-            'beginning_inventory' => collect($summary)
-                ->sum('beginning_inventory'),
+        /*
+        |--------------------------------------------------------------------------
+        | PPE COLUMN CONFIGURATION
+        |--------------------------------------------------------------------------
+        */
 
-            'received_inventory' => collect($summary)
-                ->sum('received_inventory'),
+        $ppeColumns = [
+            1 => [
+                'short' => 'Medium',
+                'group' => 'Long Sleeve',
+            ],
 
-            'issued_inventory' => collect($summary)
-                ->sum('issued_inventory'),
+            2 => [
+                'short' => 'Large',
+                'group' => 'Long Sleeve',
+            ],
 
-            'actual_inventory' => collect($summary)
-                ->sum('actual_inventory'),
+            3 => [
+                'short' => 'Bucket Hat',
+                'group' => null,
+            ],
 
-            'ending_inventory' => collect($summary)
-                ->sum('ending_inventory'),
+            4 => [
+                'short' => 'US9',
+                'group' => 'Rubber Boots',
+            ],
+
+            5 => [
+                'short' => 'US10',
+                'group' => 'Rubber Boots',
+            ],
+
+            6 => [
+                'short' => 'Gloves',
+                'group' => null,
+            ],
+
+            7 => [
+                'short' => 'Mask',
+                'group' => null,
+            ],
         ];
+
+        $firstRowNumber =
+            $rows->firstItem() ?? 1;
     @endphp
 
-    <div class="mx-auto max-w-7xl space-y-6">
+    <div class="mx-auto max-w-[1900px] space-y-6">
 
-        {{-- Page Header --}}
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        {{-- =========================================================
+            PAGE HEADER
+        ========================================================== --}}
+        <section
+            class="relative overflow-hidden rounded-3xl
+                   border border-slate-200 bg-white shadow-sm"
+        >
+            <div
+                class="absolute inset-y-0 left-0 w-2
+                       bg-gradient-to-b from-[#641D21]
+                       via-[#970C13] to-[#ED1B24]"
+            ></div>
 
-            <div>
-
-                <h1 class="text-3xl font-bold text-gray-900">
-                    Inventory Ledger
-                </h1>
-
-                <p class="mt-1 text-sm text-gray-600">
-                    Beginning, received, issued, actual, and ending PPE inventory for
-
-                    <span class="font-semibold text-gray-900">
-                        {{ auth()->user()->provinceName() }}
-                    </span>.
-                </p>
-
-            </div>
-
-            <div class="flex flex-wrap gap-3">
-
-                <a
-                    href="{{ route('provincial.current-inventory.index') }}"
-                    class="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-3 font-semibold text-gray-700 transition hover:bg-gray-50"
-                >
-                    Current Inventory
-                </a>
-
-                <button
-                    type="button"
-                    onclick="window.print()"
-                    class="inline-flex items-center justify-center rounded-xl bg-red-900 px-5 py-3 font-semibold text-white transition hover:bg-red-800"
-                >
-                    Print Ledger
-                </button>
-
-            </div>
-
-        </div>
-
-        {{-- Year Notice --}}
-        @if($year === $currentYear)
-
-            <div class="rounded-xl border border-blue-200 bg-blue-50 px-5 py-4 text-blue-800">
-
-                You are viewing the current inventory year:
-
-                <span class="font-semibold">
-                    {{ $year }}
-                </span>.
-
-            </div>
-
-        @else
-
-            <div class="rounded-xl border border-yellow-200 bg-yellow-50 px-5 py-4 text-yellow-900">
-
-                You are viewing archived inventory data for:
-
-                <span class="font-semibold">
-                    {{ $year }}
-                </span>.
-
-                Historical data remains in the same database.
-
-            </div>
-
-        @endif
-
-        {{-- Filters --}}
-        <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow">
-
-            <form
-                action="{{ route('provincial.inventory-ledger.index') }}"
-                method="GET"
-                class="grid grid-cols-1 gap-4 md:grid-cols-4"
+            <div
+                class="flex flex-col gap-5 px-6 py-7
+                       sm:px-8 lg:flex-row
+                       lg:items-center lg:justify-between"
             >
-
                 <div>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <span
+                            class="rounded-full bg-[#DF979B]/20
+                                   px-3 py-1 text-xs font-bold
+                                   uppercase tracking-[0.16em]
+                                   text-[#970C13]
+                                   ring-1 ring-[#DF979B]"
+                        >
+                            Provincial Office
+                        </span>
 
-                    <label
-                        for="year"
-                        class="mb-2 block text-sm font-semibold text-gray-700"
+                        <span
+                            class="rounded-full bg-slate-100
+                                   px-3 py-1 text-xs font-semibold
+                                   text-slate-700 ring-1
+                                   ring-slate-200"
+                        >
+                            Inventory Report
+                        </span>
+                    </div>
+
+                    <h1
+                        class="mt-4 text-2xl font-bold
+                               tracking-tight text-slate-950
+                               sm:text-3xl"
                     >
-                        Inventory Year
-                    </label>
+                        Inventory Movement History
+                    </h1>
 
-                    <select
-                        id="year"
-                        name="year"
-                        class="w-full rounded-xl border-gray-300 focus:border-red-900 focus:ring-red-900"
+                    <p
+                        class="mt-2 max-w-4xl text-sm
+                               leading-6 text-slate-600"
                     >
-
-                        @foreach($availableYears as $availableYear)
-
-                            <option
-                                value="{{ $availableYear }}"
-                                @selected((int) $availableYear === (int) $year)
-                            >
-                                {{ $availableYear }}
-
-                                @if((int) $availableYear === (int) $currentYear)
-                                    — Current
-                                @else
-                                    — Archive
-                                @endif
-                            </option>
-
-                        @endforeach
-
-                    </select>
-
+                        Call-Off based PPE inventory movement showing
+                        beginning inventory, actual PPE distributed to
+                        projects, and the resulting ending inventory.
+                    </p>
                 </div>
 
-                <div class="md:col-span-2">
+                <div
+                    class="rounded-2xl border border-slate-200
+                           bg-slate-50 px-5 py-4"
+                >
+                    <p
+                        class="text-xs font-bold uppercase
+                               tracking-wider text-slate-400"
+                    >
+                        Reporting Year
+                    </p>
 
+                    <p
+                        class="mt-1 text-2xl font-bold
+                               text-[#641D21]"
+                    >
+                        {{ $year }}
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        {{-- =========================================================
+            SUMMARY CARDS
+        ========================================================== --}}
+        <section
+            class="grid grid-cols-1 gap-4
+                   sm:grid-cols-2 xl:grid-cols-5"
+        >
+            <article
+                class="group rounded-2xl border border-slate-200
+                       bg-white p-5 shadow-sm transition
+                       hover:-translate-y-1 hover:shadow-md"
+            >
+                <div
+                    class="mb-4 h-1 w-10 rounded-full
+                           bg-[#641D21] transition-all
+                           group-hover:w-16"
+                ></div>
+
+                <p
+                    class="text-xs font-bold uppercase
+                           tracking-wider text-slate-400"
+                >
+                    Call-Offs
+                </p>
+
+                <p
+                    class="mt-3 text-3xl font-bold
+                           text-slate-950"
+                >
+                    {{ number_format(
+                        $summary['call_off_count']
+                    ) }}
+                </p>
+
+                <p class="mt-1 text-xs text-slate-500">
+                    Call-Off allocations in report
+                </p>
+            </article>
+
+            <article
+                class="group rounded-2xl border border-slate-200
+                       bg-white p-5 shadow-sm transition
+                       hover:-translate-y-1 hover:shadow-md"
+            >
+                <div
+                    class="mb-4 h-1 w-10 rounded-full
+                           bg-[#970C13] transition-all
+                           group-hover:w-16"
+                ></div>
+
+                <p
+                    class="text-xs font-bold uppercase
+                           tracking-wider text-slate-400"
+                >
+                    Projects
+                </p>
+
+                <p
+                    class="mt-3 text-3xl font-bold
+                           text-slate-950"
+                >
+                    {{ number_format(
+                        $summary['project_count']
+                    ) }}
+                </p>
+
+                <p class="mt-1 text-xs text-slate-500">
+                    PPE project distributions
+                </p>
+            </article>
+
+            <article
+                class="group rounded-2xl border border-slate-200
+                       bg-white p-5 shadow-sm transition
+                       hover:-translate-y-1 hover:shadow-md"
+            >
+                <div
+                    class="mb-4 h-1 w-10 rounded-full
+                           bg-[#C51017] transition-all
+                           group-hover:w-16"
+                ></div>
+
+                <p
+                    class="text-xs font-bold uppercase
+                           tracking-wider text-slate-400"
+                >
+                    Beginning Inventory
+                </p>
+
+                <p
+                    class="mt-3 text-3xl font-bold
+                           text-slate-950"
+                >
+                    {{ number_format(
+                        $summary['beginning_total']
+                    ) }}
+                </p>
+
+                <p class="mt-1 text-xs text-slate-500">
+                    Report row opening balances
+                </p>
+            </article>
+
+            <article
+                class="group rounded-2xl border border-slate-200
+                       bg-white p-5 shadow-sm transition
+                       hover:-translate-y-1 hover:shadow-md"
+            >
+                <div
+                    class="mb-4 h-1 w-10 rounded-full
+                           bg-[#ED1B24] transition-all
+                           group-hover:w-16"
+                ></div>
+
+                <p
+                    class="text-xs font-bold uppercase
+                           tracking-wider text-slate-400"
+                >
+                    Actual Distributed
+                </p>
+
+                <p
+                    class="mt-3 text-3xl font-bold
+                           text-[#C51017]"
+                >
+                    {{ number_format(
+                        $summary['actual_total']
+                    ) }}
+                </p>
+
+                <p class="mt-1 text-xs text-slate-500">
+                    PPE distributed to projects
+                </p>
+            </article>
+
+            <article
+                class="group rounded-2xl border border-slate-200
+                       bg-white p-5 shadow-sm transition
+                       hover:-translate-y-1 hover:shadow-md"
+            >
+                <div
+                    class="mb-4 h-1 w-10 rounded-full
+                           bg-[#DF979B] transition-all
+                           group-hover:w-16"
+                ></div>
+
+                <p
+                    class="text-xs font-bold uppercase
+                           tracking-wider text-slate-400"
+                >
+                    Ending Inventory
+                </p>
+
+                <p
+                    class="mt-3 text-3xl font-bold
+                           text-[#641D21]"
+                >
+                    {{ number_format(
+                        $summary['ending_total']
+                    ) }}
+                </p>
+
+                <p class="mt-1 text-xs text-slate-500">
+                    Final remaining Call-Off PPE
+                </p>
+            </article>
+        </section>
+
+        {{-- =========================================================
+            FILTERS
+        ========================================================== --}}
+        <section
+            class="rounded-3xl border border-slate-200
+                   bg-white p-5 shadow-sm sm:p-6"
+        >
+            <form
+                method="GET"
+                action="{{ url()->current() }}"
+                class="grid grid-cols-1 gap-4
+                       md:grid-cols-2 xl:grid-cols-12"
+            >
+                <div class="xl:col-span-5">
                     <label
                         for="search"
-                        class="mb-2 block text-sm font-semibold text-gray-700"
+                        class="mb-2 block text-xs font-bold
+                               uppercase tracking-wider
+                               text-slate-500"
                     >
-                        Search
+                        Search Report
                     </label>
 
                     <input
@@ -148,568 +325,994 @@
                         id="search"
                         name="search"
                         value="{{ $search }}"
-                        placeholder="Search PPE, DR number, project code, or description..."
-                        class="w-full rounded-xl border-gray-300 focus:border-red-900 focus:ring-red-900"
+                        placeholder="Call-Off, supplier, DR, project code..."
+                        class="w-full rounded-xl border-slate-300
+                               focus:border-[#970C13]
+                               focus:ring-[#970C13]"
                     >
-
                 </div>
 
-                <div class="flex items-end gap-2">
+                <div class="xl:col-span-3">
+                    <label
+                        for="province_distribution_id"
+                        class="mb-2 block text-xs font-bold
+                               uppercase tracking-wider
+                               text-slate-500"
+                    >
+                        Call-Off
+                    </label>
 
+                    <select
+                        id="province_distribution_id"
+                        name="province_distribution_id"
+                        class="w-full rounded-xl border-slate-300
+                               focus:border-[#970C13]
+                               focus:ring-[#970C13]"
+                    >
+                        <option value="">
+                            All Call-Offs
+                        </option>
+
+                        @foreach(
+                            $callOffAllocations as $allocation
+                        )
+                            <option
+                                value="{{ $allocation->id }}"
+                                @selected(
+                                    $callOffId
+                                    === (int) $allocation->id
+                                )
+                            >
+                                {{
+                                    $allocation
+                                        ->distributionBatch
+                                        ?->callOff
+                                        ?->call_off_number
+                                    ?? 'No Call-Off'
+                                }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="xl:col-span-2">
+                    <label
+                        for="year"
+                        class="mb-2 block text-xs font-bold
+                               uppercase tracking-wider
+                               text-slate-500"
+                    >
+                        Year
+                    </label>
+
+                    <select
+                        id="year"
+                        name="year"
+                        class="w-full rounded-xl border-slate-300
+                               focus:border-[#970C13]
+                               focus:ring-[#970C13]"
+                    >
+                        @foreach($availableYears as $availableYear)
+                            <option
+                                value="{{ $availableYear }}"
+                                @selected(
+                                    $year
+                                    === (int) $availableYear
+                                )
+                            >
+                                {{ $availableYear }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div
+                    class="flex items-end gap-2
+                           xl:col-span-2"
+                >
                     <button
                         type="submit"
-                        class="inline-flex flex-1 items-center justify-center rounded-xl bg-red-900 px-5 py-3 font-semibold text-white transition hover:bg-red-800"
+                        class="flex-1 rounded-xl bg-[#970C13]
+                               px-5 py-2.5 text-sm font-bold
+                               text-white transition
+                               hover:bg-[#641D21]"
                     >
                         Apply
                     </button>
 
-                    @if($search || $year !== $currentYear)
-
-                        <a
-                            href="{{ route('provincial.inventory-ledger.index') }}"
-                            class="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-3 font-semibold text-gray-700 transition hover:bg-gray-50"
-                        >
-                            Reset
-                        </a>
-
-                    @endif
-
+                    <a
+                        href="{{ url()->current() }}"
+                        class="rounded-xl border border-slate-300
+                               bg-white px-5 py-2.5 text-sm
+                               font-bold text-slate-700 transition
+                               hover:bg-slate-50"
+                    >
+                        Reset
+                    </a>
                 </div>
-
             </form>
+        </section>
 
-        </div>
-
-        {{-- Summary Cards --}}
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-5">
-
-            <div class="rounded-2xl border border-blue-200 bg-blue-50 p-6 shadow-sm">
-
-                <p class="text-sm font-medium text-blue-700">
+        {{-- =========================================================
+            REPORT INFORMATION
+        ========================================================== --}}
+        <section
+            class="grid grid-cols-1 gap-4 lg:grid-cols-3"
+        >
+            <article
+                class="rounded-2xl border border-slate-200
+                       bg-slate-50 p-5"
+            >
+                <p
+                    class="text-xs font-bold uppercase
+                           tracking-wider text-slate-500"
+                >
                     Beginning Inventory
                 </p>
 
-                <p class="mt-3 text-3xl font-bold text-blue-900">
-                    {{ number_format($summaryTotals['beginning_inventory']) }}
+                <p class="mt-2 text-sm leading-6 text-slate-700">
+                    PPE balance available under the selected Call-Off
+                    before the current project distribution.
                 </p>
+            </article>
 
-                <p class="mt-1 text-xs text-blue-700">
-                    Balance before January 1, {{ $year }}
-                </p>
-
-            </div>
-
-            <div class="rounded-2xl border border-green-200 bg-green-50 p-6 shadow-sm">
-
-                <p class="text-sm font-medium text-green-700">
-                    Received Inventory
-                </p>
-
-                <p class="mt-3 text-3xl font-bold text-green-900">
-                    {{ number_format($summaryTotals['received_inventory']) }}
-                </p>
-
-                <p class="mt-1 text-xs text-green-700">
-                    PPE received during {{ $year }}
-                </p>
-
-            </div>
-
-            <div class="rounded-2xl border border-orange-200 bg-orange-50 p-6 shadow-sm">
-
-                <p class="text-sm font-medium text-orange-700">
-                    Issued Inventory
-                </p>
-
-                <p class="mt-3 text-3xl font-bold text-orange-900">
-                    {{ number_format($summaryTotals['issued_inventory']) }}
-                </p>
-
-                <p class="mt-1 text-xs text-orange-700">
-                    PPE distributed to projects
-                </p>
-
-            </div>
-
-            <div class="rounded-2xl border border-indigo-200 bg-indigo-50 p-6 shadow-sm">
-
-                <p class="text-sm font-medium text-indigo-700">
+            <article
+                class="rounded-2xl border border-[#DF979B]
+                       bg-[#DF979B]/10 p-5"
+            >
+                <p
+                    class="text-xs font-bold uppercase
+                           tracking-wider text-[#970C13]"
+                >
                     Actual Inventory
                 </p>
 
-                <p class="mt-3 text-3xl font-bold text-indigo-900">
-                    {{ number_format($summaryTotals['actual_inventory']) }}
+                <p class="mt-2 text-sm leading-6 text-slate-700">
+                    Actual PPE quantity distributed to the project
+                    identified in the same report row.
                 </p>
+            </article>
 
-                <p class="mt-1 text-xs text-indigo-700">
-                    Remaining PPE after project issues
-                </p>
-
-            </div>
-
-            <div class="rounded-2xl border border-gray-300 bg-gray-100 p-6 shadow-sm">
-
-                <p class="text-sm font-medium text-gray-700">
+            <article
+                class="rounded-2xl border border-slate-200
+                       bg-slate-50 p-5"
+            >
+                <p
+                    class="text-xs font-bold uppercase
+                           tracking-wider text-slate-500"
+                >
                     Ending Inventory
                 </p>
 
-                <p class="mt-3 text-3xl font-bold text-gray-900">
-                    {{ number_format($summaryTotals['ending_inventory']) }}
+                <p class="mt-2 text-sm leading-6 text-slate-700">
+                    Beginning Inventory minus Actual Inventory. This
+                    becomes the next project's Beginning Inventory.
                 </p>
-
-                <p class="mt-1 text-xs text-gray-600">
-                    Carries forward to the next year
-                </p>
-
-            </div>
-
-        </div>
-
-        {{-- Inventory Summary Table --}}
-        <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow">
-
-            <div class="bg-red-900 px-6 py-5">
-
-                <h2 class="text-xl font-semibold text-white">
-                    Annual Inventory Summary — {{ $year }}
-                </h2>
-
-                <p class="mt-1 text-sm text-red-100">
-                    Ending Inventory becomes the next year’s Beginning Inventory.
-                </p>
-
-            </div>
-
-            <div class="overflow-x-auto">
-
-                <table class="min-w-full divide-y divide-gray-200">
-
-                    <thead class="bg-gray-100">
-
-                        <tr class="text-xs font-semibold uppercase tracking-wide text-gray-700">
-
-                            <th class="px-5 py-4 text-left">
-                                No.
-                            </th>
-
-                            <th class="px-5 py-4 text-left">
-                                PPE Item
-                            </th>
-
-                            <th class="px-5 py-4 text-left">
-                                Size / Label
-                            </th>
-
-                            <th class="px-5 py-4 text-left">
-                                Unit
-                            </th>
-
-                            <th class="px-5 py-4 text-center">
-                                Beginning Inventory
-                            </th>
-
-                            <th class="px-5 py-4 text-center">
-                                Received
-                            </th>
-
-                            <th class="px-5 py-4 text-center">
-                                Issued
-                            </th>
-
-                            <th class="px-5 py-4 text-center">
-                                Actual Inventory
-                            </th>
-
-                            <th class="px-5 py-4 text-center">
-                                Ending Inventory
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody class="divide-y divide-gray-100">
-
-                        @forelse($summary as $row)
-
-                            @php
-                                $endingQuantity =
-                                    (int) $row['ending_inventory'];
-
-                                $stockClass = match (true) {
-                                    $endingQuantity <= 0 =>
-                                        'bg-red-100 text-red-800',
-
-                                    $endingQuantity <= 10 =>
-                                        'bg-yellow-100 text-yellow-800',
-
-                                    default =>
-                                        'bg-green-100 text-green-800',
-                                };
-                            @endphp
-
-                            <tr class="hover:bg-gray-50">
-
-                                <td class="whitespace-nowrap px-5 py-4 text-sm text-gray-600">
-                                    {{ $loop->iteration }}
-                                </td>
-
-                                <td class="px-5 py-4 font-semibold text-gray-900">
-                                    {{ $row['item']->item_name }}
-                                </td>
-
-                                <td class="px-5 py-4 text-gray-700">
-                                    {{ $row['item']->label ?: '—' }}
-                                </td>
-
-                                <td class="px-5 py-4 text-gray-700">
-                                    {{ $row['item']->unit_of_measurement }}
-                                </td>
-
-                                <td class="px-5 py-4 text-center font-semibold text-blue-900">
-                                    {{ number_format($row['beginning_inventory']) }}
-                                </td>
-
-                                <td class="px-5 py-4 text-center font-semibold text-green-700">
-                                    +{{ number_format($row['received_inventory']) }}
-                                </td>
-
-                                <td class="px-5 py-4 text-center font-semibold text-orange-700">
-                                    -{{ number_format($row['issued_inventory']) }}
-                                </td>
-
-                                <td class="px-5 py-4 text-center font-bold text-indigo-900">
-                                    {{ number_format($row['actual_inventory']) }}
-                                </td>
-
-                                <td class="px-5 py-4 text-center">
-
-                                    <span class="inline-flex rounded-full px-3 py-1 text-sm font-bold {{ $stockClass }}">
-                                        {{ number_format($row['ending_inventory']) }}
-                                    </span>
-
-                                </td>
-
-                            </tr>
-
-                        @empty
-
-                            <tr>
-
-                                <td
-                                    colspan="9"
-                                    class="px-6 py-12 text-center text-gray-500"
-                                >
-                                    No PPE items were found.
-                                </td>
-
-                            </tr>
-
-                        @endforelse
-
-                    </tbody>
-
-                    <tfoot class="bg-gray-100">
-
-                        <tr class="font-bold text-gray-900">
-
-                            <td
-                                colspan="4"
-                                class="px-5 py-4 text-right"
-                            >
-                                Total
-                            </td>
-
-                            <td class="px-5 py-4 text-center text-blue-900">
-                                {{ number_format($summaryTotals['beginning_inventory']) }}
-                            </td>
-
-                            <td class="px-5 py-4 text-center text-green-700">
-                                {{ number_format($summaryTotals['received_inventory']) }}
-                            </td>
-
-                            <td class="px-5 py-4 text-center text-orange-700">
-                                {{ number_format($summaryTotals['issued_inventory']) }}
-                            </td>
-
-                            <td class="px-5 py-4 text-center text-indigo-900">
-                                {{ number_format($summaryTotals['actual_inventory']) }}
-                            </td>
-
-                            <td class="px-5 py-4 text-center text-gray-900">
-                                {{ number_format($summaryTotals['ending_inventory']) }}
-                            </td>
-
-                        </tr>
-
-                    </tfoot>
-
-                </table>
-
-            </div>
-
-        </div>
-
-        {{-- Movement History --}}
-        <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow">
-
-            <div class="bg-gray-900 px-6 py-5">
-
-                <h2 class="text-xl font-semibold text-white">
-                    Inventory Movement History
-                </h2>
-
-                <p class="mt-1 text-sm text-gray-300">
-                    Detailed PPE receiving and project distribution records for {{ $year }}.
-                </p>
-
-            </div>
-
-            <div class="overflow-x-auto">
-
-                <table class="min-w-full divide-y divide-gray-200">
-
-                    <thead class="bg-gray-100">
-
-                        <tr class="text-xs font-semibold uppercase tracking-wide text-gray-700">
-
-                            <th class="px-5 py-4 text-left">
-                                No.
-                            </th>
-
-                            <th class="px-5 py-4 text-left">
-                                Date
-                            </th>
-
-                            <th class="px-5 py-4 text-left">
-                                Reference
-                            </th>
-
-                            <th class="px-5 py-4 text-left">
-                                Movement
-                            </th>
-
-                            <th class="px-5 py-4 text-left">
-                                PPE Item
-                            </th>
-
-                            <th class="px-5 py-4 text-left">
-                                Size / Label
-                            </th>
-
-                            <th class="px-5 py-4 text-center">
-                                Quantity
-                            </th>
-
-                            <th class="px-5 py-4 text-left">
-                                Description
-                            </th>
-
-                            <th class="px-5 py-4 text-left">
-                                Recorded By
-                            </th>
-
-                            <th class="px-5 py-4 text-center">
-                                Source
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody class="divide-y divide-gray-100">
-
-                        @forelse($movements as $movement)
-
-                            @php
-                                $isStockIn = $movement->isStockIn();
-
-                                $movementClass = $isStockIn
-                                    ? 'bg-green-100 text-green-800'
-                                    : 'bg-orange-100 text-orange-800';
-                            @endphp
-
-                            <tr class="hover:bg-gray-50">
-
-                                <td class="whitespace-nowrap px-5 py-4 text-sm text-gray-600">
-                                    {{ $movements->firstItem() + $loop->index }}
-                                </td>
-
-                                <td class="whitespace-nowrap px-5 py-4 text-sm text-gray-700">
-                                    {{ $movement->movement_date?->format('F d, Y') }}
-                                </td>
-
-                                <td class="whitespace-nowrap px-5 py-4">
-
-                                    <div class="font-semibold text-gray-900">
-                                        {{ $movement->reference_number ?: 'No reference' }}
-                                    </div>
-
-                                    <div class="mt-1 text-xs text-gray-500">
-                                        Record #{{ $movement->id }}
-                                    </div>
-
-                                </td>
-
-                                <td class="whitespace-nowrap px-5 py-4">
-
-                                    <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $movementClass }}">
-                                        {{ $movement->movement_type }}
-                                    </span>
-
-                                </td>
-
-                                <td class="px-5 py-4 font-medium text-gray-900">
-                                    {{ $movement->item?->item_name ?? 'Not available' }}
-                                </td>
-
-                                <td class="px-5 py-4 text-gray-700">
-                                    {{ $movement->item?->label ?: '—' }}
-                                </td>
-
-                                <td class="px-5 py-4 text-center">
-
-                                    @if($isStockIn)
-
-                                        <span class="font-bold text-green-700">
-                                            +{{ number_format($movement->quantity) }}
-                                        </span>
-
-                                    @else
-
-                                        <span class="font-bold text-orange-700">
-                                            -{{ number_format($movement->quantity) }}
-                                        </span>
-
-                                    @endif
-
-                                </td>
-
-                                <td class="min-w-64 px-5 py-4 text-sm text-gray-700">
-                                    {{ $movement->description ?: 'No description' }}
-                                </td>
-
-                                <td class="px-5 py-4 text-sm text-gray-700">
-                                    {{ $movement->creator?->name ?? 'System' }}
-                                </td>
-
-                                <td class="whitespace-nowrap px-5 py-4 text-center">
-
-                                    @if($movement->deliveryReceipt)
-
-                                        @php
-                                            $allocation =
-                                                $movement
-                                                    ->deliveryReceipt
-                                                    ?->provinceDistribution;
-                                        @endphp
-
-                                        @if($allocation)
-
-                                            <a
-                                                href="{{ route('provincial.receiving.show', $allocation) }}"
-                                                class="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700"
-                                            >
-                                                Delivery Receipt
-                                            </a>
-
-                                        @else
-
-                                            <span class="text-xs text-gray-500">
-                                                Delivery Receipt
-                                            </span>
-
-                                        @endif
-
-                                    @elseif($movement->supplyDesignation)
-
-                                        <a
-                                            href="{{ route('provincial.project-designations.show', $movement->supplyDesignation) }}"
-                                            class="rounded-lg bg-purple-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-purple-700"
-                                        >
-                                            Project
-                                        </a>
-
-                                    @else
-
-                                        <span class="text-xs text-gray-500">
-                                            Adjustment
-                                        </span>
-
-                                    @endif
-
-                                </td>
-
-                            </tr>
-
-                        @empty
-
-                            <tr>
-
-                                <td
-                                    colspan="10"
-                                    class="px-6 py-12 text-center text-gray-500"
-                                >
-                                    No inventory movements were recorded for {{ $year }}.
-                                </td>
-
-                            </tr>
-
-                        @endforelse
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-            @if($movements->hasPages())
-
-                <div class="border-t border-gray-200 px-6 py-4">
-                    {{ $movements->links() }}
+            </article>
+        </section>
+
+        {{-- =========================================================
+            INVENTORY MOVEMENT TABLE
+        ========================================================== --}}
+        <section
+            class="overflow-hidden rounded-3xl border
+                   border-slate-200 bg-white shadow-sm"
+        >
+            <div
+                class="flex flex-col gap-3 border-b
+                       border-slate-200 px-6 py-5
+                       lg:flex-row lg:items-center
+                       lg:justify-between"
+            >
+                <div>
+                    <h2
+                        class="text-xl font-bold
+                               text-slate-950"
+                    >
+                        Inventory Movement History
+                    </h2>
+
+                    <p class="mt-1 text-sm text-slate-500">
+                        Detailed PPE movement per Call-Off and project.
+                    </p>
                 </div>
 
+                <div
+                    class="rounded-xl bg-slate-100
+                           px-4 py-2 text-sm
+                           font-semibold text-slate-600"
+                >
+                    {{ number_format($summary['row_count']) }}
+                    report rows
+                </div>
+            </div>
+
+            @if($rows->isEmpty())
+                <div class="px-6 py-20 text-center">
+                    <div
+                        class="mx-auto flex h-16 w-16
+                               items-center justify-center
+                               rounded-2xl bg-slate-100
+                               text-2xl"
+                    >
+                        📋
+                    </div>
+
+                    <h3
+                        class="mt-5 text-lg font-bold
+                               text-slate-900"
+                    >
+                        No inventory movement records found
+                    </h3>
+
+                    <p
+                        class="mx-auto mt-2 max-w-xl text-sm
+                               leading-6 text-slate-500"
+                    >
+                        No Call-Off inventory records match the
+                        selected report filters.
+                    </p>
+                </div>
+            @else
+                <div class="overflow-x-auto">
+                    <table
+                        class="min-w-[3300px] w-full
+                               border-collapse text-sm"
+                    >
+                        {{-- =========================================
+                            MAIN GROUP HEADER
+                        ========================================== --}}
+                        <thead>
+                            <tr
+                                class="border-b border-[#641D21]
+                                       bg-[#641D21] text-white"
+                            >
+                                <th
+                                    rowspan="3"
+                                    class="sticky left-0 z-30
+                                           w-[70px] min-w-[70px]
+                                           border-r border-white/20
+                                           bg-[#641D21]
+                                           px-3 py-4 text-center"
+                                >
+                                    No.
+                                </th>
+
+                                <th
+                                    rowspan="3"
+                                    class="sticky left-[70px] z-30
+                                           w-[170px] min-w-[170px]
+                                           border-r border-white/20
+                                           bg-[#641D21]
+                                           px-4 py-4 text-left"
+                                >
+                                    Call-Off Number
+                                </th>
+
+                                <th
+                                    rowspan="3"
+                                    class="w-[230px] min-w-[230px]
+                                           border-r border-white/20
+                                           px-4 py-4 text-left"
+                                >
+                                    Name of Supplier
+                                </th>
+
+                                <th
+                                    rowspan="3"
+                                    class="w-[190px] min-w-[190px]
+                                           border-r border-white/20
+                                           px-4 py-4 text-left"
+                                >
+                                    Delivery Receipt
+                                </th>
+
+                                <th
+                                    rowspan="3"
+                                    class="w-[150px] min-w-[150px]
+                                           border-r border-white/20
+                                           px-4 py-4 text-left"
+                                >
+                                    Date of Delivery
+                                </th>
+
+                                <th
+                                    rowspan="3"
+                                    class="w-[170px] min-w-[170px]
+                                           border-r border-white/20
+                                           px-4 py-4 text-left"
+                                >
+                                    Project Code
+                                </th>
+
+                                <th
+                                    rowspan="3"
+                                    class="w-[230px] min-w-[230px]
+                                           border-r border-white/20
+                                           px-4 py-4 text-left"
+                                >
+                                    Location
+                                </th>
+
+                                <th
+                                    rowspan="3"
+                                    class="w-[150px] min-w-[150px]
+                                           border-r border-white/20
+                                           px-4 py-4 text-center"
+                                >
+                                    Number of Beneficiaries
+                                </th>
+
+                                <th
+                                    rowspan="3"
+                                    class="w-[120px] min-w-[120px]
+                                           border-r border-white/20
+                                           px-4 py-4 text-center"
+                                >
+                                    Number of Days
+                                </th>
+
+                                <th
+                                    colspan="7"
+                                    class="border-r border-white/20
+                                           bg-[#970C13]
+                                           px-4 py-4 text-center
+                                           text-sm font-bold uppercase
+                                           tracking-wider"
+                                >
+                                    Beginning Inventory
+                                </th>
+
+                                <th
+                                    colspan="7"
+                                    class="border-r border-white/20
+                                           bg-[#C51017]
+                                           px-4 py-4 text-center
+                                           text-sm font-bold uppercase
+                                           tracking-wider"
+                                >
+                                    Actual Inventory
+                                </th>
+
+                                <th
+                                    colspan="7"
+                                    class="bg-[#641D21]
+                                           px-4 py-4 text-center
+                                           text-sm font-bold uppercase
+                                           tracking-wider"
+                                >
+                                    Ending Inventory
+                                </th>
+                            </tr>
+
+                            {{-- =====================================
+                                PPE GROUP HEADER
+                            ====================================== --}}
+                            <tr
+                                class="border-b border-white/20
+                                       bg-[#970C13] text-white"
+                            >
+                                {{-- Beginning --}}
+                                <th
+                                    colspan="2"
+                                    class="border-r border-white/20
+                                           px-3 py-3 text-center"
+                                >
+                                    Long Sleeve
+                                </th>
+
+                                <th
+                                    rowspan="2"
+                                    class="min-w-[105px]
+                                           border-r border-white/20
+                                           px-3 py-3 text-center"
+                                >
+                                    Bucket Hat
+                                </th>
+
+                                <th
+                                    colspan="2"
+                                    class="border-r border-white/20
+                                           px-3 py-3 text-center"
+                                >
+                                    Rubber Boots
+                                </th>
+
+                                <th
+                                    rowspan="2"
+                                    class="min-w-[100px]
+                                           border-r border-white/20
+                                           px-3 py-3 text-center"
+                                >
+                                    Gloves
+                                </th>
+
+                                <th
+                                    rowspan="2"
+                                    class="min-w-[100px]
+                                           border-r border-white/20
+                                           px-3 py-3 text-center"
+                                >
+                                    Mask
+                                </th>
+
+                                {{-- Actual --}}
+                                <th
+                                    colspan="2"
+                                    class="border-r border-white/20
+                                           bg-[#C51017]
+                                           px-3 py-3 text-center"
+                                >
+                                    Long Sleeve
+                                </th>
+
+                                <th
+                                    rowspan="2"
+                                    class="min-w-[105px]
+                                           border-r border-white/20
+                                           bg-[#C51017]
+                                           px-3 py-3 text-center"
+                                >
+                                    Bucket Hat
+                                </th>
+
+                                <th
+                                    colspan="2"
+                                    class="border-r border-white/20
+                                           bg-[#C51017]
+                                           px-3 py-3 text-center"
+                                >
+                                    Rubber Boots
+                                </th>
+
+                                <th
+                                    rowspan="2"
+                                    class="min-w-[100px]
+                                           border-r border-white/20
+                                           bg-[#C51017]
+                                           px-3 py-3 text-center"
+                                >
+                                    Gloves
+                                </th>
+
+                                <th
+                                    rowspan="2"
+                                    class="min-w-[100px]
+                                           border-r border-white/20
+                                           bg-[#C51017]
+                                           px-3 py-3 text-center"
+                                >
+                                    Mask
+                                </th>
+
+                                {{-- Ending --}}
+                                <th
+                                    colspan="2"
+                                    class="border-r border-white/20
+                                           bg-[#641D21]
+                                           px-3 py-3 text-center"
+                                >
+                                    Long Sleeve
+                                </th>
+
+                                <th
+                                    rowspan="2"
+                                    class="min-w-[105px]
+                                           border-r border-white/20
+                                           bg-[#641D21]
+                                           px-3 py-3 text-center"
+                                >
+                                    Bucket Hat
+                                </th>
+
+                                <th
+                                    colspan="2"
+                                    class="border-r border-white/20
+                                           bg-[#641D21]
+                                           px-3 py-3 text-center"
+                                >
+                                    Rubber Boots
+                                </th>
+
+                                <th
+                                    rowspan="2"
+                                    class="min-w-[100px]
+                                           border-r border-white/20
+                                           bg-[#641D21]
+                                           px-3 py-3 text-center"
+                                >
+                                    Gloves
+                                </th>
+
+                                <th
+                                    rowspan="2"
+                                    class="min-w-[100px]
+                                           border-r border-white/20
+                                           bg-[#641D21]
+                                           px-3 py-3 text-center"
+                                >
+                                    Mask
+                                </th>
+                            </tr>
+
+                            {{-- =====================================
+                                SIZE HEADER
+                            ====================================== --}}
+                            <tr
+                                class="bg-[#DF979B]
+                                       text-[#641D21]"
+                            >
+                                {{-- Beginning --}}
+                                <th class="px-3 py-2 text-center">
+                                    Medium
+                                </th>
+
+                                <th
+                                    class="border-r border-[#970C13]/20
+                                           px-3 py-2 text-center"
+                                >
+                                    Large
+                                </th>
+
+                                <th class="px-3 py-2 text-center">
+                                    US9
+                                </th>
+
+                                <th
+                                    class="border-r border-[#970C13]/20
+                                           px-3 py-2 text-center"
+                                >
+                                    US10
+                                </th>
+
+                                {{-- Actual --}}
+                                <th class="px-3 py-2 text-center">
+                                    Medium
+                                </th>
+
+                                <th
+                                    class="border-r border-[#970C13]/20
+                                           px-3 py-2 text-center"
+                                >
+                                    Large
+                                </th>
+
+                                <th class="px-3 py-2 text-center">
+                                    US9
+                                </th>
+
+                                <th
+                                    class="border-r border-[#970C13]/20
+                                           px-3 py-2 text-center"
+                                >
+                                    US10
+                                </th>
+
+                                {{-- Ending --}}
+                                <th class="px-3 py-2 text-center">
+                                    Medium
+                                </th>
+
+                                <th
+                                    class="border-r border-[#970C13]/20
+                                           px-3 py-2 text-center"
+                                >
+                                    Large
+                                </th>
+
+                                <th class="px-3 py-2 text-center">
+                                    US9
+                                </th>
+
+                                <th class="px-3 py-2 text-center">
+                                    US10
+                                </th>
+                            </tr>
+                        </thead>
+
+                        {{-- =========================================
+                            REPORT ROWS
+                        ========================================== --}}
+                        <tbody class="divide-y divide-slate-200">
+                            @foreach($rows as $index => $row)
+                                @php
+                                    $beginning =
+                                        $row['beginning'] ?? [];
+
+                                    $actual =
+                                        $row['actual'] ?? [];
+
+                                    $ending =
+                                        $row['ending'] ?? [];
+
+                                    $isOpeningRow =
+                                        empty(
+                                            $row[
+                                                'supply_designation_id'
+                                            ]
+                                        );
+
+                                    $previousRow =
+                                        $index > 0
+                                            ? $rows->get(
+                                                $index - 1
+                                            )
+                                            : null;
+
+                                    $isNewCallOff =
+                                        ! $previousRow
+                                        || (
+                                            $previousRow[
+                                                'province_distribution_id'
+                                            ]
+                                            ?? null
+                                        ) !== (
+                                            $row[
+                                                'province_distribution_id'
+                                            ]
+                                            ?? null
+                                        );
+                                @endphp
+
+                                <tr
+                                    class="
+                                        transition
+                                        hover:bg-[#DF979B]/10
+
+                                        {{
+                                            $isNewCallOff
+                                                ? 'border-t-4 border-t-[#970C13]'
+                                                : ''
+                                        }}
+                                    "
+                                >
+                                    <td
+                                        class="sticky left-0 z-20
+                                               border-r border-slate-200
+                                               bg-white px-3 py-4
+                                               text-center font-semibold
+                                               text-slate-500"
+                                    >
+                                        {{
+                                            $firstRowNumber
+                                            + $index
+                                        }}
+                                    </td>
+
+                                    <td
+                                        class="sticky left-[70px] z-20
+                                               border-r border-slate-200
+                                               bg-white px-4 py-4"
+                                    >
+                                        <span
+                                            class="inline-flex rounded-lg
+                                                   bg-[#970C13]/10
+                                                   px-3 py-1.5
+                                                   font-bold text-[#970C13]
+                                                   ring-1 ring-[#970C13]/20"
+                                        >
+                                            {{
+                                                $row[
+                                                    'call_off_number'
+                                                ]
+                                            }}
+                                        </span>
+                                    </td>
+
+                                    <td
+                                        class="border-r border-slate-100
+                                               px-4 py-4 font-medium
+                                               text-slate-800"
+                                    >
+                                        {{
+                                            $row[
+                                                'supplier_name'
+                                            ]
+                                        }}
+                                    </td>
+
+                                    <td
+                                        class="border-r border-slate-100
+                                               px-4 py-4"
+                                    >
+                                        @if(
+                                            $row[
+                                                'delivery_receipts'
+                                            ]->isNotEmpty()
+                                        )
+                                            <div class="space-y-1.5">
+                                                @foreach(
+                                                    $row[
+                                                        'delivery_receipts'
+                                                    ] as $receipt
+                                                )
+                                                    <div
+                                                        class="rounded-lg
+                                                               bg-slate-100
+                                                               px-2.5 py-1.5
+                                                               text-xs
+                                                               font-semibold
+                                                               text-slate-700"
+                                                    >
+                                                        {{
+                                                            $receipt
+                                                                ->dr_number
+                                                        }}
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <span
+                                                class="text-slate-400"
+                                            >
+                                                —
+                                            </span>
+                                        @endif
+                                    </td>
+
+                                    <td
+                                        class="border-r border-slate-100
+                                               px-4 py-4"
+                                    >
+                                        @if(
+                                            $row[
+                                                'delivery_receipts'
+                                            ]->isNotEmpty()
+                                        )
+                                            <div class="space-y-1.5">
+                                                @foreach(
+                                                    $row[
+                                                        'delivery_receipts'
+                                                    ] as $receipt
+                                                )
+                                                    <div
+                                                        class="whitespace-nowrap
+                                                               text-xs
+                                                               text-slate-600"
+                                                    >
+                                                        {{
+                                                            $receipt
+                                                                ->delivery_date
+                                                                ?->format(
+                                                                    'M d, Y'
+                                                                )
+                                                            ?? '—'
+                                                        }}
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            —
+                                        @endif
+                                    </td>
+
+                                    <td
+                                        class="border-r border-slate-100
+                                               px-4 py-4"
+                                    >
+                                        @if($isOpeningRow)
+                                            <span
+                                                class="rounded-lg
+                                                       bg-amber-50
+                                                       px-2.5 py-1.5
+                                                       text-xs font-bold
+                                                       text-amber-700
+                                                       ring-1
+                                                       ring-amber-200"
+                                            >
+                                                No Project Yet
+                                            </span>
+                                        @else
+                                            <p
+                                                class="font-bold
+                                                       text-slate-900"
+                                            >
+                                                {{
+                                                    $row[
+                                                        'project_code'
+                                                    ]
+                                                }}
+                                            </p>
+
+                                            <p
+                                                class="mt-1 max-w-[200px]
+                                                       text-xs
+                                                       text-slate-500"
+                                            >
+                                                {{
+                                                    $row[
+                                                        'project_title'
+                                                    ]
+                                                }}
+                                            </p>
+                                        @endif
+                                    </td>
+
+                                    <td
+                                        class="border-r border-slate-100
+                                               px-4 py-4 text-slate-700"
+                                    >
+                                        {{ $row['location'] }}
+                                    </td>
+
+                                    <td
+                                        class="border-r border-slate-100
+                                               px-4 py-4 text-center
+                                               font-semibold
+                                               text-slate-800"
+                                    >
+                                        {{
+                                            number_format(
+                                                $row[
+                                                    'number_of_beneficiaries'
+                                                ]
+                                            )
+                                        }}
+                                    </td>
+
+                                    <td
+                                        class="border-r border-slate-200
+                                               px-4 py-4 text-center
+                                               font-semibold
+                                               text-slate-800"
+                                    >
+                                        {{
+                                            number_format(
+                                                $row[
+                                                    'number_of_days'
+                                                ]
+                                            )
+                                        }}
+                                    </td>
+
+                                    {{-- Beginning Inventory --}}
+                                    @foreach(
+                                        array_keys($ppeColumns)
+                                        as $itemId
+                                    )
+                                        <td
+                                            class="border-r
+                                                   border-slate-100
+                                                   bg-slate-50/70
+                                                   px-3 py-4
+                                                   text-center
+                                                   font-semibold
+                                                   text-slate-800"
+                                        >
+                                            {{
+                                                number_format(
+                                                    (int) (
+                                                        $beginning[
+                                                            $itemId
+                                                        ]
+                                                        ?? 0
+                                                    )
+                                                )
+                                            }}
+                                        </td>
+                                    @endforeach
+
+                                    {{-- Actual Inventory --}}
+                                    @foreach(
+                                        array_keys($ppeColumns)
+                                        as $itemId
+                                    )
+                                        @php
+                                            $actualQuantity =
+                                                (int) (
+                                                    $actual[
+                                                        $itemId
+                                                    ]
+                                                    ?? 0
+                                                );
+                                        @endphp
+
+                                        <td
+                                            class="border-r
+                                                   border-[#DF979B]/30
+                                                   bg-[#DF979B]/10
+                                                   px-3 py-4
+                                                   text-center font-bold
+                                                   {{
+                                                       $actualQuantity > 0
+                                                           ? 'text-[#C51017]'
+                                                           : 'text-slate-400'
+                                                   }}"
+                                        >
+                                            {{
+                                                number_format(
+                                                    $actualQuantity
+                                                )
+                                            }}
+                                        </td>
+                                    @endforeach
+
+                                    {{-- Ending Inventory --}}
+                                    @foreach(
+                                        array_keys($ppeColumns)
+                                        as $itemId
+                                    )
+                                        @php
+                                            $endingQuantity =
+                                                (int) (
+                                                    $ending[
+                                                        $itemId
+                                                    ]
+                                                    ?? 0
+                                                );
+                                        @endphp
+
+                                        <td
+                                            class="border-r
+                                                   border-slate-100
+                                                   bg-slate-50
+                                                   px-3 py-4
+                                                   text-center font-bold
+                                                   {{
+                                                       $endingQuantity <= 0
+                                                           ? 'text-red-700'
+                                                           : 'text-[#641D21]'
+                                                   }}"
+                                        >
+                                            {{
+                                                number_format(
+                                                    $endingQuantity
+                                                )
+                                            }}
+                                        </td>
+                                    @endforeach
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+                {{-- =================================================
+                    TABLE LEGEND
+                ================================================== --}}
+                <div
+                    class="flex flex-col gap-3 border-t
+                           border-slate-200 bg-slate-50
+                           px-6 py-4 text-xs text-slate-600
+                           lg:flex-row lg:items-center
+                           lg:justify-between"
+                >
+                    <div class="flex flex-wrap gap-4">
+                        <span>
+                            <strong>Beginning</strong>
+                            = Call-Off balance before project
+                        </span>
+
+                        <span>
+                            <strong>Actual</strong>
+                            = PPE distributed to project
+                        </span>
+
+                        <span>
+                            <strong>Ending</strong>
+                            = Beginning − Actual
+                        </span>
+                    </div>
+
+                    <p class="font-semibold">
+                        Ending inventory becomes the next row's
+                        beginning inventory.
+                    </p>
+                </div>
             @endif
+        </section>
 
-        </div>
-
+        {{-- =========================================================
+            PAGINATION
+        ========================================================== --}}
+        @if($rows->hasPages())
+            <section
+                class="rounded-2xl border border-slate-200
+                       bg-white px-5 py-4 shadow-sm"
+            >
+                {{ $rows->links() }}
+            </section>
+        @endif
     </div>
-
-    {{-- Basic browser print styling. --}}
-    <style>
-        @media print {
-            aside,
-            nav,
-            header,
-            button,
-            form,
-            a {
-                display: none !important;
-            }
-
-            body {
-                background: white !important;
-            }
-
-            .shadow,
-            .shadow-sm {
-                box-shadow: none !important;
-            }
-
-            .rounded-2xl,
-            .rounded-xl {
-                border-radius: 0 !important;
-            }
-
-            table {
-                width: 100% !important;
-                font-size: 10px !important;
-            }
-
-            .overflow-x-auto {
-                overflow: visible !important;
-            }
-        }
-    </style>
 
 </x-po_dashboard_layout>

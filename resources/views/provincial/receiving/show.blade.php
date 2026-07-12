@@ -1,420 +1,951 @@
-<x-po_dashboard_layout title="Provincial Office Dashboard">
+<x-po_dashboard_layout title="Call-Off Receiving Details">
 
     @php
-        $batch = $provinceDistribution->distributionBatch;
-        $callOff = $batch?->callOff;
-        $purchaseOrder = $batch?->purchaseOrder;
-        $receipt = $provinceDistribution->deliveryReceipt;
+        $batch =
+            $provinceDistribution
+                ->distributionBatch;
 
-        $statusClass = match($provinceDistribution->status) {
-            'Received' => 'bg-green-100 text-green-800',
-            'Partially Received' => 'bg-yellow-100 text-yellow-800',
-            'For Delivery' => 'bg-blue-100 text-blue-800',
-            'Approved' => 'bg-indigo-100 text-indigo-800',
-            default => 'bg-gray-100 text-gray-700',
+        $callOff =
+            $batch?->callOff;
+
+        $purchaseOrder =
+            $batch?->purchaseOrder;
+
+        $supplier =
+            $purchaseOrder?->supplier;
+
+        $receipts =
+            $provinceDistribution
+                ->deliveryReceipts;
+
+        $allocatedTotal =
+            (int) $provinceDistribution
+                ->items
+                ->sum('quantity');
+
+        $receivedTotal =
+            collect($previouslyReceivedByItem)
+                ->sum();
+
+        $remainingTotal =
+            collect($remainingByItem)
+                ->sum();
+
+        $receiptCount =
+            $receipts->count();
+
+        $receivingPercentage =
+            $allocatedTotal > 0
+                ? min(
+                    100,
+                    round(
+                        (
+                            $receivedTotal
+                            / $allocatedTotal
+                        ) * 100
+                    )
+                )
+                : 0;
+
+        $canReceiveAnotherDelivery =
+            $remainingTotal > 0
+            && in_array(
+                $provinceDistribution->status,
+                [
+                    'Approved',
+                    'For Delivery',
+                    'Partially Received',
+                ],
+                true
+            )
+            && $callOff?->status === 'Approved';
+
+        $statusClass = match(
+            $provinceDistribution->status
+        ) {
+            'Received' =>
+                'bg-green-100 text-green-800 ring-green-200',
+
+            'Partially Received' =>
+                'bg-amber-100 text-amber-800 ring-amber-200',
+
+            'For Delivery' =>
+                'bg-blue-100 text-blue-800 ring-blue-200',
+
+            'Approved' =>
+                'bg-indigo-100 text-indigo-800 ring-indigo-200',
+
+            'Cancelled' =>
+                'bg-slate-200 text-slate-700 ring-slate-300',
+
+            default =>
+                'bg-slate-100 text-slate-700 ring-slate-200',
         };
     @endphp
 
-    <div class="mx-auto max-w-7xl space-y-6">
+    <div class="mx-auto max-w-[1700px] space-y-6">
 
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        {{-- =========================================================
+            PAGE HEADER
+        ========================================================== --}}
+        <section
+            class="relative overflow-hidden rounded-3xl
+                   border border-slate-200 bg-white shadow-sm"
+        >
+            <div
+                class="absolute inset-y-0 left-0 w-2
+                       bg-gradient-to-b from-[#641D21]
+                       via-[#970C13] to-[#ED1B24]"
+            ></div>
 
-            <div>
+            <div
+                class="flex flex-col gap-6 px-6 py-7 sm:px-8
+                       lg:flex-row lg:items-center
+                       lg:justify-between"
+            >
+                <div>
+                    <div class="flex flex-wrap items-center gap-3">
 
-                <div class="flex flex-wrap items-center gap-3">
+                        <span
+                            class="rounded-full bg-[#DF979B]/20
+                                   px-3 py-1 text-xs font-bold
+                                   uppercase tracking-wider
+                                   text-[#970C13]
+                                   ring-1 ring-[#DF979B]"
+                        >
+                            Provincial Receiving
+                        </span>
 
-                    <h1 class="text-3xl font-bold text-gray-900">
-                        {{ $callOff?->call_off_number ?? 'Call-Off Allocation' }}
+                        <span
+                            class="inline-flex rounded-full px-3 py-1
+                                   text-xs font-bold ring-1
+                                   {{ $statusClass }}"
+                        >
+                            {{ $provinceDistribution->status }}
+                        </span>
+
+                    </div>
+
+                    <h1
+                        class="mt-4 text-2xl font-bold tracking-tight
+                               text-slate-950 sm:text-3xl"
+                    >
+                        Call-Off Receiving Details
                     </h1>
 
-                    <span class="rounded-full px-3 py-1 text-sm font-semibold {{ $statusClass }}">
-                        {{ $provinceDistribution->status }}
-                    </span>
-
+                    <p
+                        class="mt-2 max-w-3xl text-sm leading-6
+                               text-slate-600"
+                    >
+                        Review the allocation, cumulative quantities
+                        received, remaining receivable PPE, and every
+                        Delivery Receipt recorded for this Call-Off.
+                    </p>
                 </div>
 
-                <p class="mt-2 text-sm text-gray-600">
-                    Provincial PPE allocation for {{ $provinceDistribution->province->name }}.
-                </p>
-
-            </div>
-
-            <div class="flex flex-wrap gap-3">
-
-                <a
-                    href="{{ route('provincial.receiving.index') }}"
-                    class="rounded-xl border border-gray-300 bg-white px-5 py-3 font-semibold text-gray-700 transition hover:bg-gray-50"
-                >
-                    Back to Allocations
-                </a>
-
-                @if(
-                    !$receipt
-                    && in_array($provinceDistribution->status, [
-                        'Approved',
-                        'For Delivery',
-                        'Partially Received',
-                    ], true)
-                )
+                <div class="flex flex-wrap gap-3">
 
                     <a
-                        href="{{ route('provincial.receiving.create', $provinceDistribution) }}"
-                        class="rounded-xl bg-green-600 px-5 py-3 font-semibold text-white transition hover:bg-green-700"
+                        href="{{ route(
+                            'provincial.receiving.index'
+                        ) }}"
+                        class="inline-flex items-center justify-center
+                               rounded-xl border border-slate-300
+                               bg-white px-5 py-3 text-sm font-bold
+                               text-slate-700 transition
+                               hover:bg-slate-50"
                     >
-                        Receive Delivery
+                        Back to Allocations
                     </a>
 
-                @endif
+                    @if($canReceiveAnotherDelivery)
+                        <a
+                            href="{{ route(
+                                'provincial.receiving.create',
+                                $provinceDistribution
+                            ) }}"
+                            class="inline-flex items-center justify-center
+                                   rounded-xl bg-[#970C13] px-5 py-3
+                                   text-sm font-bold text-white
+                                   transition hover:bg-[#641D21]"
+                        >
+                            Receive Another Delivery
+                        </a>
+                    @endif
 
+                </div>
             </div>
+        </section>
 
-        </div>
-
+        {{-- =========================================================
+            FLASH MESSAGES
+        ========================================================== --}}
         @if(session('success'))
-
-            <div class="rounded-xl border border-green-200 bg-green-50 px-5 py-4 text-green-800">
+            <section
+                class="rounded-2xl border border-green-200
+                       bg-green-50 px-6 py-4 text-green-800"
+            >
                 {{ session('success') }}
-            </div>
-
+            </section>
         @endif
 
         @if(session('error'))
-
-            <div class="rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-red-800">
+            <section
+                class="rounded-2xl border border-red-200
+                       bg-red-50 px-6 py-4 text-red-800"
+            >
                 {{ session('error') }}
-            </div>
-
+            </section>
         @endif
 
-        <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow">
+        {{-- =========================================================
+            CALL-OFF INFORMATION
+        ========================================================== --}}
+        <section
+            class="grid grid-cols-1 gap-4 sm:grid-cols-2
+                   xl:grid-cols-5"
+        >
+            <article
+                class="rounded-2xl border border-slate-200
+                       bg-white p-5 shadow-sm"
+            >
+                <p
+                    class="text-xs font-bold uppercase tracking-wider
+                           text-slate-400"
+                >
+                    Call-Off Number
+                </p>
 
-            <div class="bg-red-900 px-7 py-5">
-                <h2 class="text-xl font-semibold text-white">
-                    Call-Off and Purchase Order
-                </h2>
+                <p
+                    class="mt-3 text-xl font-bold text-[#641D21]"
+                >
+                    {{ $callOff?->call_off_number ?? 'Not available' }}
+                </p>
+
+                <p class="mt-1 text-xs text-slate-500">
+                    Batch #{{ $batch?->id ?? 'N/A' }}
+                </p>
+            </article>
+
+            <article
+                class="rounded-2xl border border-slate-200
+                       bg-white p-5 shadow-sm"
+            >
+                <p
+                    class="text-xs font-bold uppercase tracking-wider
+                           text-slate-400"
+                >
+                    Purchase Order
+                </p>
+
+                <p
+                    class="mt-3 text-xl font-bold text-slate-950"
+                >
+                    {{ $purchaseOrder?->po_number ?? 'Not available' }}
+                </p>
+
+                <p class="mt-1 text-xs text-slate-500">
+                    {{ $supplier?->supplier_name ?? 'Supplier unavailable' }}
+                </p>
+            </article>
+
+            <article
+                class="rounded-2xl border border-slate-200
+                       bg-white p-5 shadow-sm"
+            >
+                <p
+                    class="text-xs font-bold uppercase tracking-wider
+                           text-slate-400"
+                >
+                    Allocated PPE
+                </p>
+
+                <p
+                    class="mt-3 text-2xl font-bold text-slate-950"
+                >
+                    {{ number_format($allocatedTotal) }}
+                </p>
+
+                <p class="mt-1 text-xs text-slate-500">
+                    Original Call-Off allocation
+                </p>
+            </article>
+
+            <article
+                class="rounded-2xl border border-slate-200
+                       bg-white p-5 shadow-sm"
+            >
+                <p
+                    class="text-xs font-bold uppercase tracking-wider
+                           text-slate-400"
+                >
+                    Actual Received
+                </p>
+
+                <p
+                    class="mt-3 text-2xl font-bold text-blue-700"
+                >
+                    {{ number_format($receivedTotal) }}
+                </p>
+
+                <p class="mt-1 text-xs text-slate-500">
+                    Across {{ number_format($receiptCount) }}
+                    Delivery Receipt(s)
+                </p>
+            </article>
+
+            <article
+                class="rounded-2xl border border-slate-200
+                       bg-white p-5 shadow-sm"
+            >
+                <p
+                    class="text-xs font-bold uppercase tracking-wider
+                           text-slate-400"
+                >
+                    Remaining Receivable
+                </p>
+
+                <p
+                    class="mt-3 text-2xl font-bold
+                           {{
+                               $remainingTotal > 0
+                                   ? 'text-amber-700'
+                                   : 'text-green-700'
+                           }}"
+                >
+                    {{ number_format($remainingTotal) }}
+                </p>
+
+                <p class="mt-1 text-xs text-slate-500">
+                    Balance not yet physically received
+                </p>
+            </article>
+        </section>
+
+        {{-- =========================================================
+            RECEIVING PROGRESS
+        ========================================================== --}}
+        <section
+            class="rounded-3xl border border-slate-200
+                   bg-white p-6 shadow-sm"
+        >
+            <div
+                class="flex flex-col gap-4 sm:flex-row
+                       sm:items-center sm:justify-between"
+            >
+                <div>
+                    <p
+                        class="text-xs font-bold uppercase
+                               tracking-[0.16em] text-[#970C13]"
+                    >
+                        Receiving progress
+                    </p>
+
+                    <h2
+                        class="mt-1 text-lg font-bold text-slate-950"
+                    >
+                        Cumulative Call-Off Delivery
+                    </h2>
+
+                    <p class="mt-1 text-sm text-slate-500">
+                        {{ number_format($receivedTotal) }}
+                        of
+                        {{ number_format($allocatedTotal) }}
+                        allocated PPE has been received.
+                    </p>
+                </div>
+
+                <p
+                    class="text-3xl font-bold text-[#970C13]"
+                >
+                    {{ $receivingPercentage }}%
+                </p>
             </div>
 
-            <div class="grid grid-cols-1 gap-6 p-7 sm:grid-cols-2 lg:grid-cols-4">
-
-                <div>
-                    <p class="text-sm font-medium text-gray-500">
-                        Call-Off Number
-                    </p>
-
-                    <p class="mt-1 font-semibold text-gray-900">
-                        {{ $callOff?->call_off_number ?? 'Not available' }}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="text-sm font-medium text-gray-500">
-                        Official Call-Off Date
-                    </p>
-
-                    <p class="mt-1 font-semibold text-gray-900">
-                        {{ $callOff?->call_off_date?->format('F d, Y') ?? 'Not available' }}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="text-sm font-medium text-gray-500">
-                        Source Purchase Order
-                    </p>
-
-                    <p class="mt-1 font-semibold text-gray-900">
-                        {{ $purchaseOrder?->po_number ?? 'Not available' }}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="text-sm font-medium text-gray-500">
-                        Supplier
-                    </p>
-
-                    <p class="mt-1 font-semibold text-gray-900">
-                        {{ $purchaseOrder?->supplier?->supplier_name ?? 'Not available' }}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="text-sm font-medium text-gray-500">
-                        Province
-                    </p>
-
-                    <p class="mt-1 font-semibold text-gray-900">
-                        {{ $provinceDistribution->province->name }}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="text-sm font-medium text-gray-500">
-                        Scheduled Delivery
-                    </p>
-
-                    <p class="mt-1 font-semibold text-gray-900">
-                        {{ $provinceDistribution->scheduled_delivery_date?->format('F d, Y') ?? 'Not set' }}
-                    </p>
-                </div>
-
-                <div class="sm:col-span-2">
-                    <p class="text-sm font-medium text-gray-500">
-                        Place of Delivery
-                    </p>
-
-                    <p class="mt-1 font-semibold text-gray-900">
-                        {{ $provinceDistribution->place_of_delivery ?: 'No delivery location recorded' }}
-                    </p>
-                </div>
-
+            <div
+                class="mt-5 h-4 overflow-hidden rounded-full
+                       bg-slate-200"
+            >
+                <div
+                    class="h-full rounded-full bg-gradient-to-r
+                           from-[#ED1B24] to-[#641D21]
+                           transition-all duration-500"
+                    style="width: {{ $receivingPercentage }}%"
+                ></div>
             </div>
+        </section>
 
-        </div>
+        {{-- =========================================================
+            ALLOCATION VERSUS CUMULATIVE ACTUAL
+        ========================================================== --}}
+        <section
+            class="overflow-hidden rounded-3xl border
+                   border-slate-200 bg-white shadow-sm"
+        >
+            <div
+                class="border-b border-slate-200 px-6 py-5
+                       sm:px-7"
+            >
+                <p
+                    class="text-xs font-bold uppercase
+                           tracking-[0.16em] text-[#970C13]"
+                >
+                    Call-Off quantity summary
+                </p>
 
-        <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow">
-
-            <div class="bg-gray-900 px-7 py-5">
-
-                <h2 class="text-xl font-semibold text-white">
-                    Assigned PPE
+                <h2
+                    class="mt-1 text-lg font-bold text-slate-950"
+                >
+                    Allocation versus Cumulative Actual Received
                 </h2>
 
+                <p class="mt-1 text-sm text-slate-500">
+                    Actual quantities include every Delivery Receipt
+                    recorded under this allocation.
+                </p>
             </div>
 
             <div class="overflow-x-auto">
 
-                <table class="min-w-full divide-y divide-gray-200">
-
-                    <thead class="bg-gray-100">
-
-                        <tr class="text-xs font-semibold uppercase tracking-wide text-gray-700">
-
-                            <th class="px-5 py-4 text-left">
+                <table
+                    class="min-w-[950px] w-full
+                           divide-y divide-slate-200"
+                >
+                    <thead class="bg-slate-100">
+                        <tr
+                            class="text-xs font-bold uppercase
+                                   tracking-wide text-slate-600"
+                        >
+                            <th class="px-6 py-4 text-left">
                                 PPE Item
                             </th>
 
-                            <th class="px-5 py-4 text-left">
+                            <th class="px-6 py-4 text-left">
                                 Size / Label
                             </th>
 
-                            <th class="px-5 py-4 text-left">
-                                Unit
+                            <th class="px-6 py-4 text-center">
+                                Allocation
                             </th>
 
-                            <th class="px-5 py-4 text-center">
-                                Assigned Quantity
+                            <th class="px-6 py-4 text-center">
+                                Actual Received
                             </th>
 
+                            <th class="px-6 py-4 text-center">
+                                Shortage / Remaining
+                            </th>
+
+                            <th class="min-w-56 px-6 py-4 text-left">
+                                Progress
+                            </th>
                         </tr>
-
                     </thead>
 
-                    <tbody class="divide-y divide-gray-100">
+                    <tbody class="divide-y divide-slate-100">
 
-                        @foreach($provinceDistribution->items as $allocationItem)
+                        @foreach(
+                            $provinceDistribution->items
+                            as $allocationItem
+                        )
+                            @php
+                                $allocated =
+                                    (int) $allocationItem->quantity;
 
-                            <tr>
+                                $received =
+                                    (int) (
+                                        $previouslyReceivedByItem[
+                                            $allocationItem->id
+                                        ] ?? 0
+                                    );
 
-                                <td class="px-5 py-4 font-medium text-gray-900">
+                                $remaining =
+                                    (int) (
+                                        $remainingByItem[
+                                            $allocationItem->id
+                                        ] ?? 0
+                                    );
+
+                                $itemPercentage =
+                                    $allocated > 0
+                                        ? min(
+                                            100,
+                                            round(
+                                                (
+                                                    $received
+                                                    / $allocated
+                                                ) * 100
+                                            )
+                                        )
+                                        : 0;
+                            @endphp
+
+                            <tr class="transition hover:bg-slate-50">
+                                <td
+                                    class="px-6 py-4 font-semibold
+                                           text-slate-900"
+                                >
                                     {{ $allocationItem->item->item_name }}
                                 </td>
 
-                                <td class="px-5 py-4 text-gray-700">
+                                <td class="px-6 py-4 text-slate-600">
                                     {{ $allocationItem->item->label ?: '—' }}
                                 </td>
 
-                                <td class="px-5 py-4 text-gray-700">
-                                    {{ $allocationItem->item->unit_of_measurement }}
+                                <td
+                                    class="px-6 py-4 text-center
+                                           font-semibold text-slate-900"
+                                >
+                                    {{ number_format($allocated) }}
                                 </td>
 
-                                <td class="px-5 py-4 text-center font-semibold text-gray-900">
-                                    {{ number_format($allocationItem->quantity) }}
+                                <td
+                                    class="px-6 py-4 text-center
+                                           font-semibold text-blue-700"
+                                >
+                                    {{ number_format($received) }}
                                 </td>
 
+                                <td
+                                    class="px-6 py-4 text-center font-bold
+                                           {{
+                                               $remaining > 0
+                                                   ? 'text-amber-700'
+                                                   : 'text-green-700'
+                                           }}"
+                                >
+                                    {{ number_format($remaining) }}
+                                </td>
+
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+
+                                        <div
+                                            class="h-2.5 flex-1
+                                                   overflow-hidden
+                                                   rounded-full
+                                                   bg-slate-200"
+                                        >
+                                            <div
+                                                class="h-full rounded-full
+                                                       bg-[#970C13]"
+                                                style="width: {{ $itemPercentage }}%"
+                                            ></div>
+                                        </div>
+
+                                        <span
+                                            class="w-12 text-right
+                                                   text-xs font-bold
+                                                   text-slate-600"
+                                        >
+                                            {{ $itemPercentage }}%
+                                        </span>
+                                    </div>
+                                </td>
                             </tr>
-
                         @endforeach
 
                     </tbody>
-
                 </table>
-
             </div>
+        </section>
 
-        </div>
+        {{-- =========================================================
+            ONE ROW PER DELIVERY RECEIPT
+        ========================================================== --}}
+        <section
+            class="overflow-hidden rounded-3xl border
+                   border-slate-200 bg-white shadow-sm"
+        >
+            <div
+                class="flex flex-col gap-3 border-b
+                       border-slate-200 px-6 py-5 sm:px-7
+                       lg:flex-row lg:items-center
+                       lg:justify-between"
+            >
+                <div>
+                    <p
+                        class="text-xs font-bold uppercase
+                               tracking-[0.16em] text-[#970C13]"
+                    >
+                        Delivery audit
+                    </p>
 
-        @if($receipt)
-
-            <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow">
-
-                <div class="bg-green-700 px-7 py-5">
-
-                    <h2 class="text-xl font-semibold text-white">
-                        Delivery Receipt
+                    <h2
+                        class="mt-1 text-lg font-bold text-slate-950"
+                    >
+                        Delivery Receipt History
                     </h2>
 
+                    <p class="mt-1 text-sm text-slate-500">
+                        Each row represents one physical delivery.
+                        Allocation values are reference values and must
+                        not be totaled across DR rows.
+                    </p>
                 </div>
 
-                <div class="grid grid-cols-1 gap-6 p-7 sm:grid-cols-2 lg:grid-cols-4">
+                @if($canReceiveAnotherDelivery)
+                    <a
+                        href="{{ route(
+                            'provincial.receiving.create',
+                            $provinceDistribution
+                        ) }}"
+                        class="inline-flex items-center justify-center
+                               rounded-xl bg-[#970C13] px-5 py-3
+                               text-sm font-bold text-white
+                               transition hover:bg-[#641D21]"
+                    >
+                        Add Delivery Receipt
+                    </a>
+                @endif
+            </div>
 
+            <div class="overflow-x-auto">
+
+                <table
+                    class="min-w-[1000px] w-full
+                           divide-y divide-slate-200"
+                >
+                    <thead class="bg-slate-100">
+                        <tr
+                            class="text-xs font-bold uppercase
+                                   tracking-wide text-slate-600"
+                        >
+                            <th class="px-6 py-4 text-left">
+                                No.
+                            </th>
+
+                            <th class="px-6 py-4 text-left">
+                                Call-Off Number
+                            </th>
+
+                            <th class="px-6 py-4 text-left">
+                                Delivery Receipt
+                            </th>
+
+                            <th class="px-6 py-4 text-left">
+                                Delivery Date
+                            </th>
+
+                            <th class="px-6 py-4 text-left">
+                                Receiver
+                            </th>
+
+                            <th class="px-6 py-4 text-center">
+                                Allocation Reference
+                            </th>
+
+                            <th class="px-6 py-4 text-center">
+                                Actual This Delivery
+                            </th>
+
+                            <th class="px-6 py-4 text-center">
+                                Document
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="divide-y divide-slate-100">
+
+                        @forelse($receipts as $receipt)
+
+                            @php
+                                $actualThisDelivery =
+                                    (int) $receipt
+                                        ->items
+                                        ->sum(
+                                            'received_quantity'
+                                        );
+                            @endphp
+
+                            <tr class="transition hover:bg-slate-50">
+                                <td
+                                    class="px-6 py-4 text-sm
+                                           text-slate-500"
+                                >
+                                    {{ $loop->iteration }}
+                                </td>
+
+                                <td
+                                    class="px-6 py-4 font-semibold
+                                           text-slate-900"
+                                >
+                                    {{ $callOff?->call_off_number ?? '—' }}
+                                </td>
+
+                                <td class="px-6 py-4">
+                                    <p
+                                        class="font-semibold
+                                               text-[#641D21]"
+                                    >
+                                        {{ $receipt->dr_number }}
+                                    </p>
+
+                                    @if($receipt->remarks)
+                                        <p
+                                            class="mt-1 max-w-xs truncate
+                                                   text-xs text-slate-500"
+                                            title="{{ $receipt->remarks }}"
+                                        >
+                                            {{ $receipt->remarks }}
+                                        </p>
+                                    @endif
+                                </td>
+
+                                <td class="px-6 py-4 text-slate-600">
+                                    {{ $receipt->delivery_date?->format('M d, Y') ?? '—' }}
+                                </td>
+
+                                <td class="px-6 py-4 text-slate-600">
+                                    {{
+                                        $receipt->physical_receiver_name
+                                        ?? $receipt->receivedByUser?->name
+                                        ?? '—'
+                                    }}
+                                </td>
+
+                                <td
+                                    class="px-6 py-4 text-center
+                                           font-semibold text-slate-700"
+                                >
+                                    {{ number_format($allocatedTotal) }}
+                                </td>
+
+                                <td
+                                    class="px-6 py-4 text-center
+                                           font-bold text-blue-700"
+                                >
+                                    {{ number_format($actualThisDelivery) }}
+                                </td>
+
+                                <td class="px-6 py-4 text-center">
+                                    @if($receipt->document)
+                                        <a
+                                            href="{{ asset(
+                                                'storage/'
+                                                .$receipt->document
+                                            ) }}"
+                                            target="_blank"
+                                            rel="noopener"
+                                            class="inline-flex rounded-lg
+                                                   border border-slate-300
+                                                   bg-white px-4 py-2
+                                                   text-xs font-bold
+                                                   text-slate-700
+                                                   transition
+                                                   hover:bg-slate-50"
+                                        >
+                                            View PDF
+                                        </a>
+                                    @else
+                                        <span
+                                            class="text-sm text-slate-400"
+                                        >
+                                            —
+                                        </span>
+                                    @endif
+                                </td>
+                            </tr>
+
+                        @empty
+
+                            <tr>
+                                <td
+                                    colspan="8"
+                                    class="px-6 py-12 text-center
+                                           text-sm text-slate-500"
+                                >
+                                    No Delivery Receipts have been
+                                    recorded for this allocation.
+                                </td>
+                            </tr>
+
+                        @endforelse
+
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        {{-- =========================================================
+            PER-DR PPE COMPARISON
+        ========================================================== --}}
+        @foreach($receipts as $receipt)
+
+            <section
+                class="overflow-hidden rounded-3xl border
+                       border-slate-200 bg-white shadow-sm"
+            >
+                <div
+                    class="flex flex-col gap-3 border-b
+                           border-slate-200 px-6 py-5 sm:px-7
+                           lg:flex-row lg:items-center
+                           lg:justify-between"
+                >
                     <div>
-                        <p class="text-sm font-medium text-gray-500">
-                            DR Number
+                        <p
+                            class="text-xs font-bold uppercase
+                                   tracking-[0.16em]
+                                   text-[#970C13]"
+                        >
+                            Allocation versus actual
                         </p>
 
-                        <p class="mt-1 font-semibold text-gray-900">
+                        <h2
+                            class="mt-1 text-lg font-bold
+                                   text-slate-950"
+                        >
                             {{ $receipt->dr_number }}
+                        </h2>
+
+                        <p class="mt-1 text-sm text-slate-500">
+                            Delivered on
+                            {{ $receipt->delivery_date?->format('F d, Y') ?? '—' }}
                         </p>
                     </div>
 
-                    <div>
-                        <p class="text-sm font-medium text-gray-500">
-                            Delivery Date
+                    <div
+                        class="rounded-xl bg-slate-100
+                               px-4 py-3 text-right"
+                    >
+                        <p
+                            class="text-xs font-bold uppercase
+                                   tracking-wider text-slate-400"
+                        >
+                            Actual this delivery
                         </p>
 
-                        <p class="mt-1 font-semibold text-gray-900">
-                            {{ $receipt->delivery_date?->format('F d, Y') }}
-                        </p>
-                    </div>
-
-                    <div>
-                        <p class="text-sm font-medium text-gray-500">
-                            Physical Receiver
-                        </p>
-
-                        <p class="mt-1 font-semibold text-gray-900">
-                            {{ $receipt->physical_receiver_name }}
-                        </p>
-                    </div>
-
-                    <div>
-                        <p class="text-sm font-medium text-gray-500">
-                            Submitted By
-                        </p>
-
-                        <p class="mt-1 font-semibold text-gray-900">
-                            {{ $receipt->receivedByUser?->name ?? 'Not available' }}
+                        <p
+                            class="mt-1 text-xl font-bold
+                                   text-blue-700"
+                        >
+                            {{
+                                number_format(
+                                    $receipt
+                                        ->items
+                                        ->sum(
+                                            'received_quantity'
+                                        )
+                                )
+                            }}
                         </p>
                     </div>
-
-                    <div class="sm:col-span-2 lg:col-span-3">
-                        <p class="text-sm font-medium text-gray-500">
-                            Remarks
-                        </p>
-
-                        <p class="mt-1 whitespace-pre-line text-gray-900">
-                            {{ $receipt->remarks ?: 'No remarks provided.' }}
-                        </p>
-                    </div>
-
-                    <div>
-
-                        @if($receipt->document)
-
-                            <a
-                                href="{{ asset('storage/'.$receipt->document) }}"
-                                target="_blank"
-                                class="inline-flex rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700"
-                            >
-                                View DR Document
-                            </a>
-
-                        @endif
-
-                    </div>
-
                 </div>
 
-                <div class="overflow-x-auto border-t border-gray-200">
+                <div class="overflow-x-auto">
 
-                    <table class="min-w-full divide-y divide-gray-200">
-
-                        <thead class="bg-gray-100">
-
-                            <tr class="text-xs font-semibold uppercase tracking-wide text-gray-700">
-
-                                <th class="px-5 py-4 text-left">
+                    <table
+                        class="min-w-[850px] w-full
+                               divide-y divide-slate-200"
+                    >
+                        <thead class="bg-slate-100">
+                            <tr
+                                class="text-xs font-bold uppercase
+                                       tracking-wide text-slate-600"
+                            >
+                                <th class="px-6 py-4 text-left">
                                     PPE Item
                                 </th>
 
-                                <th class="px-5 py-4 text-left">
-                                    Size
+                                <th class="px-6 py-4 text-left">
+                                    Size / Label
                                 </th>
 
-                                <th class="px-5 py-4 text-center">
-                                    Assigned
+                                <th class="px-6 py-4 text-center">
+                                    Allocation
                                 </th>
 
-                                <th class="px-5 py-4 text-center">
-                                    Received
+                                <th class="px-6 py-4 text-center">
+                                    Actual Received
                                 </th>
 
-                                <th class="px-5 py-4 text-center">
+                                <th class="px-6 py-4 text-center">
                                     Difference
                                 </th>
-
                             </tr>
-
                         </thead>
 
-                        <tbody class="divide-y divide-gray-100">
+                        <tbody class="divide-y divide-slate-100">
 
-                            @foreach($receipt->items as $receiptItem)
-
+                            @foreach(
+                                $provinceDistribution->items
+                                as $allocationItem
+                            )
                                 @php
-                                    $difference =
-                                        $receiptItem->assigned_quantity
-                                        - $receiptItem->received_quantity;
+                                    $receiptItem =
+                                        $receipt
+                                            ->items
+                                            ->firstWhere(
+                                                'province_distribution_item_id',
+                                                $allocationItem->id
+                                            );
+
+                                    $actual =
+                                        (int) (
+                                            $receiptItem
+                                                ?->received_quantity
+                                            ?? 0
+                                        );
+
+                                    $difference = max(
+                                        0,
+                                        (int) $allocationItem->quantity
+                                            - $actual
+                                    );
                                 @endphp
 
-                                <tr>
-
-                                    <td class="px-5 py-4 font-medium text-gray-900">
-                                        {{ $receiptItem->item->item_name }}
+                                <tr class="hover:bg-slate-50">
+                                    <td
+                                        class="px-6 py-4 font-semibold
+                                               text-slate-900"
+                                    >
+                                        {{ $allocationItem->item->item_name }}
                                     </td>
 
-                                    <td class="px-5 py-4 text-gray-700">
-                                        {{ $receiptItem->item->label ?: '—' }}
+                                    <td class="px-6 py-4 text-slate-600">
+                                        {{ $allocationItem->item->label ?: '—' }}
                                     </td>
 
-                                    <td class="px-5 py-4 text-center">
-                                        {{ number_format($receiptItem->assigned_quantity) }}
+                                    <td
+                                        class="px-6 py-4 text-center
+                                               font-semibold
+                                               text-slate-900"
+                                    >
+                                        {{
+                                            number_format(
+                                                $allocationItem
+                                                    ->quantity
+                                            )
+                                        }}
                                     </td>
 
-                                    <td class="px-5 py-4 text-center font-semibold">
-                                        {{ number_format($receiptItem->received_quantity) }}
+                                    <td
+                                        class="px-6 py-4 text-center
+                                               font-bold text-blue-700"
+                                    >
+                                        {{ number_format($actual) }}
                                     </td>
 
-                                    <td class="px-5 py-4 text-center">
-
-                                        @if($difference === 0)
-
-                                            <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
-                                                Complete
-                                            </span>
-
-                                        @else
-
-                                            <span class="rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-800">
-                                                Short by {{ number_format($difference) }}
-                                            </span>
-
-                                        @endif
-
+                                    <td
+                                        class="px-6 py-4 text-center
+                                               font-semibold
+                                               {{
+                                                   $difference > 0
+                                                       ? 'text-amber-700'
+                                                       : 'text-green-700'
+                                               }}"
+                                    >
+                                        {{ number_format($difference) }}
                                     </td>
-
                                 </tr>
-
                             @endforeach
 
                         </tbody>
-
                     </table>
-
                 </div>
+            </section>
 
-            </div>
-
-        @endif
+        @endforeach
 
     </div>
 

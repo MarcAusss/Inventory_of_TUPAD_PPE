@@ -10,25 +10,14 @@ class DeliveryReceipt extends Model
 {
     protected $fillable = [
         'province_distribution_id',
-
-        /*
-         * Temporarily retained for compatibility with old records.
-         */
         'purchase_order_id',
         'province_id',
-
         'received_by_user_id',
         'physical_receiver_name',
-
         'dr_number',
         'delivery_date',
         'document',
-
-        /*
-         * Legacy text field retained temporarily.
-         */
         'received_by',
-
         'remarks',
         'status',
         'submitted_at',
@@ -50,17 +39,23 @@ class DeliveryReceipt extends Model
 
     public function provinceDistribution(): BelongsTo
     {
-        return $this->belongsTo(ProvinceDistribution::class);
+        return $this->belongsTo(
+            ProvinceDistribution::class
+        );
     }
 
     public function purchaseOrder(): BelongsTo
     {
-        return $this->belongsTo(PurchaseOrder::class);
+        return $this->belongsTo(
+            PurchaseOrder::class
+        );
     }
 
     public function province(): BelongsTo
     {
-        return $this->belongsTo(Province::class);
+        return $this->belongsTo(
+            Province::class
+        );
     }
 
     public function receivedByUser(): BelongsTo
@@ -73,12 +68,16 @@ class DeliveryReceipt extends Model
 
     public function items(): HasMany
     {
-        return $this->hasMany(DeliveryReceiptItem::class);
+        return $this->hasMany(
+            DeliveryReceiptItem::class
+        );
     }
 
     public function supplyDesignations(): HasMany
     {
-        return $this->hasMany(SupplyDesignation::class);
+        return $this->hasMany(
+            SupplyDesignation::class
+        );
     }
 
     /*
@@ -98,5 +97,22 @@ class DeliveryReceipt extends Model
             ->provinceDistribution
             ?->distributionBatch
             ?->callOff;
+    }
+
+    public function totalReceivedQuantity(): int
+    {
+        return (int) $this
+            ->items
+            ->sum('received_quantity');
+    }
+
+    public function hasDiscrepancy(): bool
+    {
+        return $this
+            ->items
+            ->contains(
+                fn (DeliveryReceiptItem $item): bool =>
+                    $item->hasDiscrepancy()
+            );
     }
 }

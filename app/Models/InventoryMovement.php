@@ -13,12 +13,20 @@ class InventoryMovement extends Model
         'item_id',
         'created_by',
 
+        /*
+         * Exact Call-Off allocation source.
+         */
+        'province_distribution_id',
+
         'delivery_receipt_id',
         'supply_designation_id',
 
         'movement_type',
         'quantity',
 
+        /*
+         * These remain province-wide pooled inventory balances.
+         */
         'balance_before',
         'balance_after',
 
@@ -32,14 +40,17 @@ class InventoryMovement extends Model
     {
         return [
             'quantity' => 'integer',
-
             'balance_before' => 'integer',
-
             'balance_after' => 'integer',
-
             'movement_date' => 'date',
         ];
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
 
     public function province(): BelongsTo
     {
@@ -63,6 +74,13 @@ class InventoryMovement extends Model
         );
     }
 
+    public function provinceDistribution(): BelongsTo
+    {
+        return $this->belongsTo(
+            ProvinceDistribution::class
+        );
+    }
+
     public function deliveryReceipt(): BelongsTo
     {
         return $this->belongsTo(
@@ -77,6 +95,12 @@ class InventoryMovement extends Model
         );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Scopes
+    |--------------------------------------------------------------------------
+    */
+
     public function scopeForProvince(
         Builder $query,
         int $provinceId
@@ -84,6 +108,16 @@ class InventoryMovement extends Model
         return $query->where(
             'province_id',
             $provinceId
+        );
+    }
+
+    public function scopeForCallOffAllocation(
+        Builder $query,
+        int $provinceDistributionId
+    ): Builder {
+        return $query->where(
+            'province_distribution_id',
+            $provinceDistributionId
         );
     }
 
@@ -121,6 +155,12 @@ class InventoryMovement extends Model
         );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Helpers
+    |--------------------------------------------------------------------------
+    */
+
     public function isStockIn(): bool
     {
         return in_array(
@@ -148,7 +188,32 @@ class InventoryMovement extends Model
     public function signedQuantity(): int
     {
         return $this->isStockIn()
-            ? $this->quantity
-            : -$this->quantity;
+            ? (int) $this->quantity
+            : -((int) $this->quantity);
+    }
+
+    public function callOff(): ?CallOff
+    {
+        return $this
+            ->provinceDistribution
+            ?->distributionBatch
+            ?->callOff;
+    }
+
+    public function purchaseOrder(): ?PurchaseOrder
+    {
+        return $this
+            ->provinceDistribution
+            ?->distributionBatch
+            ?->purchaseOrder;
+    }
+
+    public function supplier(): ?Supplier
+    {
+        return $this
+            ->provinceDistribution
+            ?->distributionBatch
+            ?->purchaseOrder
+            ?->supplier;
     }
 }

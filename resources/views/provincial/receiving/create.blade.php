@@ -1,153 +1,308 @@
 <x-po_dashboard_layout title="Receive PPE Delivery">
 
     @php
-        $batch = $provinceDistribution->distributionBatch;
-        $callOff = $batch?->callOff;
-        $purchaseOrder = $batch?->purchaseOrder;
+        $batch =
+            $provinceDistribution
+                ->distributionBatch;
+
+        $callOff =
+            $batch?->callOff;
+
+        $purchaseOrder =
+            $batch?->purchaseOrder;
+
+        $supplier =
+            $purchaseOrder?->supplier;
+
+        $allocatedTotal =
+            (int) $provinceDistribution
+                ->items
+                ->sum('quantity');
+
+        $previouslyReceivedTotal =
+            collect($previouslyReceivedByItem)
+                ->sum();
+
+        $remainingTotal =
+            collect($remainingByItem)
+                ->sum();
+
+        $previousReceiptCount =
+            $provinceDistribution
+                ->deliveryReceipts
+                ->count();
     @endphp
 
-    <div class="mx-auto max-w-7xl space-y-6">
+    <div class="mx-auto max-w-[1500px] space-y-6">
 
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        {{-- =========================================================
+            PAGE HEADER
+        ========================================================== --}}
+        <section
+            class="relative overflow-hidden rounded-3xl border
+                   border-slate-200 bg-white shadow-sm"
+        >
+            <div
+                class="absolute inset-y-0 left-0 w-2
+                       bg-gradient-to-b from-[#641D21]
+                       via-[#970C13] to-[#ED1B24]"
+            ></div>
 
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900">
-                    Receive PPE Delivery
-                </h1>
-
-                <p class="mt-1 text-sm text-gray-600">
-                    Confirm the actual quantities physically received under
-                    <span class="font-semibold">
-                        {{ $callOff?->call_off_number }}
-                    </span>.
-                </p>
-            </div>
-
-            <a
-                href="{{ route('provincial.receiving.show', $provinceDistribution) }}"
-                class="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-3 font-semibold text-gray-700 transition hover:bg-gray-50"
+            <div
+                class="flex flex-col gap-5 px-6 py-7 sm:px-8
+                       lg:flex-row lg:items-center
+                       lg:justify-between"
             >
-                Back to Allocation
-            </a>
+                <div>
+                    <div class="flex flex-wrap items-center gap-3">
 
-        </div>
+                        <span
+                            class="rounded-full bg-[#DF979B]/20
+                                   px-3 py-1 text-xs font-bold
+                                   uppercase tracking-wider
+                                   text-[#970C13]
+                                   ring-1 ring-[#DF979B]"
+                        >
+                            Provincial Receiving
+                        </span>
 
+                        <span
+                            class="rounded-full bg-slate-100
+                                   px-3 py-1 text-xs font-semibold
+                                   text-slate-700 ring-1
+                                   ring-slate-200"
+                        >
+                            Delivery Receipt
+                            #{{ $previousReceiptCount + 1 }}
+                        </span>
+
+                    </div>
+
+                    <h1
+                        class="mt-4 text-2xl font-bold
+                               tracking-tight text-slate-950
+                               sm:text-3xl"
+                    >
+                        Record PPE Delivery
+                    </h1>
+
+                    <p
+                        class="mt-2 max-w-3xl text-sm
+                               leading-6 text-slate-600"
+                    >
+                        Record another physical delivery under
+                        Call-Off
+                        <span class="font-bold text-slate-900">
+                            {{ $callOff?->call_off_number ?? 'N/A' }}
+                        </span>.
+                        Quantities are validated against the remaining
+                        receivable PPE balance.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap gap-3">
+
+                    <a
+                        href="{{ route(
+                            'provincial.receiving.show',
+                            $provinceDistribution
+                        ) }}"
+                        class="inline-flex items-center justify-center
+                               rounded-xl border border-slate-300
+                               bg-white px-5 py-3 text-sm
+                               font-bold text-slate-700 transition
+                               hover:bg-slate-50"
+                    >
+                        View Allocation
+                    </a>
+
+                    <a
+                        href="{{ route(
+                            'provincial.receiving.index'
+                        ) }}"
+                        class="inline-flex items-center justify-center
+                               rounded-xl bg-slate-900 px-5 py-3
+                               text-sm font-bold text-white
+                               transition hover:bg-slate-800"
+                    >
+                        Back to Allocations
+                    </a>
+
+                </div>
+            </div>
+        </section>
+
+        {{-- =========================================================
+            VALIDATION ERRORS
+        ========================================================== --}}
         @if($errors->any())
 
-            <div class="rounded-xl border border-red-200 bg-red-50 px-6 py-5">
-
-                <h2 class="font-semibold text-red-800">
+            <section
+                class="rounded-2xl border border-red-200
+                       bg-red-50 px-6 py-5"
+            >
+                <h2 class="font-bold text-red-800">
                     Please correct the following:
                 </h2>
 
-                <ul class="mt-3 list-disc space-y-1 pl-5 text-sm text-red-700">
+                <ul
+                    class="mt-3 list-disc space-y-1 pl-5
+                           text-sm text-red-700"
+                >
                     @foreach($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
                 </ul>
-
-            </div>
+            </section>
 
         @endif
 
-        <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow">
+        {{-- =========================================================
+            ALLOCATION SUMMARY CARDS
+        ========================================================== --}}
+        <section
+            class="grid grid-cols-1 gap-4
+                   sm:grid-cols-2 xl:grid-cols-4"
+        >
+            <article
+                class="rounded-2xl border border-slate-200
+                       bg-white p-5 shadow-sm"
+            >
+                <p
+                    class="text-xs font-bold uppercase
+                           tracking-wider text-slate-400"
+                >
+                    Call-Off Number
+                </p>
 
-            <div class="bg-red-900 px-7 py-5">
-                <h2 class="text-xl font-semibold text-white">
-                    Allocation Information
-                </h2>
-            </div>
+                <p
+                    class="mt-3 text-xl font-bold
+                           text-[#641D21]"
+                >
+                    {{ $callOff?->call_off_number ?? 'Not available' }}
+                </p>
 
-            <div class="grid grid-cols-1 gap-6 p-7 sm:grid-cols-2 lg:grid-cols-4">
+                <p class="mt-1 text-xs text-slate-500">
+                    Batch #{{ $batch?->id ?? 'N/A' }}
+                </p>
+            </article>
 
-                <div>
-                    <p class="text-sm font-medium text-gray-500">
-                        Call-Off Number
-                    </p>
+            <article
+                class="rounded-2xl border border-slate-200
+                       bg-white p-5 shadow-sm"
+            >
+                <p
+                    class="text-xs font-bold uppercase
+                           tracking-wider text-slate-400"
+                >
+                    Source Purchase Order
+                </p>
 
-                    <p class="mt-1 font-semibold text-gray-900">
-                        {{ $callOff?->call_off_number ?? 'Not available' }}
-                    </p>
-                </div>
+                <p
+                    class="mt-3 text-xl font-bold
+                           text-slate-950"
+                >
+                    {{ $purchaseOrder?->po_number ?? 'Not available' }}
+                </p>
 
-                <div>
-                    <p class="text-sm font-medium text-gray-500">
-                        Source Purchase Order
-                    </p>
+                <p class="mt-1 text-xs text-slate-500">
+                    {{ $supplier?->supplier_name ?? 'Supplier unavailable' }}
+                </p>
+            </article>
 
-                    <p class="mt-1 font-semibold text-gray-900">
-                        {{ $purchaseOrder?->po_number ?? 'Not available' }}
-                    </p>
-                </div>
+            <article
+                class="rounded-2xl border border-slate-200
+                       bg-white p-5 shadow-sm"
+            >
+                <p
+                    class="text-xs font-bold uppercase
+                           tracking-wider text-slate-400"
+                >
+                    Previously Received
+                </p>
 
-                <div>
-                    <p class="text-sm font-medium text-gray-500">
-                        Supplier
-                    </p>
+                <p
+                    class="mt-3 text-2xl font-bold
+                           text-blue-700"
+                >
+                    {{ number_format($previouslyReceivedTotal) }}
+                </p>
 
-                    <p class="mt-1 font-semibold text-gray-900">
-                        {{ $purchaseOrder?->supplier?->supplier_name ?? 'Not available' }}
-                    </p>
-                </div>
+                <p class="mt-1 text-xs text-slate-500">
+                    Across
+                    {{ number_format($previousReceiptCount) }}
+                    previous Delivery Receipt(s)
+                </p>
+            </article>
 
-                <div>
-                    <p class="text-sm font-medium text-gray-500">
-                        Province
-                    </p>
+            <article
+                class="rounded-2xl border border-slate-200
+                       bg-white p-5 shadow-sm"
+            >
+                <p
+                    class="text-xs font-bold uppercase
+                           tracking-wider text-slate-400"
+                >
+                    Remaining Receivable
+                </p>
 
-                    <p class="mt-1 font-semibold text-gray-900">
-                        {{ $provinceDistribution->province->name }}
-                    </p>
-                </div>
+                <p
+                    class="mt-3 text-2xl font-bold
+                           text-amber-700"
+                >
+                    {{ number_format($remainingTotal) }}
+                </p>
 
-                <div>
-                    <p class="text-sm font-medium text-gray-500">
-                        Scheduled Delivery
-                    </p>
+                <p class="mt-1 text-xs text-slate-500">
+                    From
+                    {{ number_format($allocatedTotal) }}
+                    allocated PPE
+                </p>
+            </article>
+        </section>
 
-                    <p class="mt-1 font-semibold text-gray-900">
-                        {{ $provinceDistribution->scheduled_delivery_date?->format('F d, Y') ?? 'Not set' }}
-                    </p>
-                </div>
-
-                <div class="sm:col-span-2 lg:col-span-3">
-                    <p class="text-sm font-medium text-gray-500">
-                        Place of Delivery
-                    </p>
-
-                    <p class="mt-1 font-semibold text-gray-900">
-                        {{ $provinceDistribution->place_of_delivery ?: 'No delivery address recorded' }}
-                    </p>
-                </div>
-
-            </div>
-
-        </div>
-
+        {{-- =========================================================
+            MAIN FORM
+        ========================================================== --}}
         <form
-            id="receivingForm"
-            action="{{ route('provincial.receiving.store', $provinceDistribution) }}"
+            id="deliveryReceiptForm"
+            action="{{ route(
+                'provincial.receiving.store',
+                $provinceDistribution
+            ) }}"
             method="POST"
             enctype="multipart/form-data"
             class="space-y-6"
         >
-
             @csrf
 
-            <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow">
-
-                <div class="bg-gray-900 px-7 py-5">
-                    <h2 class="text-xl font-semibold text-white">
+            {{-- Delivery information --}}
+            <section
+                class="overflow-hidden rounded-3xl border
+                       border-slate-200 bg-white shadow-sm"
+            >
+                <div
+                    class="bg-[#970C13] px-6 py-5 sm:px-7"
+                >
+                    <h2 class="text-xl font-bold text-white">
                         Delivery Receipt Information
                     </h2>
+
+                    <p class="mt-1 text-sm text-red-100">
+                        Enter the information from the current physical
+                        delivery.
+                    </p>
                 </div>
 
-                <div class="grid grid-cols-1 gap-6 p-7 lg:grid-cols-2">
-
+                <div
+                    class="grid grid-cols-1 gap-6 p-6
+                           sm:p-7 lg:grid-cols-2"
+                >
                     <div>
                         <label
                             for="dr_number"
-                            class="mb-2 block text-sm font-semibold text-gray-700"
+                            class="mb-2 block text-sm
+                                   font-bold text-slate-700"
                         >
                             Delivery Receipt Number
                         </label>
@@ -159,12 +314,18 @@
                             value="{{ old('dr_number') }}"
                             required
                             maxlength="100"
-                            placeholder="Example: DR-2026-0001"
-                            class="w-full rounded-xl border-gray-300 uppercase focus:border-red-900 focus:ring-red-900"
+                            autocomplete="off"
+                            placeholder="Example: DR-2026-001"
+                            class="w-full rounded-xl border-slate-300
+                                   uppercase focus:border-[#970C13]
+                                   focus:ring-[#970C13]"
                         >
 
                         @error('dr_number')
-                            <p class="mt-2 text-sm text-red-600">
+                            <p
+                                class="mt-2 text-sm
+                                       font-semibold text-red-600"
+                            >
                                 {{ $message }}
                             </p>
                         @enderror
@@ -173,7 +334,8 @@
                     <div>
                         <label
                             for="delivery_date"
-                            class="mb-2 block text-sm font-semibold text-gray-700"
+                            class="mb-2 block text-sm
+                                   font-bold text-slate-700"
                         >
                             Actual Delivery Date
                         </label>
@@ -182,13 +344,21 @@
                             type="date"
                             id="delivery_date"
                             name="delivery_date"
-                            value="{{ old('delivery_date', now()->format('Y-m-d')) }}"
+                            value="{{ old(
+                                'delivery_date',
+                                now()->format('Y-m-d')
+                            ) }}"
                             required
-                            class="w-full rounded-xl border-gray-300 focus:border-red-900 focus:ring-red-900"
+                            class="w-full rounded-xl border-slate-300
+                                   focus:border-[#970C13]
+                                   focus:ring-[#970C13]"
                         >
 
                         @error('delivery_date')
-                            <p class="mt-2 text-sm text-red-600">
+                            <p
+                                class="mt-2 text-sm
+                                       font-semibold text-red-600"
+                            >
                                 {{ $message }}
                             </p>
                         @enderror
@@ -197,7 +367,8 @@
                     <div>
                         <label
                             for="physical_receiver_name"
-                            class="mb-2 block text-sm font-semibold text-gray-700"
+                            class="mb-2 block text-sm
+                                   font-bold text-slate-700"
                         >
                             Physical Receiver Name
                         </label>
@@ -206,14 +377,23 @@
                             type="text"
                             id="physical_receiver_name"
                             name="physical_receiver_name"
-                            value="{{ old('physical_receiver_name', auth()->user()->name) }}"
+                            value="{{ old(
+                                'physical_receiver_name',
+                                auth()->user()->name
+                            ) }}"
                             required
                             maxlength="255"
-                            class="w-full rounded-xl border-gray-300 focus:border-red-900 focus:ring-red-900"
+                            placeholder="Full name of the receiver"
+                            class="w-full rounded-xl border-slate-300
+                                   focus:border-[#970C13]
+                                   focus:ring-[#970C13]"
                         >
 
                         @error('physical_receiver_name')
-                            <p class="mt-2 text-sm text-red-600">
+                            <p
+                                class="mt-2 text-sm
+                                       font-semibold text-red-600"
+                            >
                                 {{ $message }}
                             </p>
                         @enderror
@@ -222,7 +402,8 @@
                     <div>
                         <label
                             for="document"
-                            class="mb-2 block text-sm font-semibold text-gray-700"
+                            class="mb-2 block text-sm
+                                   font-bold text-slate-700"
                         >
                             Delivery Receipt PDF
                         </label>
@@ -231,17 +412,22 @@
                             type="file"
                             id="document"
                             name="document"
-                            required
                             accept="application/pdf,.pdf"
-                            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3"
+                            required
+                            class="w-full rounded-xl border
+                                   border-slate-300 bg-white
+                                   px-4 py-3 text-sm"
                         >
 
-                        <p class="mt-2 text-xs text-gray-500">
+                        <p class="mt-2 text-xs text-slate-500">
                             PDF only. Maximum file size: 10 MB.
                         </p>
 
                         @error('document')
-                            <p class="mt-2 text-sm text-red-600">
+                            <p
+                                class="mt-2 text-sm
+                                       font-semibold text-red-600"
+                            >
                                 {{ $message }}
                             </p>
                         @enderror
@@ -250,9 +436,10 @@
                     <div class="lg:col-span-2">
                         <label
                             for="remarks"
-                            class="mb-2 block text-sm font-semibold text-gray-700"
+                            class="mb-2 block text-sm
+                                   font-bold text-slate-700"
                         >
-                            Remarks
+                            Delivery Remarks
                         </label>
 
                         <textarea
@@ -260,47 +447,77 @@
                             name="remarks"
                             rows="4"
                             maxlength="5000"
-                            placeholder="Example: Complete delivery, damaged package, or quantity shortage."
-                            class="w-full rounded-xl border-gray-300 focus:border-red-900 focus:ring-red-900"
+                            placeholder="Optional discrepancy, shortage, condition, or delivery remarks."
+                            class="w-full rounded-xl border-slate-300
+                                   focus:border-[#970C13]
+                                   focus:ring-[#970C13]"
                         >{{ old('remarks') }}</textarea>
 
                         @error('remarks')
-                            <p class="mt-2 text-sm text-red-600">
+                            <p
+                                class="mt-2 text-sm
+                                       font-semibold text-red-600"
+                            >
                                 {{ $message }}
                             </p>
                         @enderror
                     </div>
-
                 </div>
+            </section>
 
-            </div>
-
-            <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow">
-
-                <div class="bg-red-900 px-7 py-5">
-                    <h2 class="text-xl font-semibold text-white">
-                        Confirm Received PPE Quantities
-                    </h2>
-
-                    <p class="mt-1 text-sm text-red-100">
-                        Received quantities cannot exceed the assigned quantities.
-                    </p>
-                </div>
-
+            {{-- PPE quantities --}}
+            <section
+                class="overflow-hidden rounded-3xl border
+                       border-slate-200 bg-white shadow-sm"
+            >
                 <div
-                    id="receivingWarning"
-                    class="hidden border-b border-red-200 bg-red-50 px-7 py-4 text-sm font-semibold text-red-700"
+                    class="flex flex-col gap-3 bg-slate-900
+                           px-6 py-5 sm:flex-row
+                           sm:items-center sm:justify-between
+                           sm:px-7"
                 >
-                    One or more received quantities exceed the assigned allocation.
+                    <div>
+                        <h2 class="text-xl font-bold text-white">
+                            PPE Quantities Received
+                        </h2>
+
+                        <p class="mt-1 text-sm text-slate-300">
+                            Enter only the quantities received in this
+                            Delivery Receipt.
+                        </p>
+                    </div>
+
+                    <div
+                        class="rounded-xl bg-white/10
+                               px-4 py-3 text-right"
+                    >
+                        <p
+                            class="text-xs font-bold uppercase
+                                   tracking-wider text-slate-300"
+                        >
+                            Receiving Now
+                        </p>
+
+                        <p
+                            id="receivingNowTotal"
+                            class="mt-1 text-xl font-bold text-white"
+                        >
+                            0
+                        </p>
+                    </div>
                 </div>
 
                 <div class="overflow-x-auto">
 
-                    <table class="min-w-full divide-y divide-gray-200">
-
-                        <thead class="bg-gray-100">
-
-                            <tr class="text-xs font-semibold uppercase tracking-wide text-gray-700">
+                    <table
+                        class="min-w-[1050px] w-full
+                               divide-y divide-slate-200"
+                    >
+                        <thead class="bg-slate-100">
+                            <tr
+                                class="text-xs font-bold uppercase
+                                       tracking-wide text-slate-600"
+                            >
                                 <th class="px-5 py-4 text-left">
                                     PPE Item
                                 </th>
@@ -309,64 +526,122 @@
                                     Size / Label
                                 </th>
 
-                                <th class="px-5 py-4 text-left">
-                                    Unit
+                                <th class="px-5 py-4 text-center">
+                                    Allocation
                                 </th>
 
                                 <th class="px-5 py-4 text-center">
-                                    Assigned
+                                    Previously Received
                                 </th>
 
                                 <th class="px-5 py-4 text-center">
-                                    Received
+                                    Remaining
                                 </th>
 
                                 <th class="px-5 py-4 text-center">
-                                    Shortage
+                                    Receiving Now
+                                </th>
+
+                                <th class="px-5 py-4 text-center">
+                                    Remaining After
                                 </th>
                             </tr>
-
                         </thead>
 
-                        <tbody class="divide-y divide-gray-100">
+                        <tbody class="divide-y divide-slate-100">
 
-                            @foreach($provinceDistribution->items as $allocationItem)
-
+                            @foreach(
+                                $provinceDistribution->items
+                                as $allocationItem
+                            )
                                 @php
-                                    $oldReceived = (int) old(
+                                    $previouslyReceived = (int) (
+                                        $previouslyReceivedByItem[
+                                            $allocationItem->id
+                                        ] ?? 0
+                                    );
+
+                                    $remaining = (int) (
+                                        $remainingByItem[
+                                            $allocationItem->id
+                                        ] ?? 0
+                                    );
+
+                                    $itemName = trim(
+                                        $allocationItem
+                                            ->item
+                                            ->item_name
+                                        .' '
+                                        .(
+                                            $allocationItem
+                                                ->item
+                                                ->label
+                                            ?? ''
+                                        )
+                                    );
+
+                                    $oldQuantity = (int) old(
                                         'items.'.$allocationItem->id,
-                                        $allocationItem->quantity
+                                        0
                                     );
-
-                                    $shortage = max(
-                                        0,
-                                        $allocationItem->quantity - $oldReceived
-                                    );
-
-                                    $displayName = $allocationItem->item->label
-                                        ? $allocationItem->item->item_name
-                                            .' ('
-                                            .$allocationItem->item->label
-                                            .')'
-                                        : $allocationItem->item->item_name;
                                 @endphp
 
-                                <tr data-receiving-row>
-
-                                    <td class="px-5 py-4 font-medium text-gray-900">
-                                        {{ $allocationItem->item->item_name }}
+                                <tr
+                                    class="transition hover:bg-slate-50"
+                                >
+                                    <td
+                                        class="px-5 py-4 font-semibold
+                                               text-slate-900"
+                                    >
+                                        {{
+                                            $allocationItem
+                                                ->item
+                                                ->item_name
+                                        }}
                                     </td>
 
-                                    <td class="px-5 py-4 text-gray-700">
-                                        {{ $allocationItem->item->label ?: '—' }}
+                                    <td
+                                        class="px-5 py-4
+                                               text-slate-600"
+                                    >
+                                        {{
+                                            $allocationItem
+                                                ->item
+                                                ->label
+                                            ?: '—'
+                                        }}
                                     </td>
 
-                                    <td class="px-5 py-4 text-gray-700">
-                                        {{ $allocationItem->item->unit_of_measurement }}
+                                    <td
+                                        class="px-5 py-4 text-center
+                                               font-semibold
+                                               text-slate-900"
+                                    >
+                                        {{
+                                            number_format(
+                                                $allocationItem
+                                                    ->quantity
+                                            )
+                                        }}
                                     </td>
 
-                                    <td class="px-5 py-4 text-center font-semibold text-gray-900">
-                                        {{ number_format($allocationItem->quantity) }}
+                                    <td
+                                        class="px-5 py-4 text-center
+                                               font-semibold
+                                               text-blue-700"
+                                    >
+                                        {{
+                                            number_format(
+                                                $previouslyReceived
+                                            )
+                                        }}
+                                    </td>
+
+                                    <td
+                                        class="px-5 py-4 text-center
+                                               font-bold text-amber-700"
+                                    >
+                                        {{ number_format($remaining) }}
                                     </td>
 
                                     <td class="px-5 py-4 text-center">
@@ -374,62 +649,83 @@
                                         <input
                                             type="number"
                                             name="items[{{ $allocationItem->id }}]"
-                                            value="{{ $oldReceived }}"
+                                            value="{{ $oldQuantity }}"
                                             min="0"
-                                            max="{{ $allocationItem->quantity }}"
+                                            max="{{ $remaining }}"
                                             step="1"
-                                            required
                                             inputmode="numeric"
                                             data-receiving-input
-                                            data-assigned="{{ $allocationItem->quantity }}"
-                                            data-item-name="{{ $displayName }}"
-                                            class="w-28 rounded-lg border-gray-300 text-center focus:border-red-900 focus:ring-red-900"
+                                            data-remaining="{{ $remaining }}"
+                                            data-item-name="{{ $itemName }}"
+                                            @readonly($remaining <= 0)
+                                            class="w-28 rounded-lg
+                                                   border-slate-300
+                                                   text-center
+                                                   focus:border-[#970C13]
+                                                   focus:ring-[#970C13]
+                                                   read-only:cursor-not-allowed
+                                                   read-only:bg-slate-100
+                                                   read-only:text-slate-400"
                                         >
 
                                         <p
                                             data-receiving-error
-                                            class="mt-2 hidden text-xs font-semibold text-red-600"
+                                            class="mt-2 hidden text-xs
+                                                   font-semibold
+                                                   text-red-600"
                                         ></p>
 
-                                        @error('items.'.$allocationItem->id)
-                                            <p class="mt-2 text-xs font-semibold text-red-600">
+                                        @error(
+                                            'items.'.$allocationItem->id
+                                        )
+                                            <p
+                                                class="mt-2 text-xs
+                                                       font-semibold
+                                                       text-red-600"
+                                            >
                                                 {{ $message }}
                                             </p>
                                         @enderror
-
                                     </td>
 
                                     <td class="px-5 py-4 text-center">
                                         <span
-                                            data-shortage-output
-                                            class="{{ $shortage > 0
-                                                ? 'font-semibold text-yellow-700'
-                                                : 'font-semibold text-green-700' }}"
+                                            data-remaining-after
+                                            class="font-semibold
+                                                   text-green-700"
                                         >
-                                            {{ number_format($shortage) }}
+                                            {{
+                                                number_format(
+                                                    max(
+                                                        0,
+                                                        $remaining
+                                                        - $oldQuantity
+                                                    )
+                                                )
+                                            }}
                                         </span>
                                     </td>
-
                                 </tr>
-
                             @endforeach
 
                         </tbody>
 
-                        <tfoot class="bg-gray-100">
+                        <tfoot class="bg-slate-100">
                             <tr>
                                 <td
-                                    colspan="4"
-                                    class="px-5 py-4 text-right font-semibold text-gray-700"
+                                    colspan="5"
+                                    class="px-5 py-4 text-right
+                                           font-bold text-slate-700"
                                 >
-                                    Total Received
+                                    Total PPE Receiving Now
                                 </td>
 
-                                <td class="px-5 py-4 text-center">
-                                    <span
-                                        id="totalReceivedQuantity"
-                                        class="text-lg font-bold text-green-700"
-                                    >
+                                <td
+                                    class="px-5 py-4 text-center
+                                           text-lg font-bold
+                                           text-[#970C13]"
+                                >
+                                    <span id="receivingNowTotalFooter">
                                         0
                                     </span>
                                 </td>
@@ -437,40 +733,206 @@
                                 <td></td>
                             </tr>
                         </tfoot>
-
                     </table>
-
                 </div>
 
                 @error('items')
-                    <p class="px-7 pb-5 text-sm font-semibold text-red-600">
+                    <p
+                        class="border-t border-red-100
+                               bg-red-50 px-7 py-4
+                               text-sm font-semibold
+                               text-red-700"
+                    >
                         {{ $message }}
                     </p>
                 @enderror
+            </section>
 
-            </div>
+            {{-- Previous DRs --}}
+            @if($provinceDistribution->deliveryReceipts->isNotEmpty())
 
-            <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <section
+                    class="overflow-hidden rounded-3xl border
+                           border-slate-200 bg-white shadow-sm"
+                >
+                    <div
+                        class="border-b border-slate-200
+                               px-6 py-5 sm:px-7"
+                    >
+                        <h2
+                            class="text-lg font-bold text-slate-950"
+                        >
+                            Previous Delivery Receipts
+                        </h2>
 
+                        <p class="mt-1 text-sm text-slate-500">
+                            Earlier physical deliveries recorded under
+                            this Call-Off allocation.
+                        </p>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table
+                            class="min-w-[750px] w-full
+                                   divide-y divide-slate-200"
+                        >
+                            <thead class="bg-slate-50">
+                                <tr
+                                    class="text-xs font-bold uppercase
+                                           tracking-wide text-slate-500"
+                                >
+                                    <th class="px-6 py-4 text-left">
+                                        DR Number
+                                    </th>
+
+                                    <th class="px-6 py-4 text-left">
+                                        Delivery Date
+                                    </th>
+
+                                    <th class="px-6 py-4 text-left">
+                                        Receiver
+                                    </th>
+
+                                    <th class="px-6 py-4 text-center">
+                                        PPE Received
+                                    </th>
+
+                                    <th class="px-6 py-4 text-center">
+                                        Document
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody class="divide-y divide-slate-100">
+                                @foreach(
+                                    $provinceDistribution->deliveryReceipts
+                                    as $previousReceipt
+                                )
+                                    <tr class="hover:bg-slate-50">
+                                        <td
+                                            class="px-6 py-4
+                                                   font-semibold
+                                                   text-slate-900"
+                                        >
+                                            {{ $previousReceipt->dr_number }}
+                                        </td>
+
+                                        <td
+                                            class="px-6 py-4
+                                                   text-slate-600"
+                                        >
+                                            {{
+                                                $previousReceipt
+                                                    ->delivery_date
+                                                    ?->format('M d, Y')
+                                                ?? '—'
+                                            }}
+                                        </td>
+
+                                        <td
+                                            class="px-6 py-4
+                                                   text-slate-600"
+                                        >
+                                            {{
+                                                $previousReceipt
+                                                    ->physical_receiver_name
+                                                ?? $previousReceipt
+                                                    ->receivedByUser
+                                                    ?->name
+                                                ?? '—'
+                                            }}
+                                        </td>
+
+                                        <td
+                                            class="px-6 py-4 text-center
+                                                   font-bold
+                                                   text-blue-700"
+                                        >
+                                            {{
+                                                number_format(
+                                                    $previousReceipt
+                                                        ->items
+                                                        ->sum(
+                                                            'received_quantity'
+                                                        )
+                                                )
+                                            }}
+                                        </td>
+
+                                        <td class="px-6 py-4 text-center">
+                                            @if($previousReceipt->document)
+                                                <a
+                                                    href="{{ asset(
+                                                        'storage/'
+                                                        .$previousReceipt
+                                                            ->document
+                                                    ) }}"
+                                                    target="_blank"
+                                                    rel="noopener"
+                                                    class="inline-flex
+                                                           rounded-lg
+                                                           border
+                                                           border-slate-300
+                                                           bg-white px-4
+                                                           py-2 text-xs
+                                                           font-bold
+                                                           text-slate-700
+                                                           hover:bg-slate-50"
+                                                >
+                                                    View PDF
+                                                </a>
+                                            @else
+                                                <span
+                                                    class="text-sm
+                                                           text-slate-400"
+                                                >
+                                                    —
+                                                </span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+            @endif
+
+            {{-- Form actions --}}
+            <div
+                class="flex flex-col-reverse gap-3
+                       sm:flex-row sm:justify-end"
+            >
                 <a
-                    href="{{ route('provincial.receiving.show', $provinceDistribution) }}"
-                    class="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-6 py-3 font-semibold text-gray-700 transition hover:bg-gray-50"
+                    href="{{ route(
+                        'provincial.receiving.show',
+                        $provinceDistribution
+                    ) }}"
+                    class="inline-flex items-center justify-center
+                           rounded-xl border border-slate-300
+                           bg-white px-6 py-3 font-bold
+                           text-slate-700 transition
+                           hover:bg-slate-50"
                 >
                     Cancel
                 </a>
 
                 <button
                     type="submit"
-                    id="confirmReceiptButton"
-                    class="inline-flex items-center justify-center rounded-xl bg-green-600 px-7 py-3 font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    id="submitDeliveryReceiptButton"
+                    disabled
+                    class="inline-flex items-center justify-center
+                           rounded-xl bg-[#970C13] px-7 py-3
+                           font-bold text-white transition
+                           hover:bg-[#641D21]
+                           disabled:cursor-not-allowed
+                           disabled:opacity-50"
                 >
-                    Confirm Receipt
+                    Save Delivery Receipt
                 </button>
-
             </div>
-
         </form>
-
     </div>
 
     <script>
@@ -479,7 +941,7 @@
             function () {
                 const form =
                     document.getElementById(
-                        'receivingForm'
+                        'deliveryReceiptForm'
                     );
 
                 if (!form) {
@@ -487,60 +949,50 @@
                 }
 
                 const inputs = Array.from(
-                    document.querySelectorAll(
+                    form.querySelectorAll(
                         '[data-receiving-input]'
                     )
                 );
 
-                const warning =
+                const totalHeader =
                     document.getElementById(
-                        'receivingWarning'
+                        'receivingNowTotal'
                     );
 
-                const totalOutput =
+                const totalFooter =
                     document.getElementById(
-                        'totalReceivedQuantity'
+                        'receivingNowTotalFooter'
                     );
 
                 const submitButton =
                     document.getElementById(
-                        'confirmReceiptButton'
+                        'submitDeliveryReceiptButton'
                     );
 
-                function validateReceiving() {
+                function updateReceivingPreview() {
                     let total = 0;
                     let valid = true;
-                    let hasExcess = false;
+                    let hasQuantity = false;
 
                     inputs.forEach(input => {
-                        const assigned = Number(
-                            input.dataset.assigned || 0
+                        const remaining = Number(
+                            input.dataset.remaining || 0
                         );
 
                         const itemName =
                             input.dataset.itemName
                             || 'PPE item';
 
-                        let received = Number(
+                        let quantity = Number(
                             input.value || 0
                         );
 
-                        if (
-                            !Number.isFinite(received)
-                            || received < 0
-                        ) {
-                            received = 0;
-                        }
-
-                        received =
-                            Math.floor(received);
-
-                        input.value =
-                            received;
-
                         const row =
-                            input.closest(
-                                '[data-receiving-row]'
+                            input.closest('tr');
+
+                        const remainingAfterOutput =
+                            row?.querySelector(
+                                '[data-remaining-after]'
                             );
 
                         const errorOutput =
@@ -548,34 +1000,43 @@
                                 '[data-receiving-error]'
                             );
 
-                        const shortageOutput =
-                            row?.querySelector(
-                                '[data-shortage-output]'
-                            );
+                        if (
+                            !Number.isFinite(quantity)
+                            || quantity < 0
+                        ) {
+                            quantity = 0;
+                            input.value = 0;
+                        }
+
+                        quantity =
+                            Math.floor(quantity);
+
+                        input.value = quantity;
 
                         const exceeds =
-                            received > assigned;
+                            quantity > remaining;
 
-                        const shortage =
-                            Math.max(
-                                0,
-                                assigned - received
-                            );
+                        const remainingAfter =
+                            remaining - quantity;
 
-                        if (shortageOutput) {
-                            shortageOutput.textContent =
-                                shortage.toLocaleString();
+                        if (quantity > 0) {
+                            hasQuantity = true;
+                        }
 
-                            shortageOutput.className =
-                                shortage > 0
-                                    ? 'font-semibold text-yellow-700'
+                        if (remainingAfterOutput) {
+                            remainingAfterOutput.textContent =
+                                Math.max(
+                                    0,
+                                    remainingAfter
+                                ).toLocaleString();
+
+                            remainingAfterOutput.className =
+                                exceeds
+                                    ? 'font-semibold text-red-700'
                                     : 'font-semibold text-green-700';
                         }
 
                         if (exceeds) {
-                            valid = false;
-                            hasExcess = true;
-
                             input.classList.add(
                                 'border-red-500',
                                 'bg-red-50',
@@ -589,14 +1050,16 @@
 
                             if (errorOutput) {
                                 errorOutput.textContent =
-                                    `${itemName} has an assigned quantity of `
-                                    +`${assigned.toLocaleString()}, but `
-                                    +`${received.toLocaleString()} was entered.`;
+                                    `${itemName} has only `
+                                    +`${remaining.toLocaleString()} `
+                                    +'remaining to receive.';
 
                                 errorOutput.classList.remove(
                                     'hidden'
                                 );
                             }
+
+                            valid = false;
                         } else {
                             input.classList.remove(
                                 'border-red-500',
@@ -617,40 +1080,41 @@
                             }
                         }
 
-                        total += received;
+                        total += quantity;
                     });
 
-                    if (total <= 0) {
+                    if (!hasQuantity || total <= 0) {
                         valid = false;
                     }
 
-                    totalOutput.textContent =
+                    const formattedTotal =
                         total.toLocaleString();
 
-                    warning.classList.toggle(
-                        'hidden',
-                        !hasExcess
-                    );
+                    if (totalHeader) {
+                        totalHeader.textContent =
+                            formattedTotal;
+                    }
 
-                    submitButton.disabled =
-                        !valid;
+                    if (totalFooter) {
+                        totalFooter.textContent =
+                            formattedTotal;
+                    }
+
+                    if (submitButton) {
+                        submitButton.disabled =
+                            !valid;
+                    }
 
                     return {
                         valid,
                         total,
-                        hasExcess,
                     };
                 }
 
                 inputs.forEach(input => {
                     input.addEventListener(
                         'input',
-                        validateReceiving
-                    );
-
-                    input.addEventListener(
-                        'blur',
-                        validateReceiving
+                        updateReceivingPreview
                     );
                 });
 
@@ -658,49 +1122,52 @@
                     'submit',
                     function (event) {
                         const result =
-                            validateReceiving();
+                            updateReceivingPreview();
 
                         if (!result.valid) {
                             event.preventDefault();
 
                             const invalidInput =
-                                inputs.find(
-                                    input =>
+                                inputs.find(input => {
+                                    const quantity =
                                         Number(
                                             input.value || 0
-                                        )
-                                        > Number(
-                                            input.dataset.assigned
-                                            || 0
-                                        )
-                                );
+                                        );
+
+                                    const remaining =
+                                        Number(
+                                            input.dataset
+                                                .remaining || 0
+                                        );
+
+                                    return quantity
+                                        > remaining;
+                                });
 
                             if (invalidInput) {
                                 invalidInput.focus();
-
-                                alert(
-                                    `${invalidInput.dataset.itemName} exceeds its assigned quantity.`
-                                );
 
                                 return;
                             }
 
                             alert(
-                                'Enter at least one received PPE quantity greater than zero.'
+                                'Enter at least one received '
+                                +'PPE quantity greater than zero.'
                             );
 
                             return;
                         }
 
-                        submitButton.disabled =
-                            true;
+                        if (submitButton) {
+                            submitButton.disabled = true;
 
-                        submitButton.textContent =
-                            'Submitting Receipt...';
+                            submitButton.textContent =
+                                'Saving Delivery Receipt...';
+                        }
                     }
                 );
 
-                validateReceiving();
+                updateReceivingPreview();
             }
         );
     </script>

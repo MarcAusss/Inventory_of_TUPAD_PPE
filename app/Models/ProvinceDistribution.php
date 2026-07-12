@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Models\SupplyDesignation;
 
 class ProvinceDistribution extends Model
 {
@@ -36,6 +36,14 @@ class ProvinceDistribution extends Model
     |--------------------------------------------------------------------------
     */
 
+    public function supplyDesignations(): HasMany
+    {
+        return $this->hasMany(
+            SupplyDesignation::class,
+            'province_distribution_id'
+        );
+    }
+
     public function distributionBatch(): BelongsTo
     {
         return $this->belongsTo(
@@ -54,50 +62,26 @@ class ProvinceDistribution extends Model
     public function items(): HasMany
     {
         return $this->hasMany(
-            ProvinceDistributionItem::class,
-            'province_distribution_id'
+            ProvinceDistributionItem::class
         );
     }
 
-    public function deliveryReceipt(): HasOne
+    /**
+     * One provincial allocation may now have multiple
+     * Delivery Receipts.
+     *
+     * Example:
+     *
+     * CO-001
+     * ├── DR-001
+     * └── DR-002
+     */
+    public function deliveryReceipts(): HasMany
     {
-        return $this->hasOne(
+        return $this->hasMany(
             DeliveryReceipt::class,
             'province_distribution_id'
         );
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Helper Accessors
-    |--------------------------------------------------------------------------
-    |
-    | These are accessors instead of methods named callOff() or
-    | purchaseOrder(). This avoids Laravel treating normal helper methods as
-    | Eloquent relationships when used through property access.
-    |
-    */
-
-    public function getCallOffRecordAttribute(): ?CallOff
-    {
-        if (! $this->relationLoaded('distributionBatch')) {
-            $this->load(
-                'distributionBatch.callOff'
-            );
-        }
-
-        return $this->distributionBatch?->callOff;
-    }
-
-    public function getPurchaseOrderRecordAttribute(): ?PurchaseOrder
-    {
-        if (! $this->relationLoaded('distributionBatch')) {
-            $this->load(
-                'distributionBatch.purchaseOrder'
-            );
-        }
-
-        return $this->distributionBatch?->purchaseOrder;
     }
 
     /*
@@ -113,35 +97,14 @@ class ProvinceDistribution extends Model
             === $provinceId;
     }
 
-    public function isPending(): bool
-    {
-        return $this->status === 'Pending';
-    }
-
-    public function isApproved(): bool
-    {
-        return $this->status === 'Approved';
-    }
-
-    public function isForDelivery(): bool
-    {
-        return $this->status === 'For Delivery';
-    }
-
-    public function isPartiallyReceived(): bool
-    {
-        return $this->status
-            === 'Partially Received';
-    }
-
     public function isReceived(): bool
     {
         return $this->status === 'Received';
     }
 
-    public function isCancelled(): bool
+    public function isPartiallyReceived(): bool
     {
-        return $this->status === 'Cancelled';
+        return $this->status === 'Partially Received';
     }
 
     public function canBeReceived(): bool
@@ -157,14 +120,85 @@ class ProvinceDistribution extends Model
         );
     }
 
-    public function totalQuantity(): int
+    public function callOff(): ?CallOff
     {
-        if ($this->relationLoaded('items')) {
-            return (int) $this->items
-                ->sum('quantity');
+        return $this
+            ->distributionBatch
+                ?->callOff;
+    }
+
+    public function purchaseOrder(): ?PurchaseOrder
+    {
+        return $this
+            ->distributionBatch
+                ?->purchaseOrder;
+    }
+
+    /**
+     * Total quantity allocated for a specific PPE item.
+     */
+    public function allocatedQuantity(
+        int $itemId
+    ): int {
+        return (int) $this
+            ->items
+            ->firstWhere(
+                'item_id',
+                $itemId
+            )
+                ?->quantity;
+    }
+
+    /**
+     * Total quantity already received from all
+     * Delivery Receipts.
+     */
+    public function receivedQuantity(
+        int $itemId
+    ): int {
+        return (int) $this
+            ->deliveryReceipts
+            ->flatMap(
+                fn(DeliveryReceipt $receipt) => $receipt->items
+            )
+            ->where(
+                'item_id',
+                $itemId
+            )
+            ->sum(
+                'received_quantity'
+            );
+    }
+
+    /**
+     * Remaining quantity that may still be received.
+     */
+    public function remainingQuantity(
+        int $itemId
+    ): int {
+        return max(
+            0,
+            $this->allocatedQuantity($itemId)
+            - $this->receivedQuantity($itemId)
+        );
+    }
+
+    /**
+     * Determine whether the entire provincial
+     * allocation has been received.
+     */
+    public function isFullyReceived(): bool
+    {
+        foreach ($this->items as $item) {
+            if (
+                $this->remainingQuantity(
+                    $item->item_id
+                ) > 0
+            ) {
+                return false;
+            }
         }
 
-        return (int) $this->items()
-            ->sum('quantity');
+        return true;
     }
 }
