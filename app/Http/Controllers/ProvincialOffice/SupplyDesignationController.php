@@ -4,7 +4,7 @@ namespace App\Http\Controllers\ProvincialOffice;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProvincialOffice\StoreSupplyDesignationRequest;
-use App\Models\ProvinceDistribution;
+use App\Models\InventoryMovement;
 use App\Models\SupplyDesignation;
 use App\Services\CallOffInventoryService;
 use App\Services\SupplyDesignationService;
@@ -15,9 +15,8 @@ use Illuminate\View\View;
 
 class SupplyDesignationController extends Controller
 {
-    public function index(
-        Request $request
-    ): View {
+    public function index(Request $request): View
+    {
         $provinceId = Auth::user()?->province_id;
 
         abort_unless(
@@ -38,9 +37,7 @@ class SupplyDesignationController extends Controller
                 'provinceDistribution.distributionBatch.callOff',
                 'provinceDistribution.distributionBatch.purchaseOrder.supplier',
             ])
-            ->forProvince(
-                (int) $provinceId
-            )
+            ->forProvince($provinceId)
             ->search($search)
             ->latest('designation_date')
             ->latest('id')
@@ -57,7 +54,6 @@ class SupplyDesignationController extends Controller
     }
 
     public function create(
-        Request $request,
         CallOffInventoryService $callOffInventoryService
     ): View {
         $provinceId = Auth::user()?->province_id;
@@ -71,44 +67,9 @@ class SupplyDesignationController extends Controller
         $allocations = $callOffInventoryService
             ->availableAllocations();
 
-        $selectedAllocation = null;
-
-        $balances = [];
-
-        $selectedAllocationId = (int) $request->query(
-            'province_distribution_id',
-            old('province_distribution_id', 0)
-        );
-
-        if ($selectedAllocationId > 0) {
-            $selectedAllocation = $allocations
-                ->first(
-                    fn (
-                        ProvinceDistribution $allocation
-                    ): bool => (int) $allocation->id
-                        === $selectedAllocationId
-                );
-
-            abort_unless(
-                $selectedAllocation,
-                403,
-                'The selected Call-Off allocation is not available for project designation.'
-            );
-
-            $balances = $callOffInventoryService
-                ->balances(
-                    $selectedAllocation
-                );
-        }
-
         return view(
             'provincial.project-designations.create',
-            compact(
-                'allocations',
-                'selectedAllocation',
-                'selectedAllocationId',
-                'balances'
-            )
+            compact('allocations')
         );
     }
 
@@ -128,7 +89,7 @@ class SupplyDesignationController extends Controller
             )
             ->with(
                 'success',
-                'Project PPE Designation saved and the selected Call-Off inventory was updated successfully.'
+                'Project PPE Designation saved and Call-Off inventory deducted successfully.'
             );
     }
 
@@ -140,7 +101,7 @@ class SupplyDesignationController extends Controller
         abort_unless(
             $provinceId
             && (int) $supplyDesignation->province_id
-                === (int) $provinceId,
+            === (int) $provinceId,
             403,
             'You cannot access another province’s project designation.'
         );
@@ -149,15 +110,98 @@ class SupplyDesignationController extends Controller
             'province',
             'creator',
             'items.item',
-            'provinceDistribution.province',
-            'provinceDistribution.distributionBatch.callOff',
-            'provinceDistribution.distributionBatch.purchaseOrder.supplier',
+
+            'provinceDistribution.items.item',
+
             'provinceDistribution.deliveryReceipts.items.item',
+
+            'provinceDistribution.distributionBatch.callOff',
+
+            'provinceDistribution.distributionBatch.purchaseOrder.supplier',
         ]);
+
+        $movements = InventoryMovement::query()
+            ->with('item')
+            ->where(
+                'supply_designation_id',
+                $supplyDesignation->id
+            )
+            ->where(
+                'movement_type',
+                'OUT'
+            )
+            ->get()
+            ->keyBy('item_id');
+
+        $movementBreakdown = [];
+
+        foreach (
+            $supplyDesignation->items as $designationItem
+        ) {
+            $movement = $movements->get(
+                $designationItem->item_id
+            );
+
+            $movementBreakdown[
+                $designationItem->item_id
+            ] = [
+                /*
+                 * Exact Call-Off balance at the time of the project.
+                 */
+                'beginning' => $movement
+                    ? (
+                        $movement->call_off_balance_before
+                        !== null
+                        ? (int) $movement
+                            ->call_off_balance_before
+                        : null
+                    )
+                    : null,
+
+                'actual' => (int) (
+                    $movement?->quantity
+                    ?? $designationItem->quantity
+                ),
+
+                'ending' => $movement
+                    ? (
+                        $movement->call_off_balance_after
+                        !== null
+                        ? (int) $movement
+                            ->call_off_balance_after
+                        : null
+                    )
+                    : null,
+
+                /*
+                 * Optional pooled figures retained for audit.
+                 */
+                'pooled_beginning' => $movement
+                    ? (
+                        $movement->balance_before
+                        !== null
+                        ? (int) $movement->balance_before
+                        : null
+                    )
+                    : null,
+
+                'pooled_ending' => $movement
+                    ? (
+                        $movement->balance_after
+                        !== null
+                        ? (int) $movement->balance_after
+                        : null
+                    )
+                    : null,
+            ];
+        }
 
         return view(
             'provincial.project-designations.show',
-            compact('supplyDesignation')
+            compact(
+                'supplyDesignation',
+                'movementBreakdown'
+            )
         );
     }
 }

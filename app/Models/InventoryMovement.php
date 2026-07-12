@@ -14,7 +14,7 @@ class InventoryMovement extends Model
         'created_by',
 
         /*
-         * Exact Call-Off allocation source.
+         * Exact Provincial Call-Off allocation source.
          */
         'province_distribution_id',
 
@@ -25,10 +25,16 @@ class InventoryMovement extends Model
         'quantity',
 
         /*
-         * These remain province-wide pooled inventory balances.
+         * Province-wide pooled inventory balances.
          */
         'balance_before',
         'balance_after',
+
+        /*
+         * Exact balance under one selected Call-Off.
+         */
+        'call_off_balance_before',
+        'call_off_balance_after',
 
         'movement_date',
         'reference_number',
@@ -40,8 +46,13 @@ class InventoryMovement extends Model
     {
         return [
             'quantity' => 'integer',
+
             'balance_before' => 'integer',
             'balance_after' => 'integer',
+
+            'call_off_balance_before' => 'integer',
+            'call_off_balance_after' => 'integer',
+
             'movement_date' => 'date',
         ];
     }

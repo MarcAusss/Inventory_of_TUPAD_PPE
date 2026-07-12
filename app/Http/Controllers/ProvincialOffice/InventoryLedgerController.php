@@ -13,18 +13,6 @@ use Illuminate\View\View;
 
 class InventoryLedgerController extends Controller
 {
-    /**
-     * Display Call-Off-based Inventory Movement History.
-     *
-     * Each project row follows this rule:
-     *
-     * Beginning Inventory
-     * - Actual PPE distributed to the project
-     * = Ending Inventory
-     *
-     * The ending inventory of the current row becomes the beginning
-     * inventory of the next project row under the same Call-Off.
-     */
     public function index(
         Request $request,
         InventoryMovementReportService $reportService
@@ -54,7 +42,10 @@ class InventoryLedgerController extends Controller
         );
 
         /*
-         * Build the complete Call-Off report for this province.
+         * Historical Call-Off movement rows.
+         *
+         * Completed project rows now use the stored
+         * InventoryMovement Call-Off balance snapshots.
          */
         $reportRows = $reportService
             ->buildForProvince(
@@ -62,10 +53,7 @@ class InventoryLedgerController extends Controller
             );
 
         /*
-         * Restrict records to the selected year.
-         *
-         * Rows with no project designation use the last delivery date
-         * as their movement date.
+         * Year filter.
          */
         $reportRows = $reportRows
             ->filter(
@@ -90,22 +78,25 @@ class InventoryLedgerController extends Controller
             ->values();
 
         /*
-         * Optional Call-Off filter.
+         * Call-Off filter.
          */
         if ($callOffId > 0) {
             $reportRows = $reportRows
                 ->filter(
                     fn (
                         array $row
-                    ): bool => (int) $row[
+                    ): bool => (int) (
+                        $row[
                             'province_distribution_id'
-                        ] === $callOffId
+                        ]
+                        ?? 0
+                    ) === $callOffId
                 )
                 ->values();
         }
 
         /*
-         * Search Call-Off, supplier, DR, project, location, and title.
+         * Search filter.
          */
         if ($search !== '') {
             $normalizedSearch = mb_strtolower(
@@ -165,26 +156,26 @@ class InventoryLedgerController extends Controller
         }
 
         /*
-         * Sort chronologically, with Call-Off allocation ID and project
-         * designation ID as stable tie-breakers.
+         * Sort report chronologically.
          */
         $reportRows = $reportRows
             ->sortBy(
                 function (
                     array $row
                 ): string {
-                    $movementDate =
+                    $movementDate = (
                         $row['movement_date']
-                            ?->format(
-                                'Y-m-d'
-                            )
+                        ?? null
+                    )
+                        ?->format('Y-m-d')
                         ?? '0000-00-00';
 
                     $allocationId = str_pad(
                         (string) (
                             $row[
                                 'province_distribution_id'
-                            ] ?? 0
+                            ]
+                            ?? 0
                         ),
                         20,
                         '0',
@@ -195,7 +186,8 @@ class InventoryLedgerController extends Controller
                         (string) (
                             $row[
                                 'supply_designation_id'
-                            ] ?? 0
+                            ]
+                            ?? 0
                         ),
                         20,
                         '0',
@@ -211,32 +203,20 @@ class InventoryLedgerController extends Controller
             )
             ->values();
 
-        /*
-         * Calculate report-level totals.
-         */
         $summary = $this->buildSummary(
             $reportRows
         );
 
-        /*
-         * Build the available year filter.
-         */
         $availableYears = $this->availableYears(
             $reportService,
             (int) $provinceId
         );
 
-        /*
-         * Build the Call-Off dropdown.
-         */
         $callOffAllocations =
             $this->callOffAllocations(
                 (int) $provinceId
             );
 
-        /*
-         * Paginate the in-memory report collection.
-         */
         $rows = $this->paginate(
             $reportRows,
             10,
@@ -258,14 +238,10 @@ class InventoryLedgerController extends Controller
         );
     }
 
-    /**
-     * Resolve and sanitize the selected year.
-     */
     private function resolveYear(
         Request $request
     ): int {
-        $currentYear =
-            (int) now()->year;
+        $currentYear = (int) now()->year;
 
         $year = (int) $request->query(
             'year',
@@ -283,66 +259,86 @@ class InventoryLedgerController extends Controller
     }
 
     /**
-     * Build report totals from the filtered rows.
+     * Build summary values.
      *
-     * @param  Collection<int, array<string, mixed>>  $rows
+     * IMPORTANT:
+     *
+     * Beginning total is based on the first historical
+     * row of every Call-Off.
+     *
+     * Ending total is based on the last historical
+     * row of every Call-Off.
+     *
+     * This prevents repeated running balances from
+     * being added together.
+     *
+     * @param Collection<int, array<string, mixed>> $rows
+     *
      * @return array<string, int>
      */
     private function buildSummary(
         Collection $rows
     ): array {
+        $groupedByCallOff = $rows
+            ->groupBy(
+                'province_distribution_id'
+            );
+
         return [
-            'row_count' => $rows->count(),
+            'row_count' =>
+                $rows->count(),
 
-            'call_off_count' => $rows
-                ->pluck(
-                    'province_distribution_id'
-                )
-                ->filter()
-                ->unique()
-                ->count(),
+            'call_off_count' =>
+                $groupedByCallOff->count(),
 
-            'project_count' => $rows
-                ->pluck(
-                    'supply_designation_id'
-                )
-                ->filter()
-                ->unique()
-                ->count(),
-
-            'beginning_total' => (int) $rows->sum(
-                'beginning_total'
-            ),
-
-            'actual_total' => (int) $rows->sum(
-                'actual_total'
-            ),
-
-            /*
-             * The last ending balance per Call-Off is more meaningful than
-             * summing the ending balance of every row.
-             */
-            'ending_total' => (int) $rows
-                ->groupBy(
-                    'province_distribution_id'
-                )
-                ->map(
-                    fn (
-                        Collection $callOffRows
-                    ): int => (int) (
-                        $callOffRows
-                            ->last()[
-                                'ending_total'
-                            ]
-                        ?? 0
+            'project_count' =>
+                $rows
+                    ->pluck(
+                        'supply_designation_id'
                     )
-                )
-                ->sum(),
+                    ->filter()
+                    ->unique()
+                    ->count(),
+
+            'beginning_total' =>
+                (int) $groupedByCallOff
+                    ->map(
+                        fn (
+                            Collection $callOffRows
+                        ): int => (int) (
+                            $callOffRows
+                                ->first()[
+                                    'beginning_total'
+                                ]
+                            ?? 0
+                        )
+                    )
+                    ->sum(),
+
+            'actual_total' =>
+                (int) $rows->sum(
+                    'actual_total'
+                ),
+
+            'ending_total' =>
+                (int) $groupedByCallOff
+                    ->map(
+                        fn (
+                            Collection $callOffRows
+                        ): int => (int) (
+                            $callOffRows
+                                ->last()[
+                                    'ending_total'
+                                ]
+                            ?? 0
+                        )
+                    )
+                    ->sum(),
         ];
     }
 
     /**
-     * Get all years represented by the report.
+     * Available report years.
      *
      * @return Collection<int, int>
      */
@@ -350,31 +346,38 @@ class InventoryLedgerController extends Controller
         InventoryMovementReportService $reportService,
         int $provinceId
     ): Collection {
-        $currentYear =
-            (int) now()->year;
+        $currentYear = (int) now()->year;
 
         $years = $reportService
             ->buildForProvince(
                 $provinceId
             )
             ->map(
-                fn (
+                function (
                     array $row
-                ): ?int => $row[
-                        'movement_date'
-                    ]
-                        ?->format('Y')
-                    ? (int) $row[
-                        'movement_date'
-                    ]->format('Y')
-                    : null
+                ): ?int {
+                    $movementDate =
+                        $row['movement_date']
+                        ?? null;
+
+                    if (! $movementDate) {
+                        return null;
+                    }
+
+                    return (int) $movementDate
+                        ->format('Y');
+                }
             )
             ->filter()
             ->unique()
             ->sortDesc()
             ->values();
 
-        if (! $years->contains($currentYear)) {
+        if (
+            ! $years->contains(
+                $currentYear
+            )
+        ) {
             $years->prepend(
                 $currentYear
             );
@@ -384,7 +387,7 @@ class InventoryLedgerController extends Controller
     }
 
     /**
-     * Get Call-Off allocations for the filter dropdown.
+     * Call-Off filter options.
      *
      * @return Collection<int, ProvinceDistribution>
      */
@@ -408,12 +411,13 @@ class InventoryLedgerController extends Controller
     }
 
     /**
-     * Paginate an in-memory collection.
+     * Paginate the generated report collection.
      *
      * @template TKey of array-key
      * @template TValue
      *
-     * @param  Collection<TKey, TValue>  $items
+     * @param Collection<TKey, TValue> $items
+     *
      * @return LengthAwarePaginator<TKey, TValue>
      */
     private function paginate(
@@ -422,9 +426,10 @@ class InventoryLedgerController extends Controller
         Request $request,
         string $pageName
     ): LengthAwarePaginator {
-        $currentPage = LengthAwarePaginator::resolveCurrentPage(
-            $pageName
-        );
+        $currentPage =
+            LengthAwarePaginator::resolveCurrentPage(
+                $pageName
+            );
 
         $currentItems = $items
             ->forPage(
@@ -439,11 +444,14 @@ class InventoryLedgerController extends Controller
             $perPage,
             $currentPage,
             [
-                'path' => $request->url(),
+                'path' =>
+                    $request->url(),
 
-                'query' => $request->query(),
+                'query' =>
+                    $request->query(),
 
-                'pageName' => $pageName,
+                'pageName' =>
+                    $pageName,
             ]
         );
     }

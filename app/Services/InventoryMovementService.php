@@ -3,19 +3,24 @@
 namespace App\Services;
 
 use App\Models\DeliveryReceipt;
+use App\Models\DeliveryReceiptItem;
 use App\Models\InventoryMovement;
 use App\Models\ProvincialInventory;
 use App\Models\SupplyDesignation;
+use App\Models\SupplyDesignationItem;
 use Illuminate\Validation\ValidationException;
 
 class InventoryMovementService
 {
     /**
-     * Record stock-in movements from one Delivery Receipt.
+     * Record a stock-in movement from one Delivery Receipt.
      *
-     * balance_before and balance_after represent the pooled provincial
-     * inventory. province_distribution_id identifies the exact Call-Off
-     * allocation that produced the stock.
+     * Province-wide balance:
+     * Current pooled inventory after receipt.
+     *
+     * Call-Off balance:
+     * Total physically received under the selected Call-Off,
+     * including the current Delivery Receipt.
      */
     public function recordDeliveryReceipt(
         DeliveryReceipt $receipt
@@ -35,20 +40,25 @@ class InventoryMovementService
         ]);
 
         $provinceDistributionId =
-            $receipt->province_distribution_id
-            ?: $receipt
-                ->provinceDistribution
-                ?->id;
+            (int) (
+                $receipt->province_distribution_id
+                ?: $receipt
+                    ->provinceDistribution
+                    ?->id
+            );
 
-        if (! $provinceDistributionId) {
+        if ($provinceDistributionId <= 0) {
             throw ValidationException::withMessages([
-                'province_distribution' => 'The Delivery Receipt has no linked Call-Off allocation.',
+                'province_distribution_id' => 'The Delivery Receipt has no linked Call-Off allocation.',
             ]);
         }
 
         foreach (
             $receipt->items as $receiptItem
         ) {
+            $itemId =
+                (int) $receiptItem->item_id;
+
             $quantity = (int) (
                 $receiptItem->received_quantity
                 ?? $receiptItem->quantity
@@ -66,26 +76,41 @@ class InventoryMovementService
                 )
                 ->where(
                     'item_id',
-                    $receiptItem->item_id
+                    $itemId
                 )
                 ->first();
 
             if (! $inventory) {
                 throw ValidationException::withMessages([
-                    "items.{$receiptItem->item_id}" => 'The provincial inventory record could not be found after receiving the PPE.',
+                    "items.{$itemId}" => 'The provincial inventory record could not be found after receiving the PPE.',
                 ]);
             }
 
             /*
-             * ReceivingService has already increased ProvincialInventory
-             * before this method runs.
+             * ReceivingService has already increased the pooled stock.
              */
-            $balanceAfter =
+            $pooledBalanceAfter =
                 (int) $inventory->quantity;
 
-            $balanceBefore = max(
+            $pooledBalanceBefore = max(
                 0,
-                $balanceAfter - $quantity
+                $pooledBalanceAfter - $quantity
+            );
+
+            /*
+             * Get the exact Call-Off received balance after this DR.
+             *
+             * The current receipt is already stored when this method runs.
+             */
+            $callOffBalanceAfter =
+                $this->receivedQuantityForCallOff(
+                    $provinceDistributionId,
+                    $itemId
+                );
+
+            $callOffBalanceBefore = max(
+                0,
+                $callOffBalanceAfter - $quantity
             );
 
             InventoryMovement::query()
@@ -93,7 +118,7 @@ class InventoryMovementService
                     [
                         'delivery_receipt_id' => $receipt->id,
 
-                        'item_id' => $receiptItem->item_id,
+                        'item_id' => $itemId,
 
                         'movement_type' => 'IN',
                     ],
@@ -109,11 +134,18 @@ class InventoryMovementService
                         'quantity' => $quantity,
 
                         /*
-                         * Province-wide pooled inventory balances.
+                         * Province-wide balances.
                          */
-                        'balance_before' => $balanceBefore,
+                        'balance_before' => $pooledBalanceBefore,
 
-                        'balance_after' => $balanceAfter,
+                        'balance_after' => $pooledBalanceAfter,
+
+                        /*
+                         * Call-Off received balances.
+                         */
+                        'call_off_balance_before' => $callOffBalanceBefore,
+
+                        'call_off_balance_after' => $callOffBalanceAfter,
 
                         'movement_date' => $receipt->delivery_date,
 
@@ -130,9 +162,13 @@ class InventoryMovementService
     /**
      * Record stock-out movements from one Project PPE Designation.
      *
-     * balance_before and balance_after remain pooled provincial inventory
-     * balances. The Call-Off report will separately calculate its own
-     * beginning and ending balances using province_distribution_id.
+     * Call-Off beginning:
+     * Actual received under the Call-Off
+     * - project quantities previously distributed under the Call-Off
+     * - excluding the current designation
+     *
+     * Call-Off ending:
+     * Call-Off beginning - current project quantity
      */
     public function recordSupplyDesignation(
         SupplyDesignation $designation
@@ -152,12 +188,14 @@ class InventoryMovementService
         ]);
 
         $provinceDistributionId =
-            $designation->province_distribution_id
-            ?: $designation
-                ->provinceDistribution
-                ?->id;
+            (int) (
+                $designation->province_distribution_id
+                ?: $designation
+                    ->provinceDistribution
+                    ?->id
+            );
 
-        if (! $provinceDistributionId) {
+        if ($provinceDistributionId <= 0) {
             throw ValidationException::withMessages([
                 'province_distribution_id' => 'The Project PPE Designation has no linked Call-Off allocation.',
             ]);
@@ -166,6 +204,9 @@ class InventoryMovementService
         foreach (
             $designation->items as $designationItem
         ) {
+            $itemId =
+                (int) $designationItem->item_id;
+
             $quantity =
                 (int) $designationItem->quantity;
 
@@ -180,24 +221,55 @@ class InventoryMovementService
                 )
                 ->where(
                     'item_id',
-                    $designationItem->item_id
+                    $itemId
                 )
                 ->first();
 
             if (! $inventory) {
                 throw ValidationException::withMessages([
-                    "items.{$designationItem->item_id}" => 'The provincial inventory record could not be found after the project distribution.',
+                    "items.{$itemId}" => 'The provincial inventory record could not be found after the project distribution.',
                 ]);
             }
 
             /*
-             * SupplyDesignationService already deducted the pooled stock.
+             * SupplyDesignationService already deducted pooled stock.
              */
-            $balanceAfter =
+            $pooledBalanceAfter =
                 (int) $inventory->quantity;
 
-            $balanceBefore =
-                $balanceAfter + $quantity;
+            $pooledBalanceBefore =
+                $pooledBalanceAfter + $quantity;
+
+            /*
+             * Total physically received for this exact Call-Off.
+             */
+            $actualReceived =
+                $this->receivedQuantityForCallOff(
+                    $provinceDistributionId,
+                    $itemId
+                );
+
+            /*
+             * Total project distribution before the current designation.
+             */
+            $distributedBeforeCurrent =
+                $this->distributedQuantityBeforeDesignation(
+                    $provinceDistributionId,
+                    $itemId,
+                    $designation->id
+                );
+
+            $callOffBalanceBefore = max(
+                0,
+                $actualReceived
+                    - $distributedBeforeCurrent
+            );
+
+            $callOffBalanceAfter = max(
+                0,
+                $callOffBalanceBefore
+                    - $quantity
+            );
 
             $callOffNumber = $designation
                 ->provinceDistribution
@@ -219,7 +291,7 @@ class InventoryMovementService
                     [
                         'supply_designation_id' => $designation->id,
 
-                        'item_id' => $designationItem->item_id,
+                        'item_id' => $itemId,
 
                         'movement_type' => 'OUT',
                     ],
@@ -235,16 +307,23 @@ class InventoryMovementService
                         'quantity' => $quantity,
 
                         /*
-                         * Province-wide pooled inventory balances.
+                         * Province-wide pooled balances.
                          */
-                        'balance_before' => $balanceBefore,
+                        'balance_before' => $pooledBalanceBefore,
 
-                        'balance_after' => $balanceAfter,
+                        'balance_after' => $pooledBalanceAfter,
+
+                        /*
+                         * Selected Call-Off balances.
+                         */
+                        'call_off_balance_before' => $callOffBalanceBefore,
+
+                        'call_off_balance_after' => $callOffBalanceAfter,
 
                         'movement_date' => $designation->designation_date,
 
                         /*
-                         * The direct OUT reference remains the project code.
+                         * Direct OUT reference remains project code.
                          */
                         'reference_number' => $designation->project_code,
 
@@ -254,5 +333,79 @@ class InventoryMovementService
                     ]
                 );
         }
+    }
+
+    /**
+     * Sum actual PPE received under one Call-Off allocation.
+     */
+    private function receivedQuantityForCallOff(
+        int $provinceDistributionId,
+        int $itemId
+    ): int {
+        return (int) DeliveryReceiptItem::query()
+            ->where(
+                'item_id',
+                $itemId
+            )
+            ->whereHas(
+                'deliveryReceipt',
+                function ($query) use (
+                    $provinceDistributionId
+                ): void {
+                    $query
+                        ->where(
+                            'province_distribution_id',
+                            $provinceDistributionId
+                        )
+                        ->where(
+                            'status',
+                            'Received'
+                        );
+                }
+            )
+            ->sum(
+                'received_quantity'
+            );
+    }
+
+    /**
+     * Sum completed project designations before the current project.
+     *
+     * The current designation is excluded because its item rows already
+     * exist before InventoryMovementService is called.
+     */
+    private function distributedQuantityBeforeDesignation(
+        int $provinceDistributionId,
+        int $itemId,
+        int $currentDesignationId
+    ): int {
+        return (int) SupplyDesignationItem::query()
+            ->where(
+                'item_id',
+                $itemId
+            )
+            ->whereHas(
+                'supplyDesignation',
+                function ($query) use (
+                    $provinceDistributionId,
+                    $currentDesignationId
+                ): void {
+                    $query
+                        ->where(
+                            'province_distribution_id',
+                            $provinceDistributionId
+                        )
+                        ->where(
+                            'status',
+                            'Completed'
+                        )
+                        ->where(
+                            'id',
+                            '!=',
+                            $currentDesignationId
+                        );
+                }
+            )
+            ->sum('quantity');
     }
 }

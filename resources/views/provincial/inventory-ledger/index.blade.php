@@ -5,6 +5,17 @@
         |--------------------------------------------------------------------------
         | PPE COLUMN CONFIGURATION
         |--------------------------------------------------------------------------
+        |
+        | These IDs correspond to the seven fixed PPE variants:
+        |
+        | 1 - Long Sleeve Medium
+        | 2 - Long Sleeve Large
+        | 3 - Bucket Hat
+        | 4 - Rubber Boots US9
+        | 5 - Rubber Boots US10
+        | 6 - Hand Gloves
+        | 7 - Mask
+        |
         */
 
         $ppeColumns = [
@@ -44,8 +55,18 @@
             ],
         ];
 
-        $firstRowNumber =
-            $rows->firstItem() ?? 1;
+        /*
+         * First displayed number for the current paginator page.
+         */
+        $firstRowNumber = $rows->firstItem() ?? 1;
+
+        /*
+         * Access the current paginator page as a normal Collection.
+         *
+         * This is used to determine whether the current row starts
+         * a new Call-Off section.
+         */
+        $pageRows = $rows->getCollection();
     @endphp
 
     <div class="mx-auto max-w-[1900px] space-y-6">
@@ -102,7 +123,7 @@
                         class="mt-2 max-w-4xl text-sm
                                leading-6 text-slate-600"
                     >
-                        Call-Off based PPE inventory movement showing
+                        Call-Off-based PPE inventory movement showing
                         beginning inventory, actual PPE distributed to
                         projects, and the resulting ending inventory.
                     </p>
@@ -130,12 +151,36 @@
         </section>
 
         {{-- =========================================================
+            FLASH MESSAGES
+        ========================================================== --}}
+        @if(session('success'))
+            <div
+                class="rounded-2xl border border-green-200
+                       bg-green-50 px-5 py-4
+                       text-sm font-semibold text-green-800"
+            >
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div
+                class="rounded-2xl border border-red-200
+                       bg-red-50 px-5 py-4
+                       text-sm font-semibold text-red-800"
+            >
+                {{ session('error') }}
+            </div>
+        @endif
+
+        {{-- =========================================================
             SUMMARY CARDS
         ========================================================== --}}
         <section
             class="grid grid-cols-1 gap-4
                    sm:grid-cols-2 xl:grid-cols-5"
         >
+            {{-- Call-Off count --}}
             <article
                 class="group rounded-2xl border border-slate-200
                        bg-white p-5 shadow-sm transition
@@ -158,9 +203,11 @@
                     class="mt-3 text-3xl font-bold
                            text-slate-950"
                 >
-                    {{ number_format(
-                        $summary['call_off_count']
-                    ) }}
+                    {{
+                        number_format(
+                            $summary['call_off_count'] ?? 0
+                        )
+                    }}
                 </p>
 
                 <p class="mt-1 text-xs text-slate-500">
@@ -168,6 +215,7 @@
                 </p>
             </article>
 
+            {{-- Project count --}}
             <article
                 class="group rounded-2xl border border-slate-200
                        bg-white p-5 shadow-sm transition
@@ -190,9 +238,11 @@
                     class="mt-3 text-3xl font-bold
                            text-slate-950"
                 >
-                    {{ number_format(
-                        $summary['project_count']
-                    ) }}
+                    {{
+                        number_format(
+                            $summary['project_count'] ?? 0
+                        )
+                    }}
                 </p>
 
                 <p class="mt-1 text-xs text-slate-500">
@@ -200,6 +250,7 @@
                 </p>
             </article>
 
+            {{-- Beginning inventory --}}
             <article
                 class="group rounded-2xl border border-slate-200
                        bg-white p-5 shadow-sm transition
@@ -222,16 +273,19 @@
                     class="mt-3 text-3xl font-bold
                            text-slate-950"
                 >
-                    {{ number_format(
-                        $summary['beginning_total']
-                    ) }}
+                    {{
+                        number_format(
+                            $summary['beginning_total'] ?? 0
+                        )
+                    }}
                 </p>
 
                 <p class="mt-1 text-xs text-slate-500">
-                    Report row opening balances
+                    Opening balance of each Call-Off
                 </p>
             </article>
 
+            {{-- Actual distributed --}}
             <article
                 class="group rounded-2xl border border-slate-200
                        bg-white p-5 shadow-sm transition
@@ -254,9 +308,11 @@
                     class="mt-3 text-3xl font-bold
                            text-[#C51017]"
                 >
-                    {{ number_format(
-                        $summary['actual_total']
-                    ) }}
+                    {{
+                        number_format(
+                            $summary['actual_total'] ?? 0
+                        )
+                    }}
                 </p>
 
                 <p class="mt-1 text-xs text-slate-500">
@@ -264,6 +320,7 @@
                 </p>
             </article>
 
+            {{-- Ending inventory --}}
             <article
                 class="group rounded-2xl border border-slate-200
                        bg-white p-5 shadow-sm transition
@@ -286,9 +343,11 @@
                     class="mt-3 text-3xl font-bold
                            text-[#641D21]"
                 >
-                    {{ number_format(
-                        $summary['ending_total']
-                    ) }}
+                    {{
+                        number_format(
+                            $summary['ending_total'] ?? 0
+                        )
+                    }}
                 </p>
 
                 <p class="mt-1 text-xs text-slate-500">
@@ -306,10 +365,13 @@
         >
             <form
                 method="GET"
-                action="{{ url()->current() }}"
+                action="{{ route(
+                    'provincial.inventory-ledger.index'
+                ) }}"
                 class="grid grid-cols-1 gap-4
                        md:grid-cols-2 xl:grid-cols-12"
             >
+                {{-- Search --}}
                 <div class="xl:col-span-5">
                     <label
                         for="search"
@@ -332,6 +394,7 @@
                     >
                 </div>
 
+                {{-- Call-Off filter --}}
                 <div class="xl:col-span-3">
                     <label
                         for="province_distribution_id"
@@ -356,6 +419,17 @@
                         @foreach(
                             $callOffAllocations as $allocation
                         )
+                            @php
+                                $filterCallOff = $allocation
+                                    ->distributionBatch
+                                    ?->callOff;
+
+                                $filterSupplier = $allocation
+                                    ->distributionBatch
+                                    ?->purchaseOrder
+                                    ?->supplier;
+                            @endphp
+
                             <option
                                 value="{{ $allocation->id }}"
                                 @selected(
@@ -364,17 +438,24 @@
                                 )
                             >
                                 {{
-                                    $allocation
-                                        ->distributionBatch
-                                        ?->callOff
+                                    $filterCallOff
                                         ?->call_off_number
                                     ?? 'No Call-Off'
                                 }}
+
+                                @if($filterSupplier?->supplier_name)
+                                    —
+                                    {{
+                                        $filterSupplier
+                                            ->supplier_name
+                                    }}
+                                @endif
                             </option>
                         @endforeach
                     </select>
                 </div>
 
+                {{-- Year filter --}}
                 <div class="xl:col-span-2">
                     <label
                         for="year"
@@ -392,7 +473,9 @@
                                focus:border-[#970C13]
                                focus:ring-[#970C13]"
                     >
-                        @foreach($availableYears as $availableYear)
+                        @foreach(
+                            $availableYears as $availableYear
+                        )
                             <option
                                 value="{{ $availableYear }}"
                                 @selected(
@@ -406,6 +489,7 @@
                     </select>
                 </div>
 
+                {{-- Buttons --}}
                 <div
                     class="flex items-end gap-2
                            xl:col-span-2"
@@ -421,7 +505,9 @@
                     </button>
 
                     <a
-                        href="{{ url()->current() }}"
+                        href="{{ route(
+                            'provincial.inventory-ledger.index'
+                        ) }}"
                         class="rounded-xl border border-slate-300
                                bg-white px-5 py-2.5 text-sm
                                font-bold text-slate-700 transition
@@ -505,8 +591,15 @@
                        lg:justify-between"
             >
                 <div>
+                    <p
+                        class="text-xs font-bold uppercase
+                               tracking-[0.16em] text-[#970C13]"
+                    >
+                        Call-Off Project Transactions
+                    </p>
+
                     <h2
-                        class="text-xl font-bold
+                        class="mt-1 text-xl font-bold
                                text-slate-950"
                     >
                         Inventory Movement History
@@ -522,7 +615,11 @@
                            px-4 py-2 text-sm
                            font-semibold text-slate-600"
                 >
-                    {{ number_format($summary['row_count']) }}
+                    {{
+                        number_format(
+                            $summary['row_count'] ?? 0
+                        )
+                    }}
                     report rows
                 </div>
             </div>
@@ -556,13 +653,13 @@
             @else
                 <div class="overflow-x-auto">
                     <table
-                        class="min-w-[3300px] w-full
+                        class="w-full min-w-[3300px]
                                border-collapse text-sm"
                     >
-                        {{-- =========================================
-                            MAIN GROUP HEADER
-                        ========================================== --}}
                         <thead>
+                            {{-- =====================================
+                                MAIN HEADER
+                            ====================================== --}}
                             <tr
                                 class="border-b border-[#641D21]
                                        bg-[#641D21] text-white"
@@ -618,7 +715,7 @@
 
                                 <th
                                     rowspan="3"
-                                    class="w-[170px] min-w-[170px]
+                                    class="w-[190px] min-w-[190px]
                                            border-r border-white/20
                                            px-4 py-4 text-left"
                                 >
@@ -692,7 +789,7 @@
                                 class="border-b border-white/20
                                        bg-[#970C13] text-white"
                             >
-                                {{-- Beginning --}}
+                                {{-- Beginning Inventory --}}
                                 <th
                                     colspan="2"
                                     class="border-r border-white/20
@@ -736,7 +833,7 @@
                                     Mask
                                 </th>
 
-                                {{-- Actual --}}
+                                {{-- Actual Inventory --}}
                                 <th
                                     colspan="2"
                                     class="border-r border-white/20
@@ -785,7 +882,7 @@
                                     Mask
                                 </th>
 
-                                {{-- Ending --}}
+                                {{-- Ending Inventory --}}
                                 <th
                                     colspan="2"
                                     class="border-r border-white/20
@@ -842,13 +939,14 @@
                                 class="bg-[#DF979B]
                                        text-[#641D21]"
                             >
-                                {{-- Beginning --}}
+                                {{-- Beginning sizes --}}
                                 <th class="px-3 py-2 text-center">
                                     Medium
                                 </th>
 
                                 <th
-                                    class="border-r border-[#970C13]/20
+                                    class="border-r
+                                           border-[#970C13]/20
                                            px-3 py-2 text-center"
                                 >
                                     Large
@@ -859,19 +957,21 @@
                                 </th>
 
                                 <th
-                                    class="border-r border-[#970C13]/20
+                                    class="border-r
+                                           border-[#970C13]/20
                                            px-3 py-2 text-center"
                                 >
                                     US10
                                 </th>
 
-                                {{-- Actual --}}
+                                {{-- Actual sizes --}}
                                 <th class="px-3 py-2 text-center">
                                     Medium
                                 </th>
 
                                 <th
-                                    class="border-r border-[#970C13]/20
+                                    class="border-r
+                                           border-[#970C13]/20
                                            px-3 py-2 text-center"
                                 >
                                     Large
@@ -882,19 +982,21 @@
                                 </th>
 
                                 <th
-                                    class="border-r border-[#970C13]/20
+                                    class="border-r
+                                           border-[#970C13]/20
                                            px-3 py-2 text-center"
                                 >
                                     US10
                                 </th>
 
-                                {{-- Ending --}}
+                                {{-- Ending sizes --}}
                                 <th class="px-3 py-2 text-center">
                                     Medium
                                 </th>
 
                                 <th
-                                    class="border-r border-[#970C13]/20
+                                    class="border-r
+                                           border-[#970C13]/20
                                            px-3 py-2 text-center"
                                 >
                                     Large
@@ -914,8 +1016,12 @@
                             REPORT ROWS
                         ========================================== --}}
                         <tbody class="divide-y divide-slate-200">
-                            @foreach($rows as $index => $row)
+                            @foreach($pageRows as $index => $row)
                                 @php
+                                    /*
+                                     * Call-Off-specific values produced by
+                                     * InventoryMovementReportService.
+                                     */
                                     $beginning =
                                         $row['beginning'] ?? [];
 
@@ -925,33 +1031,50 @@
                                     $ending =
                                         $row['ending'] ?? [];
 
-                                    $isOpeningRow =
-                                        empty(
-                                            $row[
-                                                'supply_designation_id'
-                                            ]
-                                        );
+                                    /*
+                                     * A row without a designation ID is an
+                                     * opening row for a Call-Off that has no
+                                     * project distribution yet.
+                                     */
+                                    $isOpeningRow = empty(
+                                        $row[
+                                            'supply_designation_id'
+                                        ]
+                                    );
 
-                                    $previousRow =
-                                        $index > 0
-                                            ? $rows->get(
-                                                $index - 1
-                                            )
-                                            : null;
+                                    /*
+                                     * Detect the start of a Call-Off section.
+                                     */
+                                    $previousRow = $index > 0
+                                        ? $pageRows->get(
+                                            $index - 1
+                                        )
+                                        : null;
+
+                                    $currentAllocationId = (int) (
+                                        $row[
+                                            'province_distribution_id'
+                                        ]
+                                        ?? 0
+                                    );
+
+                                    $previousAllocationId = (int) (
+                                        $previousRow[
+                                            'province_distribution_id'
+                                        ]
+                                        ?? 0
+                                    );
 
                                     $isNewCallOff =
-                                        ! $previousRow
-                                        || (
-                                            $previousRow[
-                                                'province_distribution_id'
-                                            ]
-                                            ?? null
-                                        ) !== (
-                                            $row[
-                                                'province_distribution_id'
-                                            ]
-                                            ?? null
-                                        );
+                                        $index === 0
+                                        || $currentAllocationId
+                                            !== $previousAllocationId;
+
+                                    $deliveryReceipts =
+                                        $row[
+                                            'delivery_receipts'
+                                        ]
+                                        ?? collect();
                                 @endphp
 
                                 <tr
@@ -966,6 +1089,7 @@
                                         }}
                                     "
                                 >
+                                    {{-- Number --}}
                                     <td
                                         class="sticky left-0 z-20
                                                border-r border-slate-200
@@ -979,6 +1103,7 @@
                                         }}
                                     </td>
 
+                                    {{-- Call-Off --}}
                                     <td
                                         class="sticky left-[70px] z-20
                                                border-r border-slate-200
@@ -989,16 +1114,19 @@
                                                    bg-[#970C13]/10
                                                    px-3 py-1.5
                                                    font-bold text-[#970C13]
-                                                   ring-1 ring-[#970C13]/20"
+                                                   ring-1
+                                                   ring-[#970C13]/20"
                                         >
                                             {{
                                                 $row[
                                                     'call_off_number'
                                                 ]
+                                                ?? '—'
                                             }}
                                         </span>
                                     </td>
 
+                                    {{-- Supplier --}}
                                     <td
                                         class="border-r border-slate-100
                                                px-4 py-4 font-medium
@@ -1008,23 +1136,23 @@
                                             $row[
                                                 'supplier_name'
                                             ]
+                                            ?? '—'
                                         }}
                                     </td>
 
+                                    {{-- Delivery Receipts --}}
                                     <td
                                         class="border-r border-slate-100
                                                px-4 py-4"
                                     >
                                         @if(
-                                            $row[
-                                                'delivery_receipts'
-                                            ]->isNotEmpty()
+                                            $deliveryReceipts
+                                                ->isNotEmpty()
                                         )
                                             <div class="space-y-1.5">
                                                 @foreach(
-                                                    $row[
-                                                        'delivery_receipts'
-                                                    ] as $receipt
+                                                    $deliveryReceipts
+                                                    as $receipt
                                                 )
                                                     <div
                                                         class="rounded-lg
@@ -1037,33 +1165,31 @@
                                                         {{
                                                             $receipt
                                                                 ->dr_number
+                                                            ?? '—'
                                                         }}
                                                     </div>
                                                 @endforeach
                                             </div>
                                         @else
-                                            <span
-                                                class="text-slate-400"
-                                            >
+                                            <span class="text-slate-400">
                                                 —
                                             </span>
                                         @endif
                                     </td>
 
+                                    {{-- Delivery Dates --}}
                                     <td
                                         class="border-r border-slate-100
                                                px-4 py-4"
                                     >
                                         @if(
-                                            $row[
-                                                'delivery_receipts'
-                                            ]->isNotEmpty()
+                                            $deliveryReceipts
+                                                ->isNotEmpty()
                                         )
                                             <div class="space-y-1.5">
                                                 @foreach(
-                                                    $row[
-                                                        'delivery_receipts'
-                                                    ] as $receipt
+                                                    $deliveryReceipts
+                                                    as $receipt
                                                 )
                                                     <div
                                                         class="whitespace-nowrap
@@ -1082,10 +1208,13 @@
                                                 @endforeach
                                             </div>
                                         @else
-                                            —
+                                            <span class="text-slate-400">
+                                                —
+                                            </span>
                                         @endif
                                     </td>
 
+                                    {{-- Project --}}
                                     <td
                                         class="border-r border-slate-100
                                                px-4 py-4"
@@ -1111,30 +1240,38 @@
                                                     $row[
                                                         'project_code'
                                                     ]
+                                                    ?? '—'
                                                 }}
                                             </p>
 
                                             <p
-                                                class="mt-1 max-w-[200px]
-                                                       text-xs
+                                                class="mt-1 max-w-[220px]
+                                                       text-xs leading-5
                                                        text-slate-500"
                                             >
                                                 {{
                                                     $row[
                                                         'project_title'
                                                     ]
+                                                    ?? '—'
                                                 }}
                                             </p>
                                         @endif
                                     </td>
 
+                                    {{-- Location --}}
                                     <td
                                         class="border-r border-slate-100
-                                               px-4 py-4 text-slate-700"
+                                               px-4 py-4
+                                               text-slate-700"
                                     >
-                                        {{ $row['location'] }}
+                                        {{
+                                            $row['location']
+                                            ?? '—'
+                                        }}
                                     </td>
 
+                                    {{-- Beneficiaries --}}
                                     <td
                                         class="border-r border-slate-100
                                                px-4 py-4 text-center
@@ -1143,13 +1280,17 @@
                                     >
                                         {{
                                             number_format(
-                                                $row[
-                                                    'number_of_beneficiaries'
-                                                ]
+                                                (int) (
+                                                    $row[
+                                                        'number_of_beneficiaries'
+                                                    ]
+                                                    ?? 0
+                                                )
                                             )
                                         }}
                                     </td>
 
+                                    {{-- Days --}}
                                     <td
                                         class="border-r border-slate-200
                                                px-4 py-4 text-center
@@ -1158,9 +1299,12 @@
                                     >
                                         {{
                                             number_format(
-                                                $row[
-                                                    'number_of_days'
-                                                ]
+                                                (int) (
+                                                    $row[
+                                                        'number_of_days'
+                                                    ]
+                                                    ?? 0
+                                                )
                                             )
                                         }}
                                     </td>
@@ -1170,6 +1314,16 @@
                                         array_keys($ppeColumns)
                                         as $itemId
                                     )
+                                        @php
+                                            $beginningQuantity =
+                                                (int) (
+                                                    $beginning[
+                                                        $itemId
+                                                    ]
+                                                    ?? 0
+                                                );
+                                        @endphp
+
                                         <td
                                             class="border-r
                                                    border-slate-100
@@ -1181,12 +1335,7 @@
                                         >
                                             {{
                                                 number_format(
-                                                    (int) (
-                                                        $beginning[
-                                                            $itemId
-                                                        ]
-                                                        ?? 0
-                                                    )
+                                                    $beginningQuantity
                                                 )
                                             }}
                                         </td>

@@ -7,6 +7,7 @@ use App\Http\Controllers\ProvincialOffice\InventoryController;
 use App\Http\Controllers\ProvincialOffice\InventoryLedgerController;
 use App\Http\Controllers\ProvincialOffice\ReceivingController;
 use App\Http\Controllers\ProvincialOffice\SupplyDesignationController;
+use App\Http\Controllers\ProvincialOffice\CallOffInventoryController;
 
 Route::middleware([
     'auth',
@@ -87,4 +88,12 @@ Route::middleware([
 
         Route::get('/project-designations/{supplyDesignation}', [SupplyDesignationController::class, 'show'])
             ->name('project-designations.show');
+            
+        Route::get(
+            '/call-off-inventory',
+            [
+                CallOffInventoryController::class,
+                'index',
+            ]
+        )->name('call-off-inventory.index');
     });
