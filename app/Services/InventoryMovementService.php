@@ -30,13 +30,13 @@ class InventoryMovementService
             'receivedByUser',
 
             'provinceDistribution'
-                .'.distributionBatch'
-                .'.callOff',
+            .'.distributionBatch'
+            .'.callOff',
 
             'provinceDistribution'
-                .'.distributionBatch'
-                .'.purchaseOrder'
-                .'.supplier',
+            .'.distributionBatch'
+            .'.purchaseOrder'
+            .'.supplier',
         ]);
 
         $provinceDistributionId =
@@ -178,13 +178,13 @@ class InventoryMovementService
             'creator',
 
             'provinceDistribution'
-                .'.distributionBatch'
-                .'.callOff',
+            .'.distributionBatch'
+            .'.callOff',
 
             'provinceDistribution'
-                .'.distributionBatch'
-                .'.purchaseOrder'
-                .'.supplier',
+            .'.distributionBatch'
+            .'.purchaseOrder'
+            .'.supplier',
         ]);
 
         $provinceDistributionId =
@@ -262,13 +262,13 @@ class InventoryMovementService
             $callOffBalanceBefore = max(
                 0,
                 $actualReceived
-                    - $distributedBeforeCurrent
+                - $distributedBeforeCurrent
             );
 
             $callOffBalanceAfter = max(
                 0,
                 $callOffBalanceBefore
-                    - $quantity
+                - $quantity
             );
 
             $callOffNumber = $designation
@@ -302,7 +302,7 @@ class InventoryMovementService
 
                         'created_by' => $designation->created_by,
 
-                        'delivery_receipt_id' => null,
+                        'delivery_receipt_id' => $designation->delivery_receipt_id,
 
                         'quantity' => $quantity,
 
@@ -349,9 +349,7 @@ class InventoryMovementService
             )
             ->whereHas(
                 'deliveryReceipt',
-                function ($query) use (
-                    $provinceDistributionId
-                ): void {
+                function ($query) use ($provinceDistributionId): void {
                     $query
                         ->where(
                             'province_distribution_id',
@@ -386,10 +384,7 @@ class InventoryMovementService
             )
             ->whereHas(
                 'supplyDesignation',
-                function ($query) use (
-                    $provinceDistributionId,
-                    $currentDesignationId
-                ): void {
+                function ($query) use ($provinceDistributionId, $currentDesignationId): void {
                     $query
                         ->where(
                             'province_distribution_id',

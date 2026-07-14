@@ -1,531 +1,364 @@
-<x-po_dashboard_layout>
-
+<x-po_dashboard_layout title="Review Call-Off">
     @php
         $batch = $callOff->distributionBatch;
         $purchaseOrder = $batch?->purchaseOrder;
+        $allocations = $batch?->provinceDistributions ?? collect();
 
         $statusClass = match ($callOff->status) {
-            'Approved' => 'bg-green-100 text-green-800',
-            'Rejected' => 'bg-red-100 text-red-800',
-            'Cancelled' => 'bg-gray-200 text-gray-700',
-            'Completed' => 'bg-blue-100 text-blue-800',
-            default => 'bg-yellow-100 text-yellow-800',
+            'Approved' => 'bg-green-100 text-green-800 ring-green-200',
+            'Rejected' => 'bg-red-100 text-red-800 ring-red-200',
+            'Cancelled' => 'bg-slate-200 text-slate-700 ring-slate-300',
+            default => 'bg-amber-100 text-amber-800 ring-amber-200',
+        };
+
+        $normalizeAllocation = function ($allocation) {
+            $data = [
+                'ls_m' => 0,
+                'ls_l' => 0,
+                'bucket' => 0,
+                'boots_9' => 0,
+                'boots_10' => 0,
+                'gloves' => 0,
+                'mask' => 0,
+            ];
+
+            foreach ($allocation->items as $allocationItem) {
+                $name = strtolower(trim((string) $allocationItem->item?->item_name));
+                $label = strtolower(trim((string) $allocationItem->item?->label));
+                $qty = (int) $allocationItem->quantity;
+
+                if (in_array($name, ['long sleeve', 'long sleeves', 'longsleeve', 'longsleeves'], true)) {
+                    if (in_array($label, ['m', 'medium'], true)) {
+                        $data['ls_m'] += $qty;
+                    }
+                    if (in_array($label, ['l', 'large'], true)) {
+                        $data['ls_l'] += $qty;
+                    }
+                } elseif ($name === 'bucket hat') {
+                    $data['bucket'] += $qty;
+                } elseif ($name === 'rubber boots') {
+                    if (in_array($label, ['us9', 'us 9', '9'], true)) {
+                        $data['boots_9'] += $qty;
+                    }
+                    if (in_array($label, ['us10', 'us 10', '10'], true)) {
+                        $data['boots_10'] += $qty;
+                    }
+                } elseif (in_array($name, ['gloves', 'hand gloves', 'hand glove'], true)) {
+                    $data['gloves'] += $qty;
+                } elseif ($name === 'mask') {
+                    $data['mask'] += $qty;
+                }
+            }
+
+            return $data;
         };
     @endphp
 
-    <div class="space-y-6">
+    <div class="mx-auto max-w-[1900px] space-y-6">
+        <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <div class="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-[#641D21] via-[#970C13] to-[#ED1B24]"></div>
 
-        {{-- Header --}}
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex flex-col gap-6 px-6 py-7 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <span
+                            class="rounded-full bg-[#DF979B]/20 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#970C13] ring-1 ring-[#DF979B]">
+                            Supply Unit
+                        </span>
 
-            <div>
-                <div class="flex flex-wrap items-center gap-3">
+                        <span class="rounded-full px-3 py-1 text-xs font-bold ring-1 {{ $statusClass }}">
+                            {{ $callOff->status }}
+                        </span>
+                    </div>
 
-                    <h1 class="text-3xl font-bold text-gray-900">
+                    <h1 class="mt-4 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
                         Review {{ $callOff->call_off_number }}
                     </h1>
 
-                    <span class="rounded-full px-3 py-1 text-sm font-semibold {{ $statusClass }}">
-                        {{ $callOff->status }}
-                    </span>
-
+                    <p class="mt-2 text-sm text-slate-600">
+                        Distribution Batch #{{ $batch?->id ?? 'N/A' }}. Review all provincial allocations before
+                        submitting the Supply Unit decision.
+                    </p>
                 </div>
 
-                <p class="mt-2 text-sm text-gray-600">
-                    Distribution Batch #{{ $batch?->id ?? 'N/A' }}
-                </p>
+                <a href="{{ route('supply.call-offs.index') }}"
+                    class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
+                    Back to Call-Offs
+                </a>
             </div>
+        </section>
 
-            <a
-                href="{{ route('supply.call-offs.index') }}"
-                class="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-3 font-semibold text-gray-700 transition hover:bg-gray-50"
-            >
-                Back to Call-Offs
-            </a>
-
-        </div>
-
-        {{-- Success Message --}}
-        @if(session('success'))
-
-            <div class="rounded-xl border border-green-200 bg-green-50 px-5 py-4 text-green-800">
+        @if (session('success'))
+            <div class="rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-sm font-semibold text-green-800">
                 {{ session('success') }}
             </div>
-
         @endif
 
-        {{-- Validation Errors --}}
-        @if($errors->any())
-
-            <div class="rounded-xl border border-red-200 bg-red-50 px-6 py-5">
-
-                <h2 class="font-semibold text-red-800">
-                    Please correct the following:
-                </h2>
-
-                <ul class="mt-3 list-disc space-y-1 pl-5 text-sm text-red-700">
-
-                    @foreach($errors->all() as $error)
+        @if ($errors->any())
+            <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4">
+                <p class="font-bold text-red-800">Please correct the following:</p>
+                <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
+                    @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
-
                 </ul>
-
             </div>
-
         @endif
 
-        {{-- Call-Off Details --}}
-        <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow">
+        <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            @foreach ([['Call-Off Number', $callOff->call_off_number, 'text-[#641D21]'], ['Purchase Order', $purchaseOrder?->po_number ?? '—', 'text-slate-900'], ['Supplier', $purchaseOrder?->supplier?->supplier_name ?? '—', 'text-slate-900'], ['Total Provinces', number_format($allocations->count()), 'text-[#970C13]']] as [$label, $value, $color])
+                <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">{{ $label }}</p>
+                    <p class="mt-3 text-xl font-bold {{ $color }}">{{ $value }}</p>
+                </article>
+            @endforeach
+        </section>
 
-            <div class="bg-red-900 px-7 py-5">
-                <h2 class="text-xl font-semibold text-white">
-                    Call-Off Information
-                </h2>
+        <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
+                <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">Reference information</p>
+                <h2 class="mt-1 text-lg font-bold text-slate-950">Call-Off and Purchase Order</h2>
             </div>
 
-            <div class="grid grid-cols-1 gap-6 p-7 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="grid grid-cols-1 gap-5 p-6 sm:grid-cols-2 lg:grid-cols-4 sm:p-7">
+                @foreach ([['NEFA Number', $purchaseOrder?->nefa_number ?? '—'], ['Assigned By', $callOff->assignedBy?->name ?? '—'], ['Assigned Date', $callOff->assigned_at?->format('F d, Y') ?? '—'], ['Status', $callOff->status]] as [$label, $value])
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                        <p class="text-xs font-bold uppercase tracking-wide text-slate-400">{{ $label }}</p>
+                        <p class="mt-2 font-semibold text-slate-900">{{ $value }}</p>
+                    </div>
+                @endforeach
 
-                <div>
-                    <p class="text-sm font-medium text-gray-500">
-                        Call-Off Number
-                    </p>
-
-                    <p class="mt-1 font-semibold text-gray-900">
-                        {{ $callOff->call_off_number }}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="text-sm font-medium text-gray-500">
-                        Assigned Date
-                    </p>
-
-                    <p class="mt-1 font-semibold text-gray-900">
-                        {{ $callOff->assigned_at?->format('F d, Y') ?? 'Not available' }}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="text-sm font-medium text-gray-500">
-                        Assigned By
-                    </p>
-
-                    <p class="mt-1 font-semibold text-gray-900">
-                        {{ $callOff->assignedBy?->name ?? 'Not available' }}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="text-sm font-medium text-gray-500">
-                        Status
-                    </p>
-
-                    <p class="mt-1 font-semibold text-gray-900">
-                        {{ $callOff->status }}
-                    </p>
-                </div>
-
-                <div class="sm:col-span-2 lg:col-span-4">
-                    <p class="text-sm font-medium text-gray-500">
-                        TSSD Remarks
-                    </p>
-
-                    <p class="mt-1 whitespace-pre-line text-gray-900">
+                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:col-span-2 lg:col-span-4">
+                    <p class="text-xs font-bold uppercase tracking-wide text-slate-400">TSSD Remarks</p>
+                    <p class="mt-2 whitespace-pre-line text-sm leading-6 text-slate-700">
                         {{ $callOff->remarks ?: 'No remarks provided.' }}
                     </p>
                 </div>
-
             </div>
+        </section>
 
-        </div>
-
-        {{-- Source Purchase Order --}}
-        <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow">
-
-            <div class="bg-gray-900 px-7 py-5">
-                <h2 class="text-xl font-semibold text-white">
-                    Source Purchase Order
-                </h2>
-            </div>
-
-            <div class="grid grid-cols-1 gap-6 p-7 sm:grid-cols-2 lg:grid-cols-4">
-
+        <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <div
+                class="flex flex-col gap-3 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
                 <div>
-                    <p class="text-sm font-medium text-gray-500">
-                        PO Number
-                    </p>
-
-                    <p class="mt-1 font-semibold text-gray-900">
-                        {{ $purchaseOrder?->po_number ?? 'Not available' }}
+                    <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">Provincial distribution
+                        summary</p>
+                    <h2 class="mt-1 text-lg font-bold text-slate-950">Provincial Allocations</h2>
+                    <p class="mt-1 text-sm text-slate-500">
+                        Every province uses Call-Off Number
+                        <span class="font-bold text-[#970C13]">{{ $callOff->call_off_number }}</span>.
                     </p>
                 </div>
 
-                <div>
-                    <p class="text-sm font-medium text-gray-500">
-                        PO Date
-                    </p>
-
-                    <p class="mt-1 font-semibold text-gray-900">
-                        {{ $purchaseOrder?->po_date?->format('F d, Y') ?? 'Not available' }}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="text-sm font-medium text-gray-500">
-                        Supplier
-                    </p>
-
-                    <p class="mt-1 font-semibold text-gray-900">
-                        {{ $purchaseOrder?->supplier?->supplier_name ?? 'Not available' }}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="text-sm font-medium text-gray-500">
-                        NEFA Number
-                    </p>
-
-                    <p class="mt-1 font-semibold text-gray-900">
-                        {{ $purchaseOrder?->nefa_number ?? 'Not available' }}
-                    </p>
-                </div>
-
-            </div>
-
-        </div>
-
-        {{-- Provincial Allocations --}}
-        <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow">
-
-            <div class="flex flex-col gap-3 bg-red-900 px-7 py-5 sm:flex-row sm:items-center sm:justify-between">
-
-                <div>
-                    <h2 class="text-xl font-semibold text-white">
-                        Provincial Allocations
-                    </h2>
-
-                    <p class="mt-1 text-sm text-red-100">
-                        Every province below uses the same Call-Off Number.
-                    </p>
-                </div>
-
-                <span class="w-fit rounded-full bg-white px-4 py-2 text-sm font-semibold text-red-900">
-                    {{ $batch?->provinceDistributions?->count() ?? 0 }} Province(s)
+                <span
+                    class="w-fit rounded-full bg-[#DF979B]/20 px-4 py-2 text-sm font-bold text-[#970C13] ring-1 ring-[#DF979B]">
+                    {{ number_format($allocations->count()) }} Province(s)
                 </span>
-
             </div>
 
-            <div class="space-y-6 p-7">
+            <div class="overflow-x-auto">
+                <table class="min-w-[1500px] w-full border-separate border-spacing-0">
+                    <thead>
+                        <tr class="text-xs font-bold uppercase tracking-wide text-white">
+                            <th rowspan="2"
+                                class="border-b border-r border-slate-300 bg-[#970C13] px-5 py-4 text-left">Province
+                            </th>
+                            <th rowspan="2"
+                                class="border-b border-r border-slate-300 bg-[#970C13] px-5 py-4 text-center">Delivery
+                                Date</th>
+                            <th rowspan="2"
+                                class="border-b border-r border-slate-300 bg-[#970C13] px-5 py-4 text-left">Place of
+                                Delivery</th>
+                            <th colspan="3"
+                                class="border-b border-r border-slate-300 bg-[#970C13] px-5 py-4 text-center">Long
+                                Sleeves</th>
+                            <th rowspan="2"
+                                class="border-b border-r border-slate-300 bg-[#970C13] px-5 py-4 text-center">Bucket Hat
+                            </th>
+                            <th colspan="3"
+                                class="border-b border-r border-slate-300 bg-[#970C13] px-5 py-4 text-center">Rubber
+                                Boots</th>
+                            <th rowspan="2"
+                                class="border-b border-r border-slate-300 bg-[#970C13] px-5 py-4 text-center">Gloves
+                            </th>
+                            <th rowspan="2" class="border-b border-slate-300 bg-[#970C13] px-5 py-4 text-center">Mask
+                            </th>
+                        </tr>
 
-                @forelse($batch?->provinceDistributions ?? collect() as $allocation)
+                        <tr class="text-[11px] font-bold uppercase">
+                            @foreach (['M', 'L', 'Total', 'US9', 'US10', 'Total'] as $label)
+                                <th
+                                    class="border-b border-r border-slate-300 bg-[#DF979B] px-4 py-3 text-center text-[#641D21]">
+                                    {{ $label }}
+                                </th>
+                            @endforeach
+                        </tr>
+                    </thead>
 
-                    <div class="overflow-hidden rounded-xl border border-gray-200">
+                    <tbody>
+                        @forelse($allocations as $allocation)
+                            @php
+                                $q = $normalizeAllocation($allocation);
+                            @endphp
 
-                        <div class="flex flex-col gap-4 bg-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-900">
-                                    {{ $allocation->province->name }}
-                                </h3>
-
-                                <p class="mt-1 text-sm text-gray-600">
-                                    {{ $allocation->place_of_delivery ?: 'No delivery location recorded' }}
-                                </p>
-                            </div>
-
-                            <div class="text-sm text-gray-700">
-                                <span class="font-medium">
-                                    Scheduled Delivery:
-                                </span>
-
-                                {{ $allocation->scheduled_delivery_date?->format('F d, Y') ?? 'Not set' }}
-                            </div>
-
-                        </div>
-
-                        <div class="overflow-x-auto">
-
-                            <table class="min-w-full divide-y divide-gray-200">
-
-                                <thead class="bg-white">
-
-                                    <tr class="text-xs font-semibold uppercase tracking-wide text-gray-600">
-
-                                        <th class="px-5 py-3 text-left">
-                                            PPE Item
-                                        </th>
-
-                                        <th class="px-5 py-3 text-left">
-                                            Size / Label
-                                        </th>
-
-                                        <th class="px-5 py-3 text-center">
-                                            Quantity
-                                        </th>
-
-                                        <th class="px-5 py-3 text-left">
-                                            Unit
-                                        </th>
-
-                                    </tr>
-
-                                </thead>
-
-                                <tbody class="divide-y divide-gray-100">
-
-                                    @foreach($allocation->items as $allocationItem)
-
-                                        <tr>
-
-                                            <td class="px-5 py-3 font-medium text-gray-900">
-                                                {{ $allocationItem->item->item_name }}
-                                            </td>
-
-                                            <td class="px-5 py-3 text-gray-700">
-                                                {{ $allocationItem->item->label ?: '—' }}
-                                            </td>
-
-                                            <td class="px-5 py-3 text-center font-semibold text-gray-900">
-                                                {{ number_format($allocationItem->quantity) }}
-                                            </td>
-
-                                            <td class="px-5 py-3 text-gray-700">
-                                                {{ $allocationItem->item->unit_of_measurement }}
-                                            </td>
-
-                                        </tr>
-
-                                    @endforeach
-
-                                </tbody>
-
-                            </table>
-
-                        </div>
-
-                    </div>
-
-                @empty
-
-                    <div class="rounded-xl bg-gray-50 px-6 py-10 text-center text-gray-500">
-                        No provincial allocations were found.
-                    </div>
-
-                @endforelse
-
+                            <tr class="transition hover:bg-slate-50">
+                                <td
+                                    class="border-b border-r border-slate-200 px-5 py-4 font-bold uppercase text-slate-900">
+                                    {{ $allocation->province?->name ?? '—' }}
+                                </td>
+                                <td
+                                    class="border-b border-r border-slate-200 px-5 py-4 text-center text-sm text-slate-600">
+                                    {{ $allocation->scheduled_delivery_date?->format('M d, Y') ?? '—' }}
+                                </td>
+                                <td
+                                    class="min-w-56 border-b border-r border-slate-200 px-5 py-4 text-sm text-slate-600">
+                                    {{ $allocation->place_of_delivery ?: '—' }}
+                                </td>
+                                <td class="border-b border-r border-slate-200 px-4 py-4 text-center">
+                                    {{ number_format($q['ls_m']) }}</td>
+                                <td class="border-b border-r border-slate-200 px-4 py-4 text-center">
+                                    {{ number_format($q['ls_l']) }}</td>
+                                <td
+                                    class="border-b border-r border-slate-200 bg-[#DF979B]/10 px-4 py-4 text-center font-bold text-[#970C13]">
+                                    {{ number_format($q['ls_m'] + $q['ls_l']) }}</td>
+                                <td class="border-b border-r border-slate-200 px-4 py-4 text-center">
+                                    {{ number_format($q['bucket']) }}</td>
+                                <td class="border-b border-r border-slate-200 px-4 py-4 text-center">
+                                    {{ number_format($q['boots_9']) }}</td>
+                                <td class="border-b border-r border-slate-200 px-4 py-4 text-center">
+                                    {{ number_format($q['boots_10']) }}</td>
+                                <td
+                                    class="border-b border-r border-slate-200 bg-[#DF979B]/10 px-4 py-4 text-center font-bold text-[#970C13]">
+                                    {{ number_format($q['boots_9'] + $q['boots_10']) }}</td>
+                                <td class="border-b border-r border-slate-200 px-4 py-4 text-center">
+                                    {{ number_format($q['gloves']) }}</td>
+                                <td class="border-b border-slate-200 px-4 py-4 text-center">
+                                    {{ number_format($q['mask']) }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="12" class="px-6 py-14 text-center text-sm text-slate-500">
+                                    No provincial allocations were found.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
+        </section>
 
-        </div>
-
-        {{-- Supply Decision Form --}}
-        @if($callOff->status === 'Pending')
-
-            <form
-                action="{{ route('supply.call-offs.review', $callOff) }}"
-                method="POST"
+        @if ($callOff->status === 'Pending')
+            <form action="{{ route('supply.call-offs.review', $callOff) }}" method="POST"
                 enctype="multipart/form-data"
-                class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow"
-            >
-
+                class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                 @csrf
                 @method('PATCH')
 
-                <div class="bg-red-900 px-7 py-5">
-                    <h2 class="text-xl font-semibold text-white">
-                        Supply Decision
-                    </h2>
+                <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
+                    <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">Supply Unit review</p>
+                    <h2 class="mt-1 text-lg font-bold text-slate-950">Supply Decision</h2>
+                    <p class="mt-1 text-sm text-slate-500">Choose Approve or Reject using the radio buttons below.</p>
                 </div>
 
-                <div class="grid grid-cols-1 gap-6 p-7 lg:grid-cols-2">
+                <div class="grid grid-cols-1 gap-6 p-6 lg:grid-cols-2 sm:p-7">
+                    <fieldset class="lg:col-span-2">
+                        <legend class="mb-3 text-sm font-bold text-slate-700">
+                            Decision <span class="text-red-600">*</span>
+                        </legend>
+
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="decision" value="Approved" required class="peer sr-only"
+                                    @checked(old('decision') === 'Approved')>
+
+                                <div
+                                    class="rounded-2xl border-2 border-slate-200 p-5 transition hover:border-green-300 peer-checked:border-green-600 peer-checked:bg-green-50">
+                                    <div class="flex items-center gap-3">
+                                        <span
+                                            class="h-5 w-5 rounded-full border-2 border-slate-400 peer-checked:border-green-600"></span>
+                                        <div>
+                                            <p class="font-bold text-green-800">Approve Call-Off</p>
+                                            <p class="mt-1 text-sm text-slate-600">Authorize the provincial allocations.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+
+                            <label class="cursor-pointer">
+                                <input type="radio" name="decision" value="Rejected" required class="peer sr-only"
+                                    @checked(old('decision') === 'Rejected')>
+
+                                <div
+                                    class="rounded-2xl border-2 border-slate-200 p-5 transition hover:border-red-300 peer-checked:border-red-600 peer-checked:bg-red-50">
+                                    <div class="flex items-center gap-3">
+                                        <span
+                                            class="h-5 w-5 rounded-full border-2 border-slate-400 peer-checked:border-red-600"></span>
+                                        <div>
+                                            <p class="font-bold text-red-800">Reject Call-Off</p>
+                                            <p class="mt-1 text-sm text-slate-600">Return it to TSSD for correction.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </fieldset>
 
                     <div>
-
-                        <label
-                            for="decision"
-                            class="mb-2 block text-sm font-semibold text-gray-700"
-                        >
-                            Decision
-                        </label>
-
-                        <select
-                            id="decision"
-                            name="decision"
-                            required
-                            class="w-full rounded-xl border-gray-300 focus:border-red-900 focus:ring-red-900"
-                        >
-
-                            <option value="">
-                                Select decision
-                            </option>
-
-                            <option
-                                value="Approved"
-                                @selected(old('decision') === 'Approved')
-                            >
-                                Approve
-                            </option>
-
-                            <option
-                                value="Rejected"
-                                @selected(old('decision') === 'Rejected')
-                            >
-                                Reject
-                            </option>
-
-                        </select>
-
-                    </div>
-
-                    <div>
-
-                        <label
-                            for="call_off_date"
-                            class="mb-2 block text-sm font-semibold text-gray-700"
-                        >
-                            Official Call-Off Date
-                        </label>
-
-                        <input
-                            type="date"
-                            id="call_off_date"
-                            name="call_off_date"
+                        <label for="call_off_date" class="mb-2 block text-sm font-bold text-slate-700">Official
+                            Call-Off Date</label>
+                        <input type="date" id="call_off_date" name="call_off_date"
                             value="{{ old('call_off_date', now()->format('Y-m-d')) }}"
-                            class="w-full rounded-xl border-gray-300 focus:border-red-900 focus:ring-red-900"
-                        >
-
+                            class="w-full rounded-xl border-slate-300 focus:border-[#970C13] focus:ring-[#970C13]">
                     </div>
 
-                    <div class="lg:col-span-2">
-
-                        <label
-                            for="approval_document"
-                            class="mb-2 block text-sm font-semibold text-gray-700"
-                        >
-                            Approval Document
-                        </label>
-
-                        <input
-                            type="file"
-                            id="approval_document"
-                            name="approval_document"
+                    <div>
+                        <label for="approval_document" class="mb-2 block text-sm font-bold text-slate-700">Approval
+                            Document</label>
+                        <input type="file" id="approval_document" name="approval_document"
                             accept="application/pdf,.pdf"
-                            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3"
-                        >
-
-                        <p class="mt-2 text-xs text-gray-500">
-                            PDF only. Maximum file size: 10 MB.
-                        </p>
-
+                            class="block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm">
+                        <p class="mt-2 text-xs text-slate-500">PDF only. Maximum 10 MB.</p>
                     </div>
 
                     <div class="lg:col-span-2">
-
-                        <label
-                            for="remarks"
-                            class="mb-2 block text-sm font-semibold text-gray-700"
-                        >
-                            Supply Remarks
-                        </label>
-
-                        <textarea
-                            id="remarks"
-                            name="remarks"
-                            rows="4"
-                            maxlength="5000"
-                            class="w-full rounded-xl border-gray-300 focus:border-red-900 focus:ring-red-900"
-                        >{{ old('remarks') }}</textarea>
-
+                        <label for="remarks" class="mb-2 block text-sm font-bold text-slate-700">Supply
+                            Remarks</label>
+                        <textarea id="remarks" name="remarks" rows="4" maxlength="5000"
+                            class="w-full rounded-xl border-slate-300 focus:border-[#970C13] focus:ring-[#970C13]">{{ old('remarks') }}</textarea>
                     </div>
-
-                    <div class="lg:col-span-2 flex justify-end">
-
-                        <button
-                            type="submit"
-                            class="rounded-xl bg-red-900 px-7 py-3 font-semibold text-white transition hover:bg-red-800"
-                        >
-                            Submit Decision
-                        </button>
-
-                    </div>
-
                 </div>
 
+                <div class="flex justify-end border-t border-slate-200 bg-slate-50 px-6 py-5 sm:px-7">
+                    <button type="submit"
+                        class="rounded-xl bg-[#970C13] px-7 py-3 text-sm font-bold text-white transition hover:bg-[#641D21]">
+                        Submit Decision
+                    </button>
+                </div>
             </form>
-
         @else
-
-            {{-- Completed Decision --}}
-            <div class="rounded-2xl border border-gray-200 bg-white p-7 shadow">
-
-                <h2 class="text-xl font-semibold text-gray-900">
-                    Supply Decision Completed
-                </h2>
-
+            <section class="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
+                <h2 class="text-lg font-bold text-slate-950">Supply Decision Completed</h2>
                 <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-
                     <div>
-                        <dt class="text-sm text-gray-500">
-                            Decision
-                        </dt>
-
-                        <dd class="mt-1 font-semibold text-gray-900">
-                            {{ $callOff->status }}
-                        </dd>
+                        <dt class="text-sm text-slate-500">Decision</dt>
+                        <dd class="mt-1 font-bold">{{ $callOff->status }}</dd>
                     </div>
-
                     <div>
-                        <dt class="text-sm text-gray-500">
-                            Official Call-Off Date
-                        </dt>
-
-                        <dd class="mt-1 font-semibold text-gray-900">
-                            {{ $callOff->call_off_date?->format('F d, Y') ?? 'Not available' }}
-                        </dd>
+                        <dt class="text-sm text-slate-500">Official Date</dt>
+                        <dd class="mt-1 font-bold">{{ $callOff->call_off_date?->format('F d, Y') ?? '—' }}</dd>
                     </div>
-
                     <div>
-                        <dt class="text-sm text-gray-500">
-                            Reviewed By
-                        </dt>
-
-                        <dd class="mt-1 font-semibold text-gray-900">
-                            {{ $callOff->approvedBy?->name ?? 'Not available' }}
-                        </dd>
+                        <dt class="text-sm text-slate-500">Reviewed By</dt>
+                        <dd class="mt-1 font-bold">{{ $callOff->approvedBy?->name ?? '—' }}</dd>
                     </div>
-
                     <div>
-                        <dt class="text-sm text-gray-500">
-                            Reviewed At
-                        </dt>
-
-                        <dd class="mt-1 font-semibold text-gray-900">
-                            {{ $callOff->approved_at?->format('F d, Y h:i A') ?? 'Not available' }}
-                        </dd>
+                        <dt class="text-sm text-slate-500">Reviewed At</dt>
+                        <dd class="mt-1 font-bold">{{ $callOff->approved_at?->format('F d, Y h:i A') ?? '—' }}</dd>
                     </div>
-
                 </dl>
-
-                @if($callOff->approval_document)
-
-                    <div class="mt-6">
-
-                        <a
-                            href="{{ asset('storage/'.$callOff->approval_document) }}"
-                            target="_blank"
-                            class="inline-flex rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700"
-                        >
-                            View Approval Document
-                        </a>
-
-                    </div>
-
-                @endif
-
-            </div>
-
+            </section>
         @endif
-
     </div>
-
 </x-po_dashboard_layout>

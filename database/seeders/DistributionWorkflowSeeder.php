@@ -10,7 +10,7 @@ use RuntimeException;
 
 class DistributionWorkflowSeeder extends Seeder
 {
-    private const PREFIX = 'DEMO-2026';
+    private const PREFIX = 'TUPAD-2026';
 
     /**
      * Seven PPE variants are expected:
@@ -876,7 +876,7 @@ class DistributionWorkflowSeeder extends Seeder
                     $receiver,
 
                 'dr_number' =>
-                    self::PREFIX.'-DR-'.$reference,
+                    'DR-'.$reference,
 
                 'delivery_date' =>
                     $date->format('Y-m-d'),

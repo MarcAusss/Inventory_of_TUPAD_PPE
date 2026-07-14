@@ -2,306 +2,285 @@
 
 namespace App\Services;
 
-use App\Models\InventoryMovement;
-use App\Models\ProvinceDistribution;
+use App\Models\DeliveryReceipt;
 use App\Models\SupplyDesignation;
 use Illuminate\Support\Collection;
 
 class InventoryMovementReportService
 {
     /**
-     * Build Inventory Movement History for one province.
+     * Build the project-distribution inventory ledger for one exact
+     * Delivery Receipt.
      *
-     * Completed project rows use the historical Call-Off
-     * balance snapshots stored in inventory_movements.
+     * Delivery Receipts under the same Call-Off are never combined.
      *
-     * Beginning Inventory = call_off_balance_before
-     * Actual Inventory    = quantity distributed
-     * Ending Inventory    = call_off_balance_after
+     * Beginning Inventory:
+     * Available PPE from this receipt before the current project.
+     *
+     * Actual Distribution:
+     * PPE distributed to the current project.
+     *
+     * Ending Inventory:
+     * Beginning Inventory minus Actual Distribution.
+     *
+     * The current ending becomes the next row's beginning.
      *
      * @return Collection<int, array<string, mixed>>
      */
-    public function buildForProvince(
-        int $provinceId
+    public function buildForDeliveryReceipt(
+        int $provinceId,
+        int $deliveryReceiptId
     ): Collection {
-        $allocations = ProvinceDistribution::query()
+        $receipt = DeliveryReceipt::query()
             ->with([
-                'province',
                 'items.item',
-                'distributionBatch.callOff',
-                'distributionBatch.purchaseOrder.supplier',
-                'deliveryReceipts.items.item',
+                'receivedByUser',
+
+                'provinceDistribution.items.item',
+
+                'provinceDistribution.distributionBatch.callOff',
+
+                'provinceDistribution.distributionBatch.purchaseOrder.supplier',
+
+                'supplyDesignations' => function ($query): void {
+                    $query
+                        ->where(
+                            'status',
+                            'Completed'
+                        )
+                        ->orderBy(
+                            'designation_date'
+                        )
+                        ->orderBy('id');
+                },
+
                 'supplyDesignations.items.item',
             ])
             ->where(
                 'province_id',
                 $provinceId
             )
-            ->whereHas(
-                'distributionBatch.callOff'
+            ->where(
+                'status',
+                'Received'
             )
-            ->orderBy('id')
-            ->get();
+            ->whereNotNull(
+                'province_distribution_id'
+            )
+            ->whereKey(
+                $deliveryReceiptId
+            )
+            ->firstOrFail();
 
-        return $allocations
-            ->flatMap(
-                fn (
-                    ProvinceDistribution $allocation
-                ): Collection => $this->buildAllocationRows(
-                    $allocation
-                )
-            )
-            ->values();
+        return $this->buildRows(
+            $receipt
+        );
     }
 
     /**
-     * Build report rows for one Call-Off allocation.
+     * Build rows for the selected receipt.
      *
      * @return Collection<int, array<string, mixed>>
      */
-    public function buildAllocationRows(
-        ProvinceDistribution $allocation
+    private function buildRows(
+        DeliveryReceipt $receipt
     ): Collection {
-        $allocation->loadMissing([
-            'province',
+        $receipt->loadMissing([
             'items.item',
-            'distributionBatch.callOff',
-            'distributionBatch.purchaseOrder.supplier',
-            'deliveryReceipts.items.item',
+            'receivedByUser',
+
+            'provinceDistribution.items.item',
+
+            'provinceDistribution.distributionBatch.callOff',
+
+            'provinceDistribution.distributionBatch.purchaseOrder.supplier',
+
             'supplyDesignations.items.item',
         ]);
 
-        $designations = $allocation
+        /*
+        |--------------------------------------------------------------------------
+        | Initial receipt inventory
+        |--------------------------------------------------------------------------
+        |
+        | The running balance begins with the PPE physically received
+        | through this exact Delivery Receipt.
+        |
+        */
+
+        $runningBalance = $this->receivedQuantities(
+            $receipt
+        );
+
+        $designations = $receipt
             ->supplyDesignations
             ->where(
                 'status',
                 'Completed'
             )
             ->sortBy(
-                fn (
+                function (
                     SupplyDesignation $designation
-                ): string => (
-                    $designation
+                ): string {
+                    $date = $designation
                         ->designation_date
                         ?->format('Y-m-d')
-                    ?? '0000-00-00'
-                )
-                .'|'
-                .str_pad(
-                    (string) $designation->id,
-                    20,
-                    '0',
-                    STR_PAD_LEFT
-                )
+                        ?? '0000-00-00';
+
+                    return $date
+                        .'|'
+                        .str_pad(
+                            (string) $designation->id,
+                            20,
+                            '0',
+                            STR_PAD_LEFT
+                        );
+                }
             )
             ->values();
 
         /*
-         * No project distribution yet.
-         *
-         * Show the current opening Call-Off inventory.
-         */
+        |--------------------------------------------------------------------------
+        | No project distribution yet
+        |--------------------------------------------------------------------------
+        |
+        | Show one opening row so the selected receipt inventory can
+        | still be inspected.
+        |
+        */
+
         if ($designations->isEmpty()) {
+            $zeroDistribution =
+                $this->emptyQuantities();
+
             return collect([
-                $this->makeOpeningRow(
-                    $allocation
+                $this->makeRow(
+                    receipt: $receipt,
+                    designation: null,
+                    beginning: $runningBalance,
+                    actualDistribution:
+                        $zeroDistribution,
+                    ending: $runningBalance
                 ),
             ]);
         }
 
-        return $designations
-            ->map(
-                fn (
-                    SupplyDesignation $designation
-                ): array => $this->makeDesignationRow(
-                    $allocation,
+        $rows = collect();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Completed projects
+        |--------------------------------------------------------------------------
+        */
+
+        foreach ($designations as $designation) {
+            $beginning = $runningBalance;
+
+            $actualDistribution =
+                $this->designationQuantities(
                     $designation
+                );
+
+            $ending = $this->calculateEnding(
+                beginning: $beginning,
+                actualDistribution:
+                    $actualDistribution
+            );
+
+            $rows->push(
+                $this->makeRow(
+                    receipt: $receipt,
+                    designation: $designation,
+                    beginning: $beginning,
+                    actualDistribution:
+                        $actualDistribution,
+                    ending: $ending
                 )
-            )
-            ->values();
-    }
-
-    /**
-     * Build one historical project movement row.
-     *
-     * This method DOES NOT recalculate historical balances.
-     *
-     * It reads the snapshots already stored in:
-     *
-     * call_off_balance_before
-     * quantity
-     * call_off_balance_after
-     *
-     * @return array<string, mixed>
-     */
-    private function makeDesignationRow(
-        ProvinceDistribution $allocation,
-        SupplyDesignation $designation
-    ): array {
-        $movements = InventoryMovement::query()
-            ->with('item')
-            ->where(
-                'province_id',
-                $allocation->province_id
-            )
-            ->where(
-                'province_distribution_id',
-                $allocation->id
-            )
-            ->where(
-                'supply_designation_id',
-                $designation->id
-            )
-            ->where(
-                'movement_type',
-                'OUT'
-            )
-            ->orderBy('item_id')
-            ->get();
-
-        $beginning = [];
-
-        $actual = [];
-
-        $ending = [];
-
-        /*
-         * Build balances directly from movement snapshots.
-         */
-        foreach ($movements as $movement) {
-            $itemId = (int) $movement->item_id;
-
-            $beginning[$itemId] = (int) (
-                $movement->call_off_balance_before
-                ?? 0
             );
 
-            $actual[$itemId] = (int) $movement->quantity;
-
-            $ending[$itemId] = (int) (
-                $movement->call_off_balance_after
-                ?? 0
-            );
+            /*
+             * The current ending inventory becomes the next project's
+             * beginning inventory.
+             */
+            $runningBalance = $ending;
         }
 
-        /*
-         * Compatibility fallback.
-         *
-         * This only applies to historical designation items
-         * that do not yet have an InventoryMovement row.
-         */
-        foreach ($designation->items as $designationItem) {
-            $itemId = (int) $designationItem->item_id;
-
-            if (isset($actual[$itemId])) {
-                continue;
-            }
-
-            $quantity = (int) $designationItem->quantity;
-
-            $actual[$itemId] = $quantity;
-
-            $beginning[$itemId] = 0;
-
-            $ending[$itemId] = 0;
-        }
-
-        return $this->baseRow(
-            allocation: $allocation,
-            designation: $designation,
-            beginning: $beginning,
-            actual: $actual,
-            ending: $ending
-        );
+        return $rows->values();
     }
 
     /**
-     * Build opening Call-Off row.
-     *
-     * When no project has consumed PPE yet:
-     *
-     * Beginning = Actual Received
-     * Actual    = 0
-     * Ending    = Actual Received
-     *
-     * @return array<string, mixed>
-     */
-    private function makeOpeningRow(
-        ProvinceDistribution $allocation
-    ): array {
-        $received = $this->receivedQuantities(
-            $allocation
-        );
-
-        $actual = [];
-
-        foreach (
-            $this->itemIds(
-                $allocation,
-                $received
-            ) as $itemId
-        ) {
-            $actual[$itemId] = 0;
-        }
-
-        return $this->baseRow(
-            allocation: $allocation,
-            designation: null,
-            beginning: $received,
-            actual: $actual,
-            ending: $received
-        );
-    }
-
-    /**
-     * Build the shared report row structure.
+     * Build one report row.
      *
      * @param array<int, int> $beginning
-     * @param array<int, int> $actual
+     * @param array<int, int> $actualDistribution
      * @param array<int, int> $ending
      *
      * @return array<string, mixed>
      */
-    private function baseRow(
-        ProvinceDistribution $allocation,
+    private function makeRow(
+        DeliveryReceipt $receipt,
         ?SupplyDesignation $designation,
         array $beginning,
-        array $actual,
+        array $actualDistribution,
         array $ending
     ): array {
-        $callOff = $allocation
-            ->distributionBatch
+        $allocation = $receipt
+            ->provinceDistribution;
+
+        $batch = $allocation
+            ?->distributionBatch;
+
+        $callOff = $batch
             ?->callOff;
 
-        $supplier = $allocation
-            ->distributionBatch
-            ?->purchaseOrder
+        $purchaseOrder = $batch
+            ?->purchaseOrder;
+
+        $supplier = $purchaseOrder
             ?->supplier;
 
-        $deliveryReceipts = $allocation
-            ->deliveryReceipts
-            ->sortBy(
-                fn ($receipt): string => (
-                    $receipt
-                        ->delivery_date
-                        ?->format('Y-m-d')
-                    ?? '0000-00-00'
-                )
-                .'|'
-                .str_pad(
-                    (string) $receipt->id,
-                    20,
-                    '0',
-                    STR_PAD_LEFT
-                )
-            )
-            ->values();
-
         return [
-            'province_distribution_id' => $allocation->id,
+            /*
+            |--------------------------------------------------------------------------
+            | Delivery Receipt source
+            |--------------------------------------------------------------------------
+            */
+
+            'delivery_receipt_id' =>
+                (int) $receipt->id,
+
+            'delivery_receipt_number' =>
+                $receipt->dr_number
+                ?? '—',
+
+            'delivery_date' =>
+                $receipt->delivery_date,
+
+            'receiver_name' =>
+                $receipt->physical_receiver_name
+                ?? $receipt->receivedByUser?->name
+                ?? $receipt->received_by
+                ?? '—',
+
+            /*
+            |--------------------------------------------------------------------------
+            | Parent Call-Off references
+            |--------------------------------------------------------------------------
+            */
+
+            'province_distribution_id' =>
+                (int) (
+                    $receipt
+                        ->province_distribution_id
+                    ?? 0
+                ),
 
             'call_off_number' =>
                 $callOff?->call_off_number
+                ?? '—',
+
+            'purchase_order_number' =>
+                $purchaseOrder?->po_number
                 ?? '—',
 
             'supplier_name' =>
@@ -309,33 +288,13 @@ class InventoryMovementReportService
                 ?? '—',
 
             /*
-             * Delivery Receipt audit information.
-             */
-            'delivery_receipts' =>
-                $deliveryReceipts,
+            |--------------------------------------------------------------------------
+            | Project details
+            |--------------------------------------------------------------------------
+            */
 
-            'delivery_receipt_numbers' =>
-                $deliveryReceipts
-                    ->pluck('dr_number')
-                    ->filter()
-                    ->implode(', '),
-
-            'first_delivery_date' =>
-                $deliveryReceipts
-                    ->min('delivery_date'),
-
-            'last_delivery_date' =>
-                $deliveryReceipts
-                    ->max('delivery_date'),
-
-            /*
-             * Project information.
-             */
             'supply_designation_id' =>
                 $designation?->id,
-
-            'designation_number' =>
-                $designation?->designation_number,
 
             'project_code' =>
                 $designation?->project_code
@@ -364,122 +323,174 @@ class InventoryMovementReportService
                     ?? 0
                 ),
 
-            /*
-             * Project date for completed project rows.
-             *
-             * Last delivery date is used for an opening row.
-             */
             'movement_date' =>
                 $designation?->designation_date
-                ?? $deliveryReceipts
-                    ->max('delivery_date'),
+                ?? $receipt->delivery_date,
 
             /*
-             * Inventory Movement History values.
-             */
-            'beginning' => $beginning,
+            |--------------------------------------------------------------------------
+            | Inventory values
+            |--------------------------------------------------------------------------
+            */
 
-            'actual' => $actual,
-
-            'ending' => $ending,
+            'beginning' =>
+                $beginning,
 
             /*
-             * Summary totals.
+             * Keep the array key `actual` for Blade compatibility.
+             * Its meaning is now Actual Distribution.
              */
+            'actual' =>
+                $actualDistribution,
+
+            'ending' =>
+                $ending,
+
             'beginning_total' =>
                 array_sum($beginning),
 
             'actual_total' =>
-                array_sum($actual),
+                array_sum($actualDistribution),
 
             'ending_total' =>
                 array_sum($ending),
 
             /*
-             * Source models.
-             */
-            'designation' => $designation,
+            |--------------------------------------------------------------------------
+            | Source models
+            |--------------------------------------------------------------------------
+            */
 
-            'allocation' => $allocation,
+            'receipt' =>
+                $receipt,
+
+            'designation' =>
+                $designation,
+
+            'allocation' =>
+                $allocation,
         ];
     }
 
     /**
-     * Sum all actual Delivery Receipt quantities
-     * under one Call-Off provincial allocation.
-     *
-     * Multiple DRs are combined.
+     * Get PPE physically received in this exact receipt.
      *
      * @return array<int, int>
      */
     private function receivedQuantities(
-        ProvinceDistribution $allocation
+        DeliveryReceipt $receipt
     ): array {
-        $quantities = [];
+        $quantities = $this->emptyQuantities();
 
-        foreach (
-            $allocation->deliveryReceipts as $receipt
-        ) {
-            if (
-                $receipt->status !== 'Received'
-            ) {
+        foreach ($receipt->items as $receiptItem) {
+            $itemId = (int) $receiptItem->item_id;
+
+            if (! array_key_exists(
+                $itemId,
+                $quantities
+            )) {
                 continue;
             }
 
-            foreach (
-                $receipt->items as $receiptItem
-            ) {
-                $itemId = (int) $receiptItem->item_id;
+            $quantity = (int) (
+                $receiptItem->received_quantity
+                ?? $receiptItem->quantity
+                ?? 0
+            );
 
-                $quantity = (int) (
-                    $receiptItem->received_quantity
-                    ?? $receiptItem->quantity
-                    ?? 0
-                );
-
-                if ($quantity <= 0) {
-                    continue;
-                }
-
-                $quantities[$itemId] = (
-                    $quantities[$itemId]
-                    ?? 0
-                ) + $quantity;
+            if ($quantity <= 0) {
+                continue;
             }
+
+            $quantities[$itemId] +=
+                $quantity;
         }
 
         return $quantities;
     }
 
     /**
-     * Get all PPE item IDs represented by an allocation.
+     * Get PPE distributed through one project designation.
      *
-     * @param array<int, int> $quantities
-     *
-     * @return Collection<int, int>
+     * @return array<int, int>
      */
-    private function itemIds(
-        ProvinceDistribution $allocation,
-        array $quantities
-    ): Collection {
-        return collect(
-            array_merge(
-                $allocation
-                    ->items
-                    ->pluck('item_id')
-                    ->map(
-                        fn ($itemId): int =>
-                            (int) $itemId
-                    )
-                    ->all(),
+    private function designationQuantities(
+        SupplyDesignation $designation
+    ): array {
+        $quantities = $this->emptyQuantities();
 
-                array_keys(
-                    $quantities
+        foreach ($designation->items as $item) {
+            $itemId = (int) $item->item_id;
+
+            if (! array_key_exists(
+                $itemId,
+                $quantities
+            )) {
+                continue;
+            }
+
+            $quantity = (int) $item->quantity;
+
+            if ($quantity <= 0) {
+                continue;
+            }
+
+            $quantities[$itemId] +=
+                $quantity;
+        }
+
+        return $quantities;
+    }
+
+    /**
+     * Ending = Beginning - Actual Distribution.
+     *
+     * @param array<int, int> $beginning
+     * @param array<int, int> $actualDistribution
+     *
+     * @return array<int, int>
+     */
+    private function calculateEnding(
+        array $beginning,
+        array $actualDistribution
+    ): array {
+        $ending = $this->emptyQuantities();
+
+        foreach (
+            array_keys($ending)
+            as $itemId
+        ) {
+            $ending[$itemId] = max(
+                0,
+                (int) (
+                    $beginning[$itemId]
+                    ?? 0
                 )
-            )
-        )
-            ->unique()
-            ->sort()
-            ->values();
+                - (int) (
+                    $actualDistribution[$itemId]
+                    ?? 0
+                )
+            );
+        }
+
+        return $ending;
+    }
+
+    /**
+     * The seven fixed PPE variants.
+     *
+     * @return array<int, int>
+     */
+    private function emptyQuantities(): array
+    {
+        return [
+            1 => 0,
+            2 => 0,
+            3 => 0,
+            4 => 0,
+            5 => 0,
+            6 => 0,
+            7 => 0,
+        ];
     }
 }

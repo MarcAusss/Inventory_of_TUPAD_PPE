@@ -1,633 +1,543 @@
 @php
     $purchaseOrder = $purchaseOrder ?? new \App\Models\PurchaseOrder();
     $editing = $purchaseOrder->exists;
+
+    $poItems = $editing
+        ? $purchaseOrder->items->keyBy('item_id')
+        : collect();
 @endphp
 
-<form action="{{ $editing
-    ? route('supply.purchase-orders.update', $purchaseOrder)
-    : route('supply.purchase-orders.store') }}" method="POST" enctype="multipart/form-data">
-
+<form
+    action="{{ $editing
+        ? route('supply.purchase-orders.update', $purchaseOrder)
+        : route('supply.purchase-orders.store') }}"
+    method="POST"
+    enctype="multipart/form-data"
+    class="space-y-6"
+>
     @csrf
 
     @if($editing)
         @method('PUT')
     @endif
 
-
-    <div class="max-w-7xl mx-auto py-8 space-y-8">
-
-        @if ($errors->any())
-
-            <div class="bg-red-50 border border-red-200 rounded-xl p-5">
-
-                <h3 class="text-red-700 font-semibold mb-2">
-                    Please fix the following errors:
-                </h3>
-
-                <ul class="list-disc list-inside text-red-600 text-sm space-y-1">
-
-                    @foreach ($errors->all() as $error)
-
-                        <li>{{ $error }}</li>
-
-                    @endforeach
-
-                </ul>
-
-            </div>
-
-        @endif
-
-        <!-- Purchase Order Information -->
-        <div class="bg-white rounded-2xl shadow border border-gray-200 overflow-hidden">
-
-            <div class="px-8 py-6 bg-red-900">
-
-                <h3 class="text-2xl font-semibold text-white">
-
-                    Purchase Order Information
-
-                </h3>
-
-                <p class="text-indigo-100 mt-1 text-sm">
-
-                    Enter the purchase order details before adding the PPE inventory.
-
-                </p>
-
-            </div>
-
-            <div class="p-8">
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                    <!-- PO Number -->
-                    <div>
-
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-
-                            PO Number
-
-                        </label>
-
-                        <input type="text" name="po_number" value="{{ old('po_number', $purchaseOrder->po_number) }}"
-                            class="w-full rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
-
-                        @error('po_number')
-
-                            <p class="text-red-500 text-sm mt-1">
-
-                                {{ $message }}
-
-                            </p>
-
-                        @enderror
-
-                    </div>
-
-                    <!-- PO Date -->
-                    <div>
-
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-
-                            PO Date
-
-                        </label>
-
-                        <input type="date" name="po_date"
-                            value="{{ old('po_date', optional($purchaseOrder->po_date)->format('Y-m-d') ?? $purchaseOrder->po_date) }}"
-                            class="w-full rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
-
-                        @error('po_date')
-
-                            <p class="text-red-500 text-sm mt-1">
-
-                                {{ $message }}
-
-                            </p>
-
-                        @enderror
-
-                    </div>
-
-                    <!-- NEFA -->
-                    <div>
-
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-
-                            NEFA Number
-
-                        </label>
-
-                        <input type="text" name="nefa_number"
-                            value="{{ old('nefa_number', $purchaseOrder->nefa_number) }}"
-                            class="w-full rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
-
-                        @error('nefa_number')
-
-                            <p class="text-red-500 text-sm mt-1">
-
-                                {{ $message }}
-
-                            </p>
-
-                        @enderror
-
-                    </div>
-
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-
-                    <!-- Supplier -->
-                    <div>
-
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-
-                            Supplier
-
-                        </label>
-
-                        <select name="supplier_id"
-                            class="w-full rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
-
-                            <option value="">
-
-                                Select Supplier
-
-                            </option>
-
-                            @foreach($suppliers as $supplier)
-
-                                <option value="{{ $supplier->id }}" @selected(old('supplier_id', $purchaseOrder->supplier_id) == $supplier->id)>
-
-                                    {{ $supplier->supplier_name }}
-
-                                </option>
-
-                            @endforeach
-
-                        </select>
-
-                        @error('supplier_id')
-
-                            <p class="text-red-500 text-sm mt-1">
-
-                                {{ $message }}
-
-                            </p>
-
-                        @enderror
-
-                    </div>
-
-                    <!-- Total -->
-                    <div>
-
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-
-                            Grand Total
-
-                        </label>
-
-                        <div id="grandTotal"
-                            class="h-11 flex items-center justify-end px-4 rounded-xl border border-gray-300 bg-gray-100 text-xl font-bold text-red-900">
-
-                            ₱{{ number_format(old('total_amount', $purchaseOrder->total_amount ?? 0), 2) }}
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <!-- Remarks -->
-                <div class="mt-6">
-
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
-
-                        Remarks
-
-                    </label>
-
-                    <textarea name="remarks" rows="4"
-                        class="w-full rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">{{ old('remarks', $purchaseOrder->remarks) }}</textarea>
-
-                    @error('remarks')
-
-                        <p class="text-red-500 text-sm mt-1">
-
-                            {{ $message }}
-
-                        </p>
-
-                    @enderror
-
-                </div>
-
-            </div>
-
+    {{-- =========================================================
+        VALIDATION SUMMARY
+    ========================================================== --}}
+    @if($errors->any())
+        <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4">
+            <p class="font-bold text-red-800">
+                Please correct the following fields:
+            </p>
+
+            <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    {{-- =========================================================
+        PURCHASE ORDER INFORMATION
+    ========================================================== --}}
+    <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">
+                Procurement information
+            </p>
+
+            <h3 class="mt-1 text-lg font-bold text-slate-950">
+                Purchase Order Information
+            </h3>
+
+            <p class="mt-1 text-sm text-slate-500">
+                Enter the Purchase Order references, supplier, date, and remarks before adding PPE quantities.
+            </p>
         </div>
 
-        <!-- SECTION 2 (PPE Items) GOES HERE -->
+        <div class="p-6 sm:p-7">
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
 
-    </div>
+                {{-- PO NUMBER --}}
+                <div>
+                    <label for="po_number" class="mb-2 block text-sm font-bold text-slate-700">
+                        PO Number <span class="text-red-600">*</span>
+                    </label>
 
+                    <input
+                        type="text"
+                        id="po_number"
+                        name="po_number"
+                        value="{{ old('po_number', $purchaseOrder->po_number) }}"
+                        placeholder="Enter PO number"
+                        class="w-full rounded-xl border-slate-300 focus:border-[#970C13] focus:ring-[#970C13]"
+                    >
 
-    <!-- PPE Inventory -->
-    <div class="bg-white rounded-2xl shadow border border-gray-200 overflow-hidden">
+                    @error('po_number')
+                        <p class="mt-1 text-sm font-medium text-red-600">
+                            {{ $message }}
+                        </p>
+                    @enderror
+                </div>
 
-        <div class="px-8 py-6 bg-red-900 flex items-center justify-between">
+                {{-- PO DATE --}}
+                <div>
+                    <label for="po_date" class="mb-2 block text-sm font-bold text-slate-700">
+                        PO Date <span class="text-red-600">*</span>
+                    </label>
 
-            <div>
+                    <input
+                        type="date"
+                        id="po_date"
+                        name="po_date"
+                        value="{{ old(
+                            'po_date',
+                            optional($purchaseOrder->po_date)->format('Y-m-d')
+                                ?? $purchaseOrder->po_date
+                        ) }}"
+                        class="w-full rounded-xl border-slate-300 focus:border-[#970C13] focus:ring-[#970C13]"
+                    >
 
-                <h3 class="text-2xl font-semibold text-white">
-                    PPE Inventory
-                </h3>
+                    @error('po_date')
+                        <p class="mt-1 text-sm font-medium text-red-600">
+                            {{ $message }}
+                        </p>
+                    @enderror
+                </div>
 
-                <p class="text-indigo-100 text-sm mt-1">
-                    Enter the quantity and unit cost for every PPE item.
-                </p>
+                {{-- NEFA NUMBER --}}
+                <div>
+                    <label for="nefa_number" class="mb-2 block text-sm font-bold text-slate-700">
+                        NEFA Number
+                    </label>
 
+                    <input
+                        type="text"
+                        id="nefa_number"
+                        name="nefa_number"
+                        value="{{ old('nefa_number', $purchaseOrder->nefa_number) }}"
+                        placeholder="Enter NEFA number"
+                        class="w-full rounded-xl border-slate-300 focus:border-[#970C13] focus:ring-[#970C13]"
+                    >
+
+                    @error('nefa_number')
+                        <p class="mt-1 text-sm font-medium text-red-600">
+                            {{ $message }}
+                        </p>
+                    @enderror
+                </div>
             </div>
 
+            <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+
+                {{-- SUPPLIER --}}
+                <div>
+                    <label for="supplier_id" class="mb-2 block text-sm font-bold text-slate-700">
+                        Supplier <span class="text-red-600">*</span>
+                    </label>
+
+                    <select
+                        id="supplier_id"
+                        name="supplier_id"
+                        class="w-full rounded-xl border-slate-300 focus:border-[#970C13] focus:ring-[#970C13]"
+                    >
+                        <option value="">Select supplier</option>
+
+                        @foreach($suppliers as $supplier)
+                            <option
+                                value="{{ $supplier->id }}"
+                                @selected(
+                                    old(
+                                        'supplier_id',
+                                        $purchaseOrder->supplier_id
+                                    ) == $supplier->id
+                                )
+                            >
+                                {{ $supplier->supplier_name }}
+                            </option>
+                        @endforeach
+                    </select>
+
+                    @error('supplier_id')
+                        <p class="mt-1 text-sm font-medium text-red-600">
+                            {{ $message }}
+                        </p>
+                    @enderror
+                </div>
+
+                {{-- GRAND TOTAL --}}
+                <div>
+                    <label class="mb-2 block text-sm font-bold text-slate-700">
+                        Calculated Grand Total
+                    </label>
+
+                    <div
+                        id="grandTotal"
+                        class="flex min-h-11 items-center justify-end rounded-xl border border-slate-300 bg-slate-100 px-4 text-xl font-bold text-[#970C13]"
+                    >
+                        ₱{{ number_format(
+                            old(
+                                'total_amount',
+                                $purchaseOrder->total_amount ?? 0
+                            ),
+                            2
+                        ) }}
+                    </div>
+
+                    <p class="mt-1 text-xs text-slate-500">
+                        Automatically calculated from the PPE quantities and unit costs below.
+                    </p>
+                </div>
+            </div>
+
+            {{-- REMARKS --}}
+            <div class="mt-6">
+                <label for="remarks" class="mb-2 block text-sm font-bold text-slate-700">
+                    Remarks
+                </label>
+
+                <textarea
+                    id="remarks"
+                    name="remarks"
+                    rows="4"
+                    placeholder="Enter optional Purchase Order remarks..."
+                    class="w-full rounded-xl border-slate-300 focus:border-[#970C13] focus:ring-[#970C13]"
+                >{{ old('remarks', $purchaseOrder->remarks) }}</textarea>
+
+                @error('remarks')
+                    <p class="mt-1 text-sm font-medium text-red-600">
+                        {{ $message }}
+                    </p>
+                @enderror
+            </div>
+        </div>
+    </section>
+
+    {{-- =========================================================
+        PPE INVENTORY
+    ========================================================== --}}
+    <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">
+                Ordered inventory
+            </p>
+
+            <h3 class="mt-1 text-lg font-bold text-slate-950">
+                PPE Inventory
+            </h3>
+
+            <p class="mt-1 text-sm text-slate-500">
+                Enter the ordered quantity and unit cost for each PPE item. Leave unused items at zero.
+            </p>
         </div>
 
         <div class="overflow-x-auto">
-
-            <table class="min-w-full">
-
-                <thead class="bg-gray-100">
-
-                    <tr class="text-sm uppercase tracking-wider text-gray-700">
-
-                        <th class="px-6 py-4 text-left">
-                            Description
-                        </th>
-
-                        <th class="px-6 py-4 text-center">
-                            Size
-                        </th>
-
-                        <th class="px-6 py-4 text-center">
-                            Quantity
-                        </th>
-
-                        <th class="px-6 py-4 text-center">
-                            Unit Cost
-                        </th>
-
-                        <th class="px-6 py-4 text-center">
-                            Total
-                        </th>
-
+            <table class="min-w-[900px] w-full divide-y divide-slate-200">
+                <thead class="bg-slate-100">
+                    <tr class="text-xs font-bold uppercase tracking-wide text-slate-600">
+                        <th class="px-6 py-4 text-left">No.</th>
+                        <th class="px-6 py-4 text-left">Description</th>
+                        <th class="px-6 py-4 text-center">Size / Label</th>
+                        <th class="px-6 py-4 text-center">Quantity</th>
+                        <th class="px-6 py-4 text-center">Unit Cost</th>
+                        <th class="px-6 py-4 text-right">Line Total</th>
                     </tr>
-
                 </thead>
 
-                <tbody class="divide-y divide-gray-200 bg-white">
-
-                    @php
-                        $index = 0;
-
-                        $poItems = $editing
-                            ? $purchaseOrder->items->keyBy('item_id')
-                            : collect();
-                    @endphp
-
-                    @foreach($items as $item)
+                <tbody class="divide-y divide-slate-100 bg-white">
+                    @forelse($items as $index => $item)
                         @php
                             $poItem = $poItems->get($item->id);
+                            $itemLabel = $item->label ?: null;
                         @endphp
-                        {{-- LONGSLEEVES --}}
-                        @if(strtolower($item->item_name) == 'longsleeves')
 
-                        @elseif(strtolower($item->item_name) == 'long sleeve')
+                        <tr class="transition hover:bg-slate-50">
+                            <td class="px-6 py-5 text-sm text-slate-500">
+                                {{ $loop->iteration }}
+                            </td>
 
-                            <tr class="hover:bg-gray-50 transition">
-
-                                <td class="px-6 py-4 font-medium text-gray-800">
-
+                            <td class="px-6 py-5">
+                                <div class="font-semibold text-slate-900">
                                     {{ $item->item_name }}
+                                </div>
 
-                                    <input type="hidden" name="items[{{ $index }}][item_id]" value="{{ $item->id }}">
+                                <input
+                                    type="hidden"
+                                    name="items[{{ $index }}][item_id]"
+                                    value="{{ $item->id }}"
+                                >
+                            </td>
 
-                                </td>
-
-                                <td class="text-center">
-
-                                    <span class="inline-flex px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm">
-
-                                        {{ $item->label ?? '—' }}
-
+                            <td class="px-6 py-5 text-center">
+                                @if($itemLabel)
+                                    <span class="inline-flex rounded-full bg-[#DF979B]/20 px-3 py-1 text-xs font-bold text-[#970C13] ring-1 ring-[#DF979B]">
+                                        {{ $itemLabel }}
                                     </span>
 
-                                    <input type="hidden" name="items[{{ $index }}][size]" value="{{ $item->label }}">
+                                    <input
+                                        type="hidden"
+                                        name="items[{{ $index }}][size]"
+                                        value="{{ $itemLabel }}"
+                                    >
+                                @else
+                                    <span class="text-slate-400">—</span>
+                                @endif
+                            </td>
 
-                                </td>
+                            <td class="px-6 py-5 text-center">
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    name="items[{{ $index }}][quantity]"
+                                    value="{{ old(
+                                        "items.$index.quantity",
+                                        $poItem->quantity ?? 0
+                                    ) }}"
+                                    class="qty w-28 rounded-xl border-slate-300 text-center font-semibold focus:border-[#970C13] focus:ring-[#970C13]"
+                                >
 
-                                <td class="px-4 py-3">
+                                @error("items.$index.quantity")
+                                    <p class="mt-1 text-xs font-medium text-red-600">
+                                        {{ $message }}
+                                    </p>
+                                @enderror
+                            </td>
 
-                                    <input type="number" min="0" value="{{ old("items.$index.quantity", $poItem->quantity ?? 0) }}" name="items[{{ $index }}][quantity]"
-                                        class="qty w-28 mx-auto rounded-lg border-gray-300 text-center">
-
-                                </td>
-
-                                <td class="px-4 py-3">
-
-                                    <input type="number" min="0" step="0.01" value="{{ old("items.$index.unit_cost", $poItem->unit_cost ?? 0) }}" name="items[{{ $index }}][unit_cost]"
-                                        class="cost w-36 mx-auto rounded-lg border-gray-300 text-center">
-
-                                </td>
-
-                                <td class="text-center font-semibold text-red-900">
-
-                                    ₱<span class="line-total">0.00</span>
-
-                                </td>
-
-                            </tr>
-
-
-                            {{-- RUBBER BOOTS --}}
-                        @elseif(strtolower($item->item_name) == 'rubber boots')
-
-                            <tr class="hover:bg-gray-50">
-
-                                <td class="px-6 py-4 font-medium">
-
-                                    {{ $item->item_name }}
-
-                                    <input type="hidden" name="items[{{ $index }}][item_id]" value="{{ $item->id }}">
-
-                                </td>
-
-                                <td class="text-center">
-
-                                    <span class="inline-flex px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm">
-
-                                        {{ $item->label }}
-
+                            <td class="px-6 py-5 text-center">
+                                <div class="relative mx-auto w-40">
+                                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm font-semibold text-slate-500">
+                                        ₱
                                     </span>
 
-                                    <input type="hidden" name="items[{{ $index }}][size]" value="{{ $item->label }}">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        name="items[{{ $index }}][unit_cost]"
+                                        value="{{ old(
+                                            "items.$index.unit_cost",
+                                            $poItem->unit_cost ?? 0
+                                        ) }}"
+                                        class="cost w-full rounded-xl border-slate-300 pl-8 text-right font-semibold focus:border-[#970C13] focus:ring-[#970C13]"
+                                    >
+                                </div>
 
-                                </td>
+                                @error("items.$index.unit_cost")
+                                    <p class="mt-1 text-xs font-medium text-red-600">
+                                        {{ $message }}
+                                    </p>
+                                @enderror
+                            </td>
 
-                                <td class="px-4 py-3">
-
-                                    <input type="number" min="0" value="{{ old("items.$index.quantity", $poItem->quantity ?? 0) }}" name="items[{{ $index }}][quantity]"
-                                        class="qty w-28 mx-auto rounded-lg border-gray-300 text-center">
-
-                                </td>
-
-                                <td class="px-4 py-3">
-
-                                    <input type="number" min="0" step="0.01" value="{{ old("items.$index.unit_cost", $poItem->unit_cost ?? 0) }}" name="items[{{ $index }}][unit_cost]"
-                                        class="cost w-36 mx-auto rounded-lg border-gray-300 text-center">
-
-                                </td>
-
-                                <td class="text-center font-semibold text-red-900">
-
-                                    ₱<span class="line-total">0.00</span>
-
-                                </td>
-
-                            </tr>
-
-                        @else
-
-                            <tr class="hover:bg-gray-50">
-
-                                <td class="px-6 py-4 font-medium text-gray-800">
-
-                                    {{ $item->item_name }}
-
-                                    <input type="hidden" name="items[{{ $index }}][item_id]" value="{{ $item->id }}">
-
-                                </td>
-
-                                <td class="text-center text-gray-400">
-
-                                    —
-
-                                </td>
-
-                                <td class="px-4 py-3">
-
-                                    <input type="number" min="0" value="{{ old("items.$index.quantity", $poItem->quantity ?? 0) }}" name="items[{{ $index }}][quantity]"
-                                        class="qty w-28 mx-auto rounded-lg border-gray-300 text-center">
-
-                                </td>
-
-                                <td class="px-4 py-3">
-
-                                    <input type="number" min="0" step="0.01" value="{{ old("items.$index.unit_cost", $poItem->unit_cost ?? 0) }}" name="items[{{ $index }}][unit_cost]"
-                                        class="cost w-36 mx-auto rounded-lg border-gray-300 text-center">
-
-                                </td>
-
-                                <td class="text-center font-semibold text-red-900">
-
-                                    ₱<span class="line-total">0.00</span>
-
-                                </td>
-
-                            </tr>
-
-                           
-                        @endif
-                           @php
-                                $index++;
-                            @endphp
-
-                    @endforeach
-
+                            <td class="px-6 py-5 text-right text-base font-bold text-[#970C13]">
+                                ₱<span class="line-total">0.00</span>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center text-sm text-slate-500">
+                                No PPE reference items are available.
+                            </td>
+                        </tr>
+                    @endforelse
                 </tbody>
 
-                <tfoot class="bg-gray-50">
-
+                <tfoot class="bg-slate-100">
                     <tr>
-
-                        <td colspan="4" class="px-6 py-5 text-right text-lg font-bold">
-
-                            GRAND TOTAL
-
+                        <td colspan="5" class="px-6 py-5 text-right text-sm font-bold uppercase tracking-wide text-slate-700">
+                            Grand Total
                         </td>
 
-                        <td class="px-6 py-5 text-center text-2xl font-bold text-red-900">
-
+                        <td class="px-6 py-5 text-right text-2xl font-bold text-[#970C13]">
                             ₱<span id="grandTotalDisplay">0.00</span>
-
                         </td>
-
                     </tr>
-
                 </tfoot>
-
             </table>
-
         </div>
+    </section>
 
-    </div>
+    {{-- =========================================================
+        SUPPORTING DOCUMENT
+    ========================================================== --}}
+    <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">
+                File attachment
+            </p>
 
-    <!-- Supporting Document -->
-    <div class="bg-white rounded-2xl shadow border border-gray-200 overflow-hidden">
-
-        <div class="px-8 py-6 bg-red-900">
-
-            <h3 class="text-2xl font-semibold text-white">
+            <h3 class="mt-1 text-lg font-bold text-slate-950">
                 Supporting Document
             </h3>
 
-            <p class="text-indigo-100 text-sm mt-1">
-                Upload the Purchase Order document (PDF, DOC, DOCX).
+            <p class="mt-1 text-sm text-slate-500">
+                Upload the official Purchase Order document in PDF, DOC, or DOCX format.
             </p>
-
         </div>
 
-        <div class="p-8">
+        <div class="p-6 sm:p-7">
+            @if($editing && $purchaseOrder->document)
+                <div class="mb-5 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p class="font-bold text-slate-900">
+                            Existing supporting document
+                        </p>
 
-            <label for="document"
-                class="relative flex flex-col items-center justify-center w-full h-56 border-2 border-dashed border-gray-300 rounded-2xl cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition">
+                        <p class="mt-1 text-sm text-slate-500">
+                            Uploading another file will replace the current document.
+                        </p>
+                    </div>
 
-                <div class="flex flex-col items-center justify-center">
-
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14 text-indigo-500" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M7 16V8m0 0L3 12m4-4l4 4m6 4V8m0 0l-4 4m4-4l4 4" />
-
-                    </svg>
-
-                    <p class="mt-4 text-lg font-semibold text-gray-700">
-
-                        Click to upload
-
-                    </p>
-
-                    <p class="text-sm text-gray-500">
-
-                        PDF, DOC, DOCX (Maximum 10MB)
-
-                    </p>
-
-                    <p id="fileName" class="mt-4 text-red-900 font-medium">
-
-                    </p>
-
+                    <a
+                        href="{{ Storage::url($purchaseOrder->document) }}"
+                        target="_blank"
+                        rel="noopener"
+                        class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-100"
+                    >
+                        View Current Document
+                    </a>
                 </div>
+            @endif
 
-                <input id="document" type="file" name="document" accept=".pdf,.doc,.docx" class="hidden">
+            <label
+                for="document"
+                class="group relative flex min-h-56 w-full cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 text-center transition hover:border-[#970C13] hover:bg-[#DF979B]/10"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-12 w-12 text-[#970C13]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.8"
+                        d="M12 16V4m0 0L7 9m5-5 5 5M5 20h14"
+                    />
+                </svg>
 
+                <p class="mt-4 text-lg font-bold text-slate-800">
+                    Click to select a document
+                </p>
+
+                <p class="mt-1 text-sm text-slate-500">
+                    PDF, DOC, or DOCX — maximum file size of 10 MB
+                </p>
+
+                <p id="fileName" class="mt-4 text-sm font-bold text-[#970C13]"></p>
+
+                <input
+                    id="document"
+                    type="file"
+                    name="document"
+                    accept=".pdf,.doc,.docx"
+                    class="hidden"
+                >
             </label>
 
             @error('document')
-
-                <p class="text-red-500 text-sm mt-3">
-
+                <p class="mt-3 text-sm font-medium text-red-600">
                     {{ $message }}
-
                 </p>
-
             @enderror
-
         </div>
+    </section>
 
-    </div>
-
-
-    <!-- Action Buttons -->
-    <div class="flex flex-col-reverse md:flex-row justify-end gap-4">
-
-        <a href="{{ route('supply.purchase-orders.index') }}"
-            class="px-8 py-3 rounded-xl border border-gray-300 bg-white hover:bg-gray-50 text-center font-medium transition">
-
+    {{-- =========================================================
+        ACTION BUTTONS
+    ========================================================== --}}
+    <section class="flex flex-col-reverse gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-end">
+        <a
+            href="{{ route('supply.purchase-orders.index') }}"
+            class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+        >
             Cancel
-
         </a>
 
-        <button type="submit"
-            class="px-10 py-3 rounded-xl bg-red-900 hover:bg-indigo-700 text-white font-semibold shadow-lg transition">
-
+        <button
+            type="submit"
+            class="inline-flex items-center justify-center rounded-xl bg-[#970C13] px-8 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#641D21]"
+        >
             {{ $editing ? 'Update Purchase Order' : 'Save Purchase Order' }}
-
         </button>
-
-    </div>
-
-    </div>
-
+    </section>
 </form>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.currentScript.previousElementSibling;
+        const grandTotalDisplay = document.getElementById('grandTotalDisplay');
+        const grandTotalCard = document.getElementById('grandTotal');
+        const documentInput = document.getElementById('document');
+        const fileName = document.getElementById('fileName');
 
-    function formatNumber(number) {
-        return parseFloat(number || 0).toLocaleString('en-PH', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-    }
+        function formatCurrency(value) {
+            return Number(value || 0).toLocaleString('en-PH', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
 
-    function calculateRow(row) {
+        function calculateGrandTotal() {
+            let grandTotal = 0;
 
-        const qtyInput = row.querySelector('.qty');
-        const costInput = row.querySelector('.cost');
-        const totalEl = row.querySelector('.line-total');
+            form.querySelectorAll('tbody tr').forEach(function (row) {
+                const quantityInput = row.querySelector('.qty');
+                const costInput = row.querySelector('.cost');
+                const lineTotalElement = row.querySelector('.line-total');
 
-        let qty = parseFloat(qtyInput.value) || 0;
-        let cost = parseFloat(costInput.value) || 0;
+                if (!quantityInput || !costInput || !lineTotalElement) {
+                    return;
+                }
 
-        let total = qty * cost;
+                const quantity = Math.max(
+                    0,
+                    Number.parseFloat(quantityInput.value) || 0
+                );
 
-        totalEl.innerText = formatNumber(total);
+                const unitCost = Math.max(
+                    0,
+                    Number.parseFloat(costInput.value) || 0
+                );
 
-        return total;
-    }
+                const lineTotal = quantity * unitCost;
 
-    function calculateGrandTotal() {
+                lineTotalElement.textContent = formatCurrency(lineTotal);
+                grandTotal += lineTotal;
+            });
 
-        let grandTotal = 0;
-
-        document.querySelectorAll('tbody tr').forEach(row => {
-
-            // only rows that have qty + cost
-            if (row.querySelector('.qty') && row.querySelector('.cost')) {
-                grandTotal += calculateRow(row);
+            if (grandTotalDisplay) {
+                grandTotalDisplay.textContent = formatCurrency(grandTotal);
             }
 
+            if (grandTotalCard) {
+                grandTotalCard.textContent = '₱' + formatCurrency(grandTotal);
+            }
+        }
+
+        form.addEventListener('input', function (event) {
+            if (
+                event.target.classList.contains('qty') ||
+                event.target.classList.contains('cost')
+            ) {
+                calculateGrandTotal();
+            }
         });
 
-        document.getElementById('grandTotalDisplay').innerText = formatNumber(grandTotal);
+        if (documentInput && fileName) {
+            documentInput.addEventListener('change', function () {
+                const selectedFile = documentInput.files[0];
 
-        // also sync header total (top card)
-        const topTotal = document.getElementById('grandTotal');
-        if (topTotal) {
-            topTotal.innerText = '₱' + formatNumber(grandTotal);
+                fileName.textContent = selectedFile
+                    ? selectedFile.name
+                    : '';
+            });
         }
-
-        return grandTotal;
-    }
-
-    // EVENT: input changes (qty or cost)
-    document.addEventListener('input', function (e) {
-
-        if (e.target.classList.contains('qty') ||
-            e.target.classList.contains('cost')) {
-
-            calculateGrandTotal();
-
-        }
-
-    });
-
-    // INITIAL CALCULATION ON LOAD
-    window.addEventListener('DOMContentLoaded', function () {
 
         calculateGrandTotal();
-
     });
-
 </script>

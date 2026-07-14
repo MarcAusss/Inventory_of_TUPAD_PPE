@@ -130,16 +130,12 @@ class SupplyDesignation extends Model
         Builder $query,
         ?string $search
     ): Builder {
-        if (! $search) {
+        if (!$search) {
             return $query;
         }
 
         return $query->where(
-            function (
-                Builder $query
-            ) use (
-                $search
-            ): void {
+            function (Builder $query) use ($search): void {
                 $query
                     ->where(
                         'designation_number',
@@ -163,11 +159,11 @@ class SupplyDesignation extends Model
                     )
                     ->orWhereHas(
                         'provinceDistribution'
-                            .'.distributionBatch'
-                            .'.callOff',
-                        fn (
-                            Builder $callOffQuery
-                        ) => $callOffQuery->where(
+                        . '.distributionBatch'
+                        . '.callOff',
+                        fn(
+                        Builder $callOffQuery
+                    ) => $callOffQuery->where(
                             'call_off_number',
                             'like',
                             "%{$search}%"
@@ -203,7 +199,7 @@ class SupplyDesignation extends Model
         return $this
             ->provinceDistribution
             ?->distributionBatch
-            ?->callOff;
+                ?->callOff;
     }
 
     public function purchaseOrder(): ?PurchaseOrder
@@ -211,7 +207,7 @@ class SupplyDesignation extends Model
         return $this
             ->provinceDistribution
             ?->distributionBatch
-            ?->purchaseOrder;
+                ?->purchaseOrder;
     }
 
     public function supplier(): ?Supplier
@@ -220,7 +216,7 @@ class SupplyDesignation extends Model
             ->provinceDistribution
             ?->distributionBatch
             ?->purchaseOrder
-            ?->supplier;
+                ?->supplier;
     }
 
     public function totalDesignatedQuantity(): int

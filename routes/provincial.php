@@ -88,7 +88,7 @@ Route::middleware([
 
         Route::get('/project-designations/{supplyDesignation}', [SupplyDesignationController::class, 'show'])
             ->name('project-designations.show');
-            
+
         Route::get(
             '/call-off-inventory',
             [
@@ -96,4 +96,31 @@ Route::middleware([
                 'index',
             ]
         )->name('call-off-inventory.index');
+
+        Route::get(
+            '/inventory-ledger/print',
+            [
+                InventoryLedgerController::class,
+                'print',
+            ]
+        )->name('inventory-ledger.print');
+
+        Route::get(
+            '/project-designations/print',
+            [
+                SupplyDesignationController::class,
+                'printAll',
+            ]
+        )->name(
+                'project-designations.print-all'
+            );
+        Route::get(
+            '/project-designations/{supplyDesignation}/print',
+            [
+                SupplyDesignationController::class,
+                'printOne',
+            ]
+        )->name(
+                'project-designations.print-one'
+            );
     });

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\RedirectDashboardController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProvincialOffice\InventoryLedgerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,10 +47,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
 
+    Route::get(
+        '/inventory-ledger',
+        [
+            InventoryLedgerController::class,
+            'index',
+        ]
+    )->name('inventory-ledger.index');
+
+    Route::get(
+        '/inventory-ledger/print',
+        [
+            InventoryLedgerController::class,
+            'print',
+        ]
+    )->name('inventory-ledger.print');
 });
 
-require __DIR__.'/auth.php';
-require __DIR__.'/supply.php';
-require __DIR__.'/tssd.php';
-require __DIR__.'/provincial.php';
-require __DIR__.'/accounting.php';
+
+
+require __DIR__ . '/auth.php';
+require __DIR__ . '/supply.php';
+require __DIR__ . '/tssd.php';
+require __DIR__ . '/provincial.php';
+require __DIR__ . '/accounting.php';

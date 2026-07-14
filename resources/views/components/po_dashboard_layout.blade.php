@@ -242,19 +242,6 @@
 
 @endif
 
-                            @if(Route::has('tssd.pdf-templates.index'))
-
-                                <a
-                                    href="{{ route('tssd.pdf-templates.index') }}"
-                                    class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
-                                        {{ request()->routeIs('tssd.pdf-templates.*')
-                                            ? 'bg-red-900 text-white shadow'
-                                            : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-                                >
-                                    PDF Print Templates
-                                </a>
-
-                            @endif
 
                         </div>
 
@@ -399,24 +386,6 @@
 
                     @endif
 
-                    {{-- Shared account navigation --}}
-                    <div class="mt-7 border-t border-gray-200 pt-6">
-
-                        <p class="mb-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">
-                            Account
-                        </p>
-
-                        <a
-                            href="{{ route('profile.edit') }}"
-                            class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
-                                {{ request()->routeIs('profile.*')
-                                    ? 'bg-red-900 text-white shadow'
-                                    : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-                        >
-                            Profile
-                        </a>
-
-                    </div>
 
                 </nav>
 

@@ -1,123 +1,106 @@
-<x-po_dashboard_layout title="Provincial Office Dashboard">
+<x-po_dashboard_layout title="Call-Off Allocations">
 
-    <div class="mx-auto max-w-7xl space-y-6">
+    <div class="mx-auto max-w-[1900px] space-y-6">
 
-        <div
-            class="flex flex-col gap-4 sm:flex-row
-                   sm:items-center sm:justify-between"
-        >
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900">
-                    Call-Off Allocations
-                </h1>
+        {{-- =========================================================
+            PAGE HEADER
+        ========================================================== --}}
+        <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <div class="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-[#641D21] via-[#970C13] to-[#ED1B24]"></div>
 
-                <p class="mt-1 text-sm text-gray-600">
-                    View approved PPE allocations and record one or more
-                    Delivery Receipts for your Provincial Office.
-                </p>
+            <div class="flex flex-col gap-6 px-6 py-7 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <span class="rounded-full bg-[#DF979B]/20 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#970C13] ring-1 ring-[#DF979B]">
+                            Provincial Office
+                        </span>
+
+                        <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">
+                            Receiving
+                        </span>
+                    </div>
+
+                    <h1 class="mt-4 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+                        Call-Off Allocations
+                    </h1>
+
+                    <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+                        Review approved provincial PPE allocations, monitor quantities already received,
+                        and submit one or more Delivery Receipts until every allocated item is completed.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap gap-3">
+                    <a
+                        href="{{ route('provincial.receiving.history') }}"
+                        class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+                    >
+                        Receiving History
+                    </a>
+
+                    <a
+                        href="{{ route('provincial.current-inventory.index') }}"
+                        class="inline-flex items-center justify-center rounded-xl bg-[#970C13] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#641D21]"
+                    >
+                        Current Inventory
+                    </a>
+                </div>
             </div>
+        </section>
 
-            <a
-                href="{{ route('provincial.receiving.history') }}"
-                class="inline-flex items-center justify-center rounded-xl
-                       border border-gray-300 bg-white px-5 py-3
-                       font-semibold text-gray-700 transition
-                       hover:bg-gray-50"
-            >
-                Receiving History
-            </a>
-        </div>
-
+        {{-- =========================================================
+            STATUS MESSAGES
+        ========================================================== --}}
         @if(session('success'))
-            <div
-                class="rounded-xl border border-green-200 bg-green-50
-                       px-5 py-4 text-green-800"
-            >
+            <div class="rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-sm font-semibold text-green-800 shadow-sm">
                 {{ session('success') }}
             </div>
         @endif
 
         @if(session('error'))
-            <div
-                class="rounded-xl border border-red-200 bg-red-50
-                       px-5 py-4 text-red-800"
-            >
+            <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-semibold text-red-800 shadow-sm">
                 {{ session('error') }}
             </div>
         @endif
 
-        <div
-            class="overflow-hidden rounded-2xl border border-gray-200
-                   bg-white shadow"
-        >
-            <div class="bg-red-900 px-6 py-5">
-                <h2 class="text-xl font-semibold text-white">
-                    Approved Provincial Allocations
+        {{-- =========================================================
+            ALLOCATION TABLE
+        ========================================================== --}}
+        <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
+                <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">
+                    Approved provincial allocations
+                </p>
+
+                <h2 class="mt-1 text-lg font-bold text-slate-950">
+                    PPE Receiving Progress
                 </h2>
 
-                <p class="mt-1 text-sm text-red-100">
-                    Partially received allocations remain available until
-                    all PPE quantities are completely received.
+                <p class="mt-1 text-sm text-slate-500">
+                    Partially received allocations remain open until the complete allocated quantity has been received.
                 </p>
             </div>
 
             <div class="overflow-x-auto">
-
-                <table class="min-w-[1100px] w-full divide-y divide-gray-200">
-
-                    <thead class="bg-gray-100">
-
-                        <tr
-                            class="text-xs font-semibold uppercase
-                                   tracking-wide text-gray-700"
-                        >
-                            <th class="px-5 py-4 text-left">
-                                No.
-                            </th>
-
-                            <th class="px-5 py-4 text-left">
-                                Call-Off Number
-                            </th>
-
-                            <th class="px-5 py-4 text-left">
-                                Source PO
-                            </th>
-
-                            <th class="px-5 py-4 text-left">
-                                Supplier
-                            </th>
-
-                            <th class="px-5 py-4 text-center">
-                                Allocation
-                            </th>
-
-                            <th class="px-5 py-4 text-center">
-                                Received
-                            </th>
-
-                            <th class="px-5 py-4 text-center">
-                                Remaining
-                            </th>
-
-                            <th class="px-5 py-4 text-center">
-                                DR Count
-                            </th>
-
-                            <th class="px-5 py-4 text-center">
-                                Status
-                            </th>
-
-                            <th class="px-5 py-4 text-center">
-                                Action
-                            </th>
+                <table class="min-w-[1400px] w-full divide-y divide-slate-200">
+                    <thead class="bg-slate-100">
+                        <tr class="text-xs font-bold uppercase tracking-wide text-slate-600">
+                            <th class="px-6 py-4 text-left">No.</th>
+                            <th class="px-6 py-4 text-left">Call-Off Number</th>
+                            <th class="px-6 py-4 text-left">Source PO</th>
+                            <th class="px-6 py-4 text-left">Supplier</th>
+                            <th class="px-6 py-4 text-center">Allocation</th>
+                            <th class="px-6 py-4 text-center">Received</th>
+                            <th class="px-6 py-4 text-center">Remaining</th>
+                            <th class="px-6 py-4 text-center">DR Count</th>
+                            <th class="px-6 py-4 text-center">Progress</th>
+                            <th class="px-6 py-4 text-center">Status</th>
+                            <th class="px-6 py-4 text-center">Action</th>
                         </tr>
-
                     </thead>
 
-                    <tbody class="divide-y divide-gray-100">
-
+                    <tbody class="divide-y divide-slate-100">
                         @forelse($allocations as $allocation)
-
                             @php
                                 $batch = $allocation->distributionBatch;
                                 $callOff = $batch?->callOff;
@@ -129,9 +112,7 @@
 
                                 $receivedTotal = (int) $allocation
                                     ->deliveryReceipts
-                                    ->flatMap(
-                                        fn ($receipt) => $receipt->items
-                                    )
+                                    ->flatMap(fn ($receipt) => $receipt->items)
                                     ->sum('received_quantity');
 
                                 $remainingTotal = max(
@@ -152,230 +133,146 @@
                                         true
                                     );
 
-                                $statusClass = match(
-                                    $allocation->status
-                                ) {
+                                $statusClass = match($allocation->status) {
                                     'Received' =>
-                                        'bg-green-100 text-green-800',
+                                        'bg-green-100 text-green-800 ring-green-200',
 
                                     'Partially Received' =>
-                                        'bg-yellow-100 text-yellow-800',
+                                        'bg-amber-100 text-amber-800 ring-amber-200',
 
                                     'For Delivery' =>
-                                        'bg-blue-100 text-blue-800',
+                                        'bg-blue-100 text-blue-800 ring-blue-200',
 
                                     'Approved' =>
-                                        'bg-indigo-100 text-indigo-800',
+                                        'bg-indigo-100 text-indigo-800 ring-indigo-200',
 
                                     'Cancelled' =>
-                                        'bg-gray-200 text-gray-700',
+                                        'bg-slate-200 text-slate-700 ring-slate-300',
 
                                     default =>
-                                        'bg-gray-100 text-gray-700',
+                                        'bg-slate-100 text-slate-700 ring-slate-200',
                                 };
 
                                 $percentage = $allocatedTotal > 0
                                     ? min(
                                         100,
                                         round(
-                                            ($receivedTotal / $allocatedTotal)
-                                            * 100
+                                            ($receivedTotal / $allocatedTotal) * 100
                                         )
                                     )
                                     : 0;
                             @endphp
 
-                            <tr class="align-top transition hover:bg-gray-50">
-
-                                <td
-                                    class="whitespace-nowrap px-5 py-5
-                                           text-sm text-gray-600"
-                                >
-                                    {{
-                                        $allocations->firstItem()
-                                        + $loop->index
-                                    }}
+                            <tr class="align-top transition hover:bg-slate-50">
+                                <td class="whitespace-nowrap px-6 py-5 text-sm text-slate-500">
+                                    {{ $allocations->firstItem() + $loop->index }}
                                 </td>
 
-                                <td class="whitespace-nowrap px-5 py-5">
-                                    <div class="font-semibold text-gray-900">
-                                        {{
-                                            $callOff?->call_off_number
-                                            ?? 'Not available'
-                                        }}
+                                <td class="whitespace-nowrap px-6 py-5">
+                                    <div class="font-semibold text-[#641D21]">
+                                        {{ $callOff?->call_off_number ?? '—' }}
                                     </div>
 
-                                    <div class="mt-1 text-xs text-gray-500">
-                                        Batch #{{ $batch?->id ?? 'N/A' }}
+                                    <div class="mt-1 text-xs text-slate-400">
+                                        Batch #{{ $batch?->id ?? '—' }}
                                     </div>
                                 </td>
 
-                                <td
-                                    class="whitespace-nowrap px-5 py-5
-                                           text-sm font-medium text-gray-900"
-                                >
-                                    {{
-                                        $purchaseOrder?->po_number
-                                        ?? 'Not available'
-                                    }}
+                                <td class="whitespace-nowrap px-6 py-5 text-sm font-semibold text-slate-800">
+                                    {{ $purchaseOrder?->po_number ?? '—' }}
                                 </td>
 
-                                <td
-                                    class="min-w-48 px-5 py-5
-                                           text-sm text-gray-700"
-                                >
-                                    {{
-                                        $purchaseOrder
-                                            ?->supplier
-                                            ?->supplier_name
-                                        ?? 'Not available'
-                                    }}
+                                <td class="min-w-52 px-6 py-5 text-sm text-slate-600">
+                                    {{ $purchaseOrder?->supplier?->supplier_name ?? '—' }}
                                 </td>
 
-                                <td
-                                    class="px-5 py-5 text-center
-                                           font-semibold text-gray-900"
-                                >
+                                <td class="px-6 py-5 text-center text-lg font-bold text-slate-900">
                                     {{ number_format($allocatedTotal) }}
                                 </td>
 
-                                <td
-                                    class="px-5 py-5 text-center
-                                           font-semibold text-blue-700"
-                                >
+                                <td class="px-6 py-5 text-center text-lg font-bold text-[#970C13]">
                                     {{ number_format($receivedTotal) }}
                                 </td>
 
-                                <td
-                                    class="px-5 py-5 text-center
-                                           font-bold
-                                           {{
-                                               $remainingTotal > 0
-                                                   ? 'text-amber-700'
-                                                   : 'text-green-700'
-                                           }}"
-                                >
+                                <td class="px-6 py-5 text-center text-lg font-bold {{ $remainingTotal > 0 ? 'text-amber-700' : 'text-green-700' }}">
                                     {{ number_format($remainingTotal) }}
                                 </td>
 
-                                <td class="px-5 py-5 text-center">
-                                    <span
-                                        class="inline-flex min-w-8
-                                               justify-center rounded-full
-                                               bg-gray-100 px-3 py-1
-                                               text-xs font-bold
-                                               text-gray-700"
-                                    >
-                                        {{
-                                            number_format(
-                                                $allocation
-                                                    ->deliveryReceipts
-                                                    ->count()
-                                            )
-                                        }}
+                                <td class="px-6 py-5 text-center">
+                                    <span class="inline-flex min-w-9 justify-center rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700 ring-1 ring-slate-200">
+                                        {{ number_format($allocation->deliveryReceipts->count()) }}
                                     </span>
                                 </td>
 
-                                <td class="min-w-44 px-5 py-5">
+                                <td class="min-w-48 px-6 py-5">
+                                    <div class="flex items-center justify-between text-xs font-bold text-slate-500">
+                                        <span>Received</span>
+                                        <span>{{ $percentage }}%</span>
+                                    </div>
 
-                                    <span
-                                        class="inline-flex rounded-full
-                                               px-3 py-1 text-xs
-                                               font-semibold
-                                               {{ $statusClass }}"
-                                    >
-                                        {{ $allocation->status }}
-                                    </span>
-
-                                    <div
-                                        class="mt-3 h-2 overflow-hidden
-                                               rounded-full bg-gray-200"
-                                    >
+                                    <div class="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-200">
                                         <div
-                                            class="h-full rounded-full
-                                                   bg-red-900"
+                                            class="h-full rounded-full bg-[#970C13] transition-all"
                                             style="width: {{ $percentage }}%"
                                         ></div>
                                     </div>
-
-                                    <p
-                                        class="mt-1 text-right text-xs
-                                               font-semibold text-gray-500"
-                                    >
-                                        {{ $percentage }}%
-                                    </p>
-
                                 </td>
 
-                                <td class="px-5 py-5 text-center">
+                                <td class="whitespace-nowrap px-6 py-5 text-center">
+                                    <span class="inline-flex rounded-full px-3 py-1 text-xs font-bold ring-1 {{ $statusClass }}">
+                                        {{ $allocation->status }}
+                                    </span>
+                                </td>
 
-                                    <div
-                                        class="flex flex-wrap items-center
-                                               justify-center gap-2"
-                                    >
+                                <td class="whitespace-nowrap px-6 py-5 text-center">
+                                    <div class="flex flex-wrap items-center justify-center gap-2">
                                         <a
-                                            href="{{ route(
-                                                'provincial.receiving.show',
-                                                $allocation
-                                            ) }}"
-                                            class="rounded-lg bg-blue-600
-                                                   px-4 py-2 text-sm
-                                                   font-semibold text-white
-                                                   transition
-                                                   hover:bg-blue-700"
+                                            href="{{ route('provincial.receiving.show', $allocation) }}"
+                                            class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
                                         >
                                             View
                                         </a>
 
                                         @if($canReceive)
                                             <a
-                                                href="{{ route(
-                                                    'provincial.receiving.create',
-                                                    $allocation
-                                                ) }}"
-                                                class="rounded-lg bg-green-600
-                                                       px-4 py-2 text-sm
-                                                       font-semibold text-white
-                                                       transition
-                                                       hover:bg-green-700"
+                                                href="{{ route('provincial.receiving.create', $allocation) }}"
+                                                class="inline-flex items-center justify-center rounded-lg bg-[#970C13] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#641D21]"
                                             >
-                                                Receive
+                                                Receive PPE
                                             </a>
+                                        @else
+                                            <span class="inline-flex rounded-lg bg-slate-100 px-4 py-2 text-sm font-bold text-slate-400">
+                                                Completed
+                                            </span>
                                         @endif
                                     </div>
-
                                 </td>
-
                             </tr>
-
                         @empty
-
                             <tr>
-                                <td
-                                    colspan="10"
-                                    class="px-6 py-12 text-center
-                                           text-gray-500"
-                                >
-                                    No approved Call-Off allocations are
-                                    currently assigned to your province.
+                                <td colspan="11" class="px-6 py-14 text-center">
+                                    <div class="mx-auto max-w-md">
+                                        <p class="font-semibold text-slate-700">
+                                            No approved allocations found
+                                        </p>
+
+                                        <p class="mt-1 text-sm text-slate-500">
+                                            Approved Call-Off allocations assigned to your province will appear here.
+                                        </p>
+                                    </div>
                                 </td>
                             </tr>
-
                         @endforelse
-
                     </tbody>
-
                 </table>
-
             </div>
 
             @if($allocations->hasPages())
-                <div class="border-t border-gray-200 px-6 py-4">
+                <div class="border-t border-slate-200 px-6 py-4">
                     {{ $allocations->links() }}
                 </div>
             @endif
-
-        </div>
+        </section>
 
     </div>
 

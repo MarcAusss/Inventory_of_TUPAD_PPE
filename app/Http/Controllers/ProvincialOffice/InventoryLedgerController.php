@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\ProvincialOffice;
 
 use App\Http\Controllers\Controller;
-use App\Models\ProvinceDistribution;
+use App\Models\DeliveryReceipt;
 use App\Services\InventoryMovementReportService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -13,215 +13,65 @@ use Illuminate\View\View;
 
 class InventoryLedgerController extends Controller
 {
+    /**
+     * Display the Delivery Receipt-based inventory ledger.
+     */
     public function index(
         Request $request,
         InventoryMovementReportService $reportService
     ): View {
-        $provinceId = Auth::user()?->province_id;
-
-        abort_unless(
-            $provinceId,
-            403,
-            'This Provincial Office account has no assigned province.'
-        );
-
-        $search = trim(
-            (string) $request->query(
-                'search',
-                ''
-            )
-        );
+        $provinceId = $this->provinceId();
 
         $year = $this->resolveYear(
             $request
         );
 
-        $callOffId = (int) $request->query(
-            'province_distribution_id',
-            0
+        $deliveryReceiptId = max(
+            0,
+            (int) $request->query(
+                'delivery_receipt_id',
+                0
+            )
         );
 
-        /*
-         * Historical Call-Off movement rows.
-         *
-         * Completed project rows now use the stored
-         * InventoryMovement Call-Off balance snapshots.
-         */
-        $reportRows = $reportService
-            ->buildForProvince(
-                (int) $provinceId
-            );
+        $deliveryReceipts = $this->deliveryReceiptOptions(
+            provinceId: $provinceId,
+            year: $year
+        );
 
-        /*
-         * Year filter.
-         */
-        $reportRows = $reportRows
-            ->filter(
-                function (
-                    array $row
-                ) use (
-                    $year
-                ): bool {
-                    $movementDate =
-                        $row['movement_date']
-                        ?? null;
+        $selectedDeliveryReceipt = null;
 
-                    if (! $movementDate) {
-                        return false;
-                    }
+        $reportRows = collect();
 
-                    return (int) $movementDate
-                        ->format('Y')
-                        === $year;
-                }
-            )
-            ->values();
+        if ($deliveryReceiptId > 0) {
+            $selectedDeliveryReceipt =
+                $this->findSelectedReceipt(
+                    provinceId: $provinceId,
+                    deliveryReceiptId: $deliveryReceiptId,
+                    year: $year
+                );
 
-        /*
-         * Call-Off filter.
-         */
-        if ($callOffId > 0) {
-            $reportRows = $reportRows
-                ->filter(
-                    fn (
-                        array $row
-                    ): bool => (int) (
-                        $row[
-                            'province_distribution_id'
-                        ]
-                        ?? 0
-                    ) === $callOffId
-                )
-                ->values();
+            $reportRows = $reportService
+                ->buildForDeliveryReceipt(
+                    provinceId: $provinceId,
+                    deliveryReceiptId: $deliveryReceiptId
+                );
         }
-
-        /*
-         * Search filter.
-         */
-        if ($search !== '') {
-            $normalizedSearch = mb_strtolower(
-                $search
-            );
-
-            $reportRows = $reportRows
-                ->filter(
-                    function (
-                        array $row
-                    ) use (
-                        $normalizedSearch
-                    ): bool {
-                        $values = [
-                            $row[
-                                'call_off_number'
-                            ] ?? '',
-
-                            $row[
-                                'supplier_name'
-                            ] ?? '',
-
-                            $row[
-                                'delivery_receipt_numbers'
-                            ] ?? '',
-
-                            $row[
-                                'project_code'
-                            ] ?? '',
-
-                            $row[
-                                'project_title'
-                            ] ?? '',
-
-                            $row[
-                                'location'
-                            ] ?? '',
-                        ];
-
-                        foreach ($values as $value) {
-                            if (
-                                str_contains(
-                                    mb_strtolower(
-                                        (string) $value
-                                    ),
-                                    $normalizedSearch
-                                )
-                            ) {
-                                return true;
-                            }
-                        }
-
-                        return false;
-                    }
-                )
-                ->values();
-        }
-
-        /*
-         * Sort report chronologically.
-         */
-        $reportRows = $reportRows
-            ->sortBy(
-                function (
-                    array $row
-                ): string {
-                    $movementDate = (
-                        $row['movement_date']
-                        ?? null
-                    )
-                        ?->format('Y-m-d')
-                        ?? '0000-00-00';
-
-                    $allocationId = str_pad(
-                        (string) (
-                            $row[
-                                'province_distribution_id'
-                            ]
-                            ?? 0
-                        ),
-                        20,
-                        '0',
-                        STR_PAD_LEFT
-                    );
-
-                    $designationId = str_pad(
-                        (string) (
-                            $row[
-                                'supply_designation_id'
-                            ]
-                            ?? 0
-                        ),
-                        20,
-                        '0',
-                        STR_PAD_LEFT
-                    );
-
-                    return $movementDate
-                        .'|'
-                        .$allocationId
-                        .'|'
-                        .$designationId;
-                }
-            )
-            ->values();
 
         $summary = $this->buildSummary(
             $reportRows
         );
 
         $availableYears = $this->availableYears(
-            $reportService,
-            (int) $provinceId
+            $provinceId,
+            $year
         );
 
-        $callOffAllocations =
-            $this->callOffAllocations(
-                (int) $provinceId
-            );
-
         $rows = $this->paginate(
-            $reportRows,
-            10,
-            $request,
-            'page'
+            items: $reportRows,
+            perPage: 10,
+            request: $request,
+            pageName: 'page'
         );
 
         return view(
@@ -231,13 +81,246 @@ class InventoryLedgerController extends Controller
                 'summary',
                 'year',
                 'availableYears',
-                'search',
-                'callOffId',
-                'callOffAllocations'
+                'deliveryReceiptId',
+                'deliveryReceipts',
+                'selectedDeliveryReceipt'
             )
         );
     }
 
+    /**
+     * Print every project-distribution row belonging to one selected
+     * Delivery Receipt.
+     *
+     * This deliberately does not paginate the report.
+     */
+    public function print(
+        Request $request,
+        InventoryMovementReportService $reportService
+    ): View {
+        $provinceId = $this->provinceId();
+
+        $deliveryReceiptId = max(
+            0,
+            (int) $request->query(
+                'delivery_receipt_id',
+                0
+            )
+        );
+
+        abort_if(
+            $deliveryReceiptId <= 0,
+            422,
+            'Select a Delivery Receipt before printing the inventory ledger.'
+        );
+
+        $year = $this->resolveYear(
+            $request
+        );
+
+        $selectedDeliveryReceipt =
+            $this->findSelectedReceipt(
+                provinceId: $provinceId,
+                deliveryReceiptId: $deliveryReceiptId,
+                year: $year
+            );
+
+        /*
+         * Use the same report builder as the screen so the printed
+         * values cannot differ from the UI.
+         */
+        $rows = $reportService
+            ->buildForDeliveryReceipt(
+                provinceId: $provinceId,
+                deliveryReceiptId: $deliveryReceiptId
+            );
+
+        $summary = $this->buildSummary(
+            $rows
+        );
+
+        $user = Auth::user();
+
+        $provinceName =
+            $user?->province?->name
+            ?? $selectedDeliveryReceipt
+                ->province?->name
+            ?? 'Provincial Office';
+
+        $preparedBy =
+            $user?->name
+            ?? '';
+
+        /*
+         * Leave Reviewed by blank for now. You can later retrieve this
+         * from a database setting or an authorized signatory record.
+         */
+        $reviewedBy = '';
+
+        $printedAt = now();
+
+        return view(
+            'provincial.inventory-ledger.print',
+            compact(
+                'rows',
+                'summary',
+                'year',
+                'selectedDeliveryReceipt',
+                'provinceName',
+                'preparedBy',
+                'reviewedBy',
+                'printedAt'
+            )
+        );
+    }
+
+    /**
+     * Retrieve one selected receipt belonging to the authenticated
+     * Provincial Office.
+     */
+    private function findSelectedReceipt(
+        int $provinceId,
+        int $deliveryReceiptId,
+        int $year
+    ): DeliveryReceipt {
+        return DeliveryReceipt::query()
+            ->with([
+                'province',
+                'items.item',
+                'receivedByUser',
+
+                'provinceDistribution.items.item',
+
+                'provinceDistribution.distributionBatch.callOff',
+
+                'provinceDistribution.distributionBatch.purchaseOrder.supplier',
+            ])
+            ->where(
+                'province_id',
+                $provinceId
+            )
+            ->where(
+                'status',
+                'Received'
+            )
+            ->whereNotNull(
+                'province_distribution_id'
+            )
+            ->whereYear(
+                'delivery_date',
+                $year
+            )
+            ->whereHas(
+                'provinceDistribution.distributionBatch.callOff',
+                fn ($query) => $query->whereIn(
+                    'status',
+                    [
+                        'Approved',
+                        'Completed',
+                    ]
+                )
+            )
+            ->whereKey(
+                $deliveryReceiptId
+            )
+            ->firstOrFail();
+    }
+
+    /**
+     * Delivery Receipt dropdown options.
+     *
+     * @return Collection<int, DeliveryReceipt>
+     */
+    private function deliveryReceiptOptions(
+        int $provinceId,
+        int $year
+    ): Collection {
+        return DeliveryReceipt::query()
+            ->with([
+                'provinceDistribution.distributionBatch.callOff',
+
+                'provinceDistribution.distributionBatch.purchaseOrder.supplier',
+            ])
+            ->where(
+                'province_id',
+                $provinceId
+            )
+            ->where(
+                'status',
+                'Received'
+            )
+            ->whereNotNull(
+                'province_distribution_id'
+            )
+            ->whereYear(
+                'delivery_date',
+                $year
+            )
+            ->whereHas(
+                'provinceDistribution.distributionBatch.callOff',
+                fn ($query) => $query->whereIn(
+                    'status',
+                    [
+                        'Approved',
+                        'Completed',
+                    ]
+                )
+            )
+            ->orderByDesc(
+                'delivery_date'
+            )
+            ->orderByDesc('id')
+            ->get();
+    }
+
+    /**
+     * Get report years from received Delivery Receipts.
+     *
+     * @return Collection<int, int>
+     */
+    private function availableYears(
+        int $provinceId,
+        int $selectedYear
+    ): Collection {
+        $years = DeliveryReceipt::query()
+            ->where(
+                'province_id',
+                $provinceId
+            )
+            ->where(
+                'status',
+                'Received'
+            )
+            ->whereNotNull(
+                'delivery_date'
+            )
+            ->selectRaw(
+                'YEAR(delivery_date) AS report_year'
+            )
+            ->distinct()
+            ->orderByDesc(
+                'report_year'
+            )
+            ->pluck(
+                'report_year'
+            )
+            ->map(
+                fn ($year): int => (int) $year
+            )
+            ->values();
+
+        if (! $years->contains($selectedYear)) {
+            $years->prepend(
+                $selectedYear
+            );
+        }
+
+        return $years;
+    }
+
+    /**
+     * Resolve the report year.
+     */
     private function resolveYear(
         Request $request
     ): int {
@@ -259,165 +342,98 @@ class InventoryLedgerController extends Controller
     }
 
     /**
-     * Build summary values.
+     * Build summary totals for one selected Delivery Receipt.
      *
-     * IMPORTANT:
-     *
-     * Beginning total is based on the first historical
-     * row of every Call-Off.
-     *
-     * Ending total is based on the last historical
-     * row of every Call-Off.
-     *
-     * This prevents repeated running balances from
-     * being added together.
-     *
-     * @param Collection<int, array<string, mixed>> $rows
-     *
+     * @param  Collection<int, array<string, mixed>>  $rows
      * @return array<string, int>
      */
     private function buildSummary(
         Collection $rows
     ): array {
-        $groupedByCallOff = $rows
-            ->groupBy(
-                'province_distribution_id'
-            );
+        if ($rows->isEmpty()) {
+            return [
+                'row_count' => 0,
+                'call_off_count' => 0,
+                'project_count' => 0,
+                'beginning_total' => 0,
+                'actual_total' => 0,
+                'ending_total' => 0,
+            ];
+        }
 
         return [
-            'row_count' =>
-                $rows->count(),
+            'row_count' => $rows->count(),
 
-            'call_off_count' =>
-                $groupedByCallOff->count(),
+            'call_off_count' => $rows
+                ->pluck(
+                    'province_distribution_id'
+                )
+                ->filter()
+                ->unique()
+                ->count(),
 
-            'project_count' =>
-                $rows
-                    ->pluck(
-                        'supply_designation_id'
-                    )
-                    ->filter()
-                    ->unique()
-                    ->count(),
+            'project_count' => $rows
+                ->pluck(
+                    'supply_designation_id'
+                )
+                ->filter()
+                ->unique()
+                ->count(),
 
-            'beginning_total' =>
-                (int) $groupedByCallOff
-                    ->map(
-                        fn (
-                            Collection $callOffRows
-                        ): int => (int) (
-                            $callOffRows
-                                ->first()[
-                                    'beginning_total'
-                                ]
-                            ?? 0
-                        )
-                    )
-                    ->sum(),
+            /*
+             * The first project row begins with the quantity physically
+             * received in the selected Delivery Receipt.
+             */
+            'beginning_total' => (int) (
+                $rows->first()[
+                    'beginning_total'
+                ]
+                ?? 0
+            ),
 
-            'actual_total' =>
-                (int) $rows->sum(
-                    'actual_total'
-                ),
+            /*
+             * Sum of all project distributions from this exact receipt.
+             */
+            'actual_total' => (int) $rows->sum(
+                'actual_total'
+            ),
 
-            'ending_total' =>
-                (int) $groupedByCallOff
-                    ->map(
-                        fn (
-                            Collection $callOffRows
-                        ): int => (int) (
-                            $callOffRows
-                                ->last()[
-                                    'ending_total'
-                                ]
-                            ?? 0
-                        )
-                    )
-                    ->sum(),
+            /*
+             * The final row contains the current remaining DR balance.
+             */
+            'ending_total' => (int) (
+                $rows->last()[
+                    'ending_total'
+                ]
+                ?? 0
+            ),
         ];
     }
 
     /**
-     * Available report years.
-     *
-     * @return Collection<int, int>
+     * Get authenticated Provincial Office province ID.
      */
-    private function availableYears(
-        InventoryMovementReportService $reportService,
-        int $provinceId
-    ): Collection {
-        $currentYear = (int) now()->year;
+    private function provinceId(): int
+    {
+        $provinceId = Auth::user()
+            ?->province_id;
 
-        $years = $reportService
-            ->buildForProvince(
-                $provinceId
-            )
-            ->map(
-                function (
-                    array $row
-                ): ?int {
-                    $movementDate =
-                        $row['movement_date']
-                        ?? null;
+        abort_unless(
+            $provinceId,
+            403,
+            'This Provincial Office account has no assigned province.'
+        );
 
-                    if (! $movementDate) {
-                        return null;
-                    }
-
-                    return (int) $movementDate
-                        ->format('Y');
-                }
-            )
-            ->filter()
-            ->unique()
-            ->sortDesc()
-            ->values();
-
-        if (
-            ! $years->contains(
-                $currentYear
-            )
-        ) {
-            $years->prepend(
-                $currentYear
-            );
-        }
-
-        return $years;
+        return (int) $provinceId;
     }
 
     /**
-     * Call-Off filter options.
-     *
-     * @return Collection<int, ProvinceDistribution>
-     */
-    private function callOffAllocations(
-        int $provinceId
-    ): Collection {
-        return ProvinceDistribution::query()
-            ->with([
-                'distributionBatch.callOff',
-                'distributionBatch.purchaseOrder.supplier',
-            ])
-            ->where(
-                'province_id',
-                $provinceId
-            )
-            ->whereHas(
-                'distributionBatch.callOff'
-            )
-            ->latest('id')
-            ->get();
-    }
-
-    /**
-     * Paginate the generated report collection.
+     * Paginate an in-memory report collection.
      *
      * @template TKey of array-key
      * @template TValue
      *
-     * @param Collection<TKey, TValue> $items
-     *
+     * @param  Collection<TKey, TValue>  $items
      * @return LengthAwarePaginator<TKey, TValue>
      */
     private function paginate(
@@ -444,14 +460,11 @@ class InventoryLedgerController extends Controller
             $perPage,
             $currentPage,
             [
-                'path' =>
-                    $request->url(),
+                'path' => $request->url(),
 
-                'query' =>
-                    $request->query(),
+                'query' => $request->query(),
 
-                'pageName' =>
-                    $pageName,
+                'pageName' => $pageName,
             ]
         );
     }
