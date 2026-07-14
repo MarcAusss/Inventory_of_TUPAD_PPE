@@ -183,12 +183,9 @@
                                  * - Collection of ProvinceDistribution models
                                  * - Collection grouped by province ID
                                  */
-                                $provinceDistribution = collect($distributions)
-                                    ->flatten(1)
-                                    ->first(function ($distribution) use ($province) {
-                                        return (int) ($distribution->province_id ??
-                                            ($distribution->province?->id ?? 0)) === (int) $province->id;
-                                    });
+                                $provinceDistribution = collect($distributions)->first(
+                                    fn($distribution): bool => (int) $distribution->province_id === (int) $province->id,
+                                );
 
                                 /*
                                  * In the current structure, quantities are stored in

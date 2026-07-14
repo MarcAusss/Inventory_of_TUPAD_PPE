@@ -1,8 +1,99 @@
 <x-po_dashboard_layout title="Project PPE Designations">
 
     @php
-        $itemQuantity = function ($designation, int $itemId): int {
-            return (int) $designation->items->where('item_id', $itemId)->sum('quantity');
+        /*
+         * Match project PPE quantities using item name and label.
+         *
+         * This avoids depending on fixed database item IDs.
+         */
+        $projectPpeQuantities = function ($designation): array {
+            $items = collect($designation->items ?? []);
+
+            $matchesName = function ($designationItem, array $acceptedNames): bool {
+                $name = strtolower(trim((string) ($designationItem->item?->item_name ?? '')));
+
+                return in_array($name, $acceptedNames, true);
+            };
+
+            $matchesLabel = function ($designationItem, array $acceptedLabels): bool {
+                $label = strtolower(trim((string) ($designationItem->item?->label ?? '')));
+
+                return in_array($label, $acceptedLabels, true);
+            };
+
+            $longSleeveMedium = (int) $items
+                ->filter(
+                    fn($row): bool => $matchesName($row, [
+                        'long sleeve',
+                        'long sleeves',
+                        'longsleeve',
+                        'longsleeves',
+                    ]) && $matchesLabel($row, ['m', 'medium']),
+                )
+                ->sum('quantity');
+
+            $longSleeveLarge = (int) $items
+                ->filter(
+                    fn($row): bool => $matchesName($row, [
+                        'long sleeve',
+                        'long sleeves',
+                        'longsleeve',
+                        'longsleeves',
+                    ]) && $matchesLabel($row, ['l', 'large']),
+                )
+                ->sum('quantity');
+
+            $bucketHat = (int) $items
+                ->filter(fn($row): bool => $matchesName($row, ['bucket hat', 'bucket hats']))
+                ->sum('quantity');
+
+            $rubberBootsUs9 = (int) $items
+                ->filter(
+                    fn($row): bool => $matchesName($row, ['rubber boot', 'rubber boots']) &&
+                        $matchesLabel($row, ['us9', 'us 9', '9']),
+                )
+                ->sum('quantity');
+
+            $rubberBootsUs10 = (int) $items
+                ->filter(
+                    fn($row): bool => $matchesName($row, ['rubber boot', 'rubber boots']) &&
+                        $matchesLabel($row, ['us10', 'us 10', '10']),
+                )
+                ->sum('quantity');
+
+            $gloves = (int) $items
+                ->filter(fn($row): bool => $matchesName($row, ['hand glove', 'hand gloves', 'glove', 'gloves']))
+                ->sum('quantity');
+
+            $mask = (int) $items->filter(fn($row): bool => $matchesName($row, ['mask', 'masks']))->sum('quantity');
+
+            $totalLongSleeve = $longSleeveMedium + $longSleeveLarge;
+
+            $totalRubberBoots = $rubberBootsUs9 + $rubberBootsUs10;
+
+            $totalPpe = $totalLongSleeve + $bucketHat + $totalRubberBoots + $gloves + $mask;
+
+            return [
+                'long_sleeve_medium' => $longSleeveMedium,
+
+                'long_sleeve_large' => $longSleeveLarge,
+
+                'total_long_sleeve' => $totalLongSleeve,
+
+                'bucket_hat' => $bucketHat,
+
+                'rubber_boots_us9' => $rubberBootsUs9,
+
+                'rubber_boots_us10' => $rubberBootsUs10,
+
+                'total_rubber_boots' => $totalRubberBoots,
+
+                'gloves' => $gloves,
+
+                'mask' => $mask,
+
+                'total_ppe' => $totalPpe,
+            ];
         };
     @endphp
 
@@ -90,8 +181,8 @@
         {{-- Search --}}
         <section class="rounded-3xl border border-slate-200
                    bg-white p-5 shadow-sm sm:p-6">
-            <form action="{{ route('provincial.project-designations.index') }}"
-                method="GET" class="flex flex-col gap-4
+            <form action="{{ route('provincial.project-designations.index') }}" method="GET"
+                class="flex flex-col gap-4
                        lg:flex-row lg:items-end">
                 <div class="flex-1">
                     <label for="search"
@@ -210,27 +301,29 @@
 
                                 $supplier = $purchaseOrder?->supplier;
 
-                                $receipt = $designation->deliveryReceipt;
+                                $deliveryReceipt = $designation->deliveryReceipt;
 
-                                $longSleeveMedium = $itemQuantity($designation, 1);
+                                $ppe = $projectPpeQuantities($designation);
 
-                                $longSleeveLarge = $itemQuantity($designation, 2);
+                                $longSleeveMedium = $ppe['long_sleeve_medium'];
 
-                                $bucketHat = $itemQuantity($designation, 3);
+                                $longSleeveLarge = $ppe['long_sleeve_large'];
 
-                                $rubberBootsUs9 = $itemQuantity($designation, 4);
+                                $totalLongSleeve = $ppe['total_long_sleeve'];
 
-                                $rubberBootsUs10 = $itemQuantity($designation, 5);
+                                $bucketHat = $ppe['bucket_hat'];
 
-                                $gloves = $itemQuantity($designation, 6);
+                                $rubberBootsUs9 = $ppe['rubber_boots_us9'];
 
-                                $mask = $itemQuantity($designation, 7);
+                                $rubberBootsUs10 = $ppe['rubber_boots_us10'];
 
-                                $totalLongSleeve = $longSleeveMedium + $longSleeveLarge;
+                                $totalRubberBoots = $ppe['total_rubber_boots'];
 
-                                $totalRubberBoots = $rubberBootsUs9 + $rubberBootsUs10;
+                                $gloves = $ppe['gloves'];
 
-                                $totalPpe = $totalLongSleeve + $bucketHat + $totalRubberBoots + $gloves + $mask;
+                                $mask = $ppe['mask'];
+
+                                $totalPpe = $ppe['total_ppe'];
                             @endphp
 
                             <tr class="transition hover:bg-slate-50">

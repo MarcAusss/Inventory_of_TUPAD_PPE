@@ -117,15 +117,32 @@ class TssdDistributionController extends Controller
      * This method currently combines legacy and normalized allocation data
      * while the old distribution table is being retired safely.
      */
+    /**
+     * Display the distribution summary for one Purchase Order.
+     */
     public function show(int $id): View
     {
         $purchaseOrder = PurchaseOrder::query()
             ->with([
                 'supplier',
                 'items.item',
+
+                'distributionBatches' => function ($query): void {
+                    $query
+                        ->where(
+                            'status',
+                            '!=',
+                            'Cancelled'
+                        )
+                        ->orderBy('distribution_date')
+                        ->orderBy('id');
+                },
+
                 'distributionBatches.creator',
                 'distributionBatches.callOff',
+
                 'distributionBatches.provinceDistributions.province',
+
                 'distributionBatches.provinceDistributions.items.item',
             ])
             ->findOrFail($id);
@@ -135,32 +152,101 @@ class TssdDistributionController extends Controller
             ->get();
 
         /*
-         * Legacy allocation records.
-         */
-        $legacyDistributionRecords = TSSDDistribution::query()
-            ->with([
-                'province',
-                'item',
-            ])
-            ->where('purchase_order_id', $id)
-            ->get();
+        |--------------------------------------------------------------------------
+        | Normalized provincial distributions
+        |--------------------------------------------------------------------------
+        |
+        | Flatten all active distribution batches into one collection of
+        | ProvinceDistribution models. These models contain the `items`
+        | relationship expected by the Blade.
+        |
+        */
 
-        $legacyDistributions = $legacyDistributionRecords
-            ->groupBy('province_id');
+        $normalizedProvinceDistributions =
+            $purchaseOrder
+                ->distributionBatches
+                ->flatMap(
+                    fn ($batch) => $batch->provinceDistributions
+                )
+                ->values();
 
         /*
-         * New normalized allocation records.
-         */
-        $normalizedProvinceDistributions = $purchaseOrder
-            ->distributionBatches
-            ->flatMap(
-                fn ($batch) => $batch->provinceDistributions
-            )
-            ->groupBy('province_id');
+        |--------------------------------------------------------------------------
+        | Consolidate multiple batches for the same province
+        |--------------------------------------------------------------------------
+        |
+        | One Purchase Order may have several distribution batches for the
+        | same province. The table should show the combined assigned PPE.
+        |
+        */
+
+        $provinceDistributionSummaries =
+            $normalizedProvinceDistributions
+                ->groupBy('province_id')
+                ->map(
+                    function ($provinceRows) {
+                        $firstDistribution =
+                            $provinceRows->first();
+
+                        /*
+                         * Combine ProvinceDistributionItem quantities by item.
+                         */
+                        $combinedItems =
+                            $provinceRows
+                                ->flatMap(
+                                    fn ($distribution) => $distribution->items
+                                )
+                                ->groupBy('item_id')
+                                ->map(
+                                    function ($itemRows) {
+                                        $firstItemRow =
+                                            $itemRows->first();
+
+                                        /*
+                                         * Clone the first row so the Blade can
+                                         * still access ->item and ->quantity.
+                                         */
+                                        $summaryItem =
+                                            clone $firstItemRow;
+
+                                        $summaryItem->quantity =
+                                            (int) $itemRows->sum(
+                                                'quantity'
+                                            );
+
+                                        return $summaryItem;
+                                    }
+                                )
+                                ->values();
+
+                        /*
+                         * Clone one ProvinceDistribution model to preserve
+                         * province_id, province, and the `items` relationship.
+                         */
+                        $summaryDistribution =
+                            clone $firstDistribution;
+
+                        $summaryDistribution->setRelation(
+                            'items',
+                            $combinedItems
+                        );
+
+                        return $summaryDistribution;
+                    }
+                )
+                ->values();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Purchased PPE
+        |--------------------------------------------------------------------------
+        */
 
         $purchased = $this->emptyPpeSummary();
 
-        foreach ($purchaseOrder->items as $purchaseOrderItem) {
+        foreach (
+            $purchaseOrder->items as $purchaseOrderItem
+        ) {
             $key = $this->mapKey(
                 $purchaseOrderItem->item?->item_name,
                 $purchaseOrderItem->item?->label
@@ -174,67 +260,75 @@ class TssdDistributionController extends Controller
                 (int) $purchaseOrderItem->quantity;
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Distributed PPE
+        |--------------------------------------------------------------------------
+        */
+
         $distributed = $this->emptyPpeSummary();
 
-        foreach ($legacyDistributionRecords as $record) {
-            $key = $this->mapKey(
-                $record->item?->item_name,
-                $record->item?->label
-            );
+        foreach (
+            $normalizedProvinceDistributions as $provinceDistribution
+        ) {
+            foreach (
+                $provinceDistribution->items as $item
+            ) {
+                $key = $this->mapKey(
+                    $item->item?->item_name,
+                    $item->item?->label
+                );
 
-            if ($key === null) {
-                continue;
-            }
-
-            $distributed[$key] += (int) $record->quantity;
-        }
-
-        foreach ($purchaseOrder->distributionBatches as $batch) {
-            if ($batch->status === 'Cancelled') {
-                continue;
-            }
-
-            foreach ($batch->provinceDistributions as $provinceDistribution) {
-                foreach ($provinceDistribution->items as $item) {
-                    $key = $this->mapKey(
-                        $item->item?->item_name,
-                        $item->item?->label
-                    );
-
-                    if ($key === null) {
-                        continue;
-                    }
-
-                    $distributed[$key] += (int) $item->quantity;
+                if ($key === null) {
+                    continue;
                 }
+
+                $distributed[$key] +=
+                    (int) $item->quantity;
             }
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Remaining PO stock
+        |--------------------------------------------------------------------------
+        */
 
         $remaining = [];
 
         foreach ($purchased as $key => $quantity) {
             $remaining[$key] = max(
                 0,
-                $quantity - ($distributed[$key] ?? 0)
+                (int) $quantity
+                - (int) (
+                    $distributed[$key]
+                    ?? 0
+                )
             );
         }
 
-        return view('tssd.distribution.show', [
-            'purchaseOrder' => $purchaseOrder,
-            'provinces' => $provinces,
+        return view(
+            'tssd.distribution.show',
+            [
+                'purchaseOrder' => $purchaseOrder,
 
-            /*
-             * Keep the old variable available for the existing Blade file.
-             */
-            'distributions' => $legacyDistributions,
+                'provinces' => $provinces,
 
-            'legacyDistributions' => $legacyDistributions,
-            'normalizedProvinceDistributions' => $normalizedProvinceDistributions,
+                /*
+                 * This is now the normalized, consolidated collection
+                 * expected by the current Blade.
+                 */
+                'distributions' => $provinceDistributionSummaries,
 
-            'purchased' => $purchased,
-            'distributed' => $distributed,
-            'remaining' => $remaining,
-        ]);
+                'normalizedProvinceDistributions' => $normalizedProvinceDistributions,
+
+                'purchased' => $purchased,
+
+                'distributed' => $distributed,
+
+                'remaining' => $remaining,
+            ]
+        );
     }
 
     /**
@@ -355,24 +449,117 @@ class TssdDistributionController extends Controller
         ?string $name,
         ?string $label
     ): ?string {
+        $normalizedName = strtolower(
+            trim((string) $name)
+        );
+
+        $normalizedLabel = strtolower(
+            trim((string) $label)
+        );
+
         return match (true) {
-            $name === 'Long Sleeve'
-                && $label === 'Medium' => 'lsm',
+            in_array(
+                $normalizedName,
+                [
+                    'long sleeve',
+                    'long sleeves',
+                    'longsleeve',
+                    'longsleeves',
+                ],
+                true
+            )
+            && in_array(
+                $normalizedLabel,
+                [
+                    'm',
+                    'medium',
+                ],
+                true
+            ) => 'lsm',
 
-            $name === 'Long Sleeve'
-                && $label === 'Large' => 'lsl',
+            in_array(
+                $normalizedName,
+                [
+                    'long sleeve',
+                    'long sleeves',
+                    'longsleeve',
+                    'longsleeves',
+                ],
+                true
+            )
+            && in_array(
+                $normalizedLabel,
+                [
+                    'l',
+                    'large',
+                ],
+                true
+            ) => 'lsl',
 
-            $name === 'Rubber Boots'
-                && $label === 'US9' => 'us9',
+            in_array(
+                $normalizedName,
+                [
+                    'rubber boot',
+                    'rubber boots',
+                ],
+                true
+            )
+            && in_array(
+                $normalizedLabel,
+                [
+                    'us9',
+                    'us 9',
+                    '9',
+                ],
+                true
+            ) => 'us9',
 
-            $name === 'Rubber Boots'
-                && $label === 'US10' => 'us10',
+            in_array(
+                $normalizedName,
+                [
+                    'rubber boot',
+                    'rubber boots',
+                ],
+                true
+            )
+            && in_array(
+                $normalizedLabel,
+                [
+                    'us10',
+                    'us 10',
+                    '10',
+                ],
+                true
+            ) => 'us10',
 
-            $name === 'Bucket Hat' => 'bucket',
+            in_array(
+                $normalizedName,
+                [
+                    'bucket hat',
+                    'bucket hats',
+                ],
+                true
+            ) => 'bucket',
 
-            $name === 'Hand Gloves' => 'gloves',
+            in_array(
+                $normalizedName,
+                [
+                    'hand glove',
+                    'hand gloves',
+                    'glove',
+                    'gloves',
+                ],
+                true
+            ) => 'gloves',
 
-            $name === 'Mask' => 'mask',
+            in_array(
+                $normalizedName,
+                [
+                    'mask',
+                    'masks',
+                ],
+                true
+            ) => 'mask',
 
             default => null,
         };

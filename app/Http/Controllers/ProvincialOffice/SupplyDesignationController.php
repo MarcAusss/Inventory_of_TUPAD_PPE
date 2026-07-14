@@ -349,7 +349,7 @@ class SupplyDesignationController extends Controller
 
         $reportTitle =
             'Project PPE Distribution - '
-            .$supplyDesignation->project_code;
+            . $supplyDesignation->project_code;
 
         return view(
             'provincial.project-designations.print',
@@ -375,6 +375,7 @@ class SupplyDesignationController extends Controller
                 'creator',
                 'items.item',
                 'deliveryReceipt',
+                'provinceDistribution.items.item',
                 'provinceDistribution.distributionBatch.callOff',
                 'provinceDistribution.distributionBatch.purchaseOrder.supplier',
             ])
@@ -409,9 +410,9 @@ class SupplyDesignationController extends Controller
                                 )
                                 ->orWhereHas(
                                     'deliveryReceipt',
-                                    fn (
-                                        Builder $receiptQuery
-                                    ) => $receiptQuery->where(
+                                    fn(
+                                    Builder $receiptQuery
+                                ) => $receiptQuery->where(
                                         'dr_number',
                                         'like',
                                         "%{$search}%"
@@ -419,11 +420,11 @@ class SupplyDesignationController extends Controller
                                 )
                                 ->orWhereHas(
                                     'provinceDistribution'
-                                    .'.distributionBatch'
-                                    .'.callOff',
-                                    fn (
-                                        Builder $callOffQuery
-                                    ) => $callOffQuery->where(
+                                    . '.distributionBatch'
+                                    . '.callOff',
+                                    fn(
+                                    Builder $callOffQuery
+                                ) => $callOffQuery->where(
                                         'call_off_number',
                                         'like',
                                         "%{$search}%"
@@ -431,12 +432,12 @@ class SupplyDesignationController extends Controller
                                 )
                                 ->orWhereHas(
                                     'provinceDistribution'
-                                    .'.distributionBatch'
-                                    .'.purchaseOrder'
-                                    .'.supplier',
-                                    fn (
-                                        Builder $supplierQuery
-                                    ) => $supplierQuery->where(
+                                    . '.distributionBatch'
+                                    . '.purchaseOrder'
+                                    . '.supplier',
+                                    fn(
+                                    Builder $supplierQuery
+                                ) => $supplierQuery->where(
                                         'supplier_name',
                                         'like',
                                         "%{$search}%"
