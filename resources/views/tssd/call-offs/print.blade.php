@@ -3,16 +3,11 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <title>Province Distribution Summary - {{ $callOff->call_off_number }}</title>
 
-    <title>
-        Province Distribution Summary -
-        {{ $callOff->call_off_number }}
-    </title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
         @page {
@@ -20,624 +15,344 @@
             margin: 8mm;
         }
 
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            color: #000;
-            background: #fff;
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 10px;
-        }
-
-        .print-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .print-actions button {
-            border: 0;
-            border-radius: 6px;
-            padding: 9px 18px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .print-button {
-            background: #970C13;
-            color: #fff;
-        }
-
-        .close-button {
-            background: #e5e7eb;
-            color: #111827;
-        }
-
-        .report {
-            width: 100%;
-        }
-
-        .letterhead {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 14px;
-        }
-
-        .letterhead td {
-            border: none;
-            vertical-align: middle;
-        }
-
-        .logo-cell {
-            width: 18%;
-            text-align: center;
-        }
-
-        .center-cell {
-            width: 57%;
-            text-align: center;
-        }
-
-        .right-cell {
-            width: 25%;
-            text-align: center;
-        }
-
-        .logo-placeholder {
-            min-height: 90px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-        }
-
-        .republic {
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-
-        .department {
-            font-size: 18px;
-            font-weight: 700;
-        }
-
-        .regional-office {
-            margin-top: 18px;
-            font-size: 15px;
-            font-weight: 700;
-        }
-
-        .address {
-            margin-top: 18px;
-            font-size: 11px;
-            font-style: italic;
-        }
-
-        .contacts {
-            margin-top: 8px;
-            font-size: 11px;
-            font-style: italic;
-        }
-
-        .email {
-            margin-top: 7px;
-            font-size: 13px;
-            text-decoration: underline;
-        }
-
-        .report-title {
-            margin-top: 18px;
-            text-align: center;
-        }
-
-        .report-title h1 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .report-title p {
-            margin: 5px 0 0;
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        .report-meta {
-            width: 100%;
-            margin: 18px 0 10px;
-            border-collapse: collapse;
-        }
-
-        .report-meta td {
-            width: 25%;
-            padding: 4px 8px;
-            vertical-align: top;
-        }
-
-        .meta-label {
-            display: block;
-            margin-bottom: 3px;
-            font-size: 8px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .meta-value {
-            font-size: 10px;
-            font-weight: 700;
-        }
-
-        .distribution-table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }
-
-        .distribution-table th,
-        .distribution-table td {
-            border: 1px solid #000;
-            padding: 5px 3px;
-        }
-
-        .distribution-table thead th {
-            text-align: center;
-            font-size: 8px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .distribution-table tbody td {
-            font-size: 8px;
-        }
-
-        .text-left {
-            text-align: left;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .font-bold {
-            font-weight: 700;
-        }
-
-        .footer {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 100px;
-            margin-top: 45px;
-        }
-
-        .signature {
-            min-height: 70px;
-        }
-
-        .signature-label {
-            font-weight: 700;
-        }
-
-        .signature-line {
-            margin-top: 45px;
-            border-top: 1px solid #000;
-            padding-top: 4px;
-            text-align: center;
-            font-weight: 700;
-        }
-
         @media print {
-            .print-actions {
-                display: none !important;
+            thead {
+                display: table-header-group;
             }
 
-            body {
-                print-color-adjust: exact;
+            tr,
+            th,
+            td {
+                page-break-inside: avoid;
+            }
+
+            .print-exact {
                 -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
         }
     </style>
 </head>
 
-<body>
+<body class="m-0 bg-white p-[10mm] font-sans text-[8px] text-black print:p-0">
 
     @php
         $batch = $callOff->distributionBatch;
+        $purchaseOrder = $batch?->purchaseOrder;
+        $allocations = $batch?->provinceDistributions ?? collect();
 
-        $purchaseOrder =
-            $batch?->purchaseOrder;
+        $ppeQuantities = function ($allocation): array {
+            $items = collect($allocation->items ?? []);
+
+            $normalize = fn($value): string => strtolower(trim((string) $value));
+
+            $matchesName = function ($row, array $names) use ($normalize): bool {
+                return in_array($normalize($row->item?->item_name ?? ''), $names, true);
+            };
+
+            $matchesLabel = function ($row, array $labels) use ($normalize): bool {
+                return in_array($normalize($row->item?->label ?? ''), $labels, true);
+            };
+
+            $lsm = (int) $items
+                ->filter(
+                    fn($row): bool => $matchesName($row, [
+                        'long sleeve',
+                        'long sleeves',
+                        'longsleeve',
+                        'longsleeves',
+                    ]) && $matchesLabel($row, ['m', 'medium']),
+                )
+                ->sum('quantity');
+
+            $lsl = (int) $items
+                ->filter(
+                    fn($row): bool => $matchesName($row, [
+                        'long sleeve',
+                        'long sleeves',
+                        'longsleeve',
+                        'longsleeves',
+                    ]) && $matchesLabel($row, ['l', 'large']),
+                )
+                ->sum('quantity');
+
+            $bucket = (int) $items
+                ->filter(fn($row): bool => $matchesName($row, ['bucket hat', 'bucket hats']))
+                ->sum('quantity');
+
+            $us9 = (int) $items
+                ->filter(
+                    fn($row): bool => $matchesName($row, ['rubber boot', 'rubber boots']) &&
+                        $matchesLabel($row, ['us9', 'us 9', '9']),
+                )
+                ->sum('quantity');
+
+            $us10 = (int) $items
+                ->filter(
+                    fn($row): bool => $matchesName($row, ['rubber boot', 'rubber boots']) &&
+                        $matchesLabel($row, ['us10', 'us 10', '10']),
+                )
+                ->sum('quantity');
+
+            $gloves = (int) $items
+                ->filter(fn($row): bool => $matchesName($row, ['hand glove', 'hand gloves', 'glove', 'gloves']))
+                ->sum('quantity');
+
+            $mask = (int) $items->filter(fn($row): bool => $matchesName($row, ['mask', 'masks']))->sum('quantity');
+
+            return [
+                'lsm' => $lsm,
+                'lsl' => $lsl,
+                'total_ls' => $lsm + $lsl,
+                'bucket' => $bucket,
+                'us9' => $us9,
+                'us10' => $us10,
+                'total_boots' => $us9 + $us10,
+                'gloves' => $gloves,
+                'mask' => $mask,
+            ];
+        };
+
+        $totals = [
+            'lsm' => 0,
+            'lsl' => 0,
+            'total_ls' => 0,
+            'bucket' => 0,
+            'us9' => 0,
+            'us10' => 0,
+            'total_boots' => 0,
+            'gloves' => 0,
+            'mask' => 0,
+        ];
     @endphp
 
-    <div class="print-actions">
-        <button
-            type="button"
-            class="close-button"
-            onclick="window.close()"
-        >
+    {{-- Screen controls --}}
+    <div class="mb-[14px] flex justify-end gap-2 rounded-lg border border-slate-300 bg-slate-50 p-[10px] print:hidden">
+        <button type="button" onclick="window.close()"
+            class="inline-flex cursor-pointer items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-[9px] text-[13px] font-bold text-slate-700 hover:bg-slate-100">
             Close
         </button>
 
-        <button
-            type="button"
-            class="print-button"
-            onclick="window.print()"
-        >
-            Print
+        <button type="button" onclick="window.print()"
+            class="inline-flex cursor-pointer items-center justify-center rounded-md border-0 bg-[#970C13] px-4 py-[9px] text-[13px] font-bold text-white hover:bg-[#7f0a10]">
+            Print Report
         </button>
     </div>
 
-    <main class="report">
+    {{-- DOLE letterhead --}}
+    <div class="flex items-start justify-center gap-4 pl-24">
+        <img src="{{ asset('images/print/dole_logo.webp') }}" alt="DOLE Logo"
+            class="max-h-[85px] w-[120px] object-contain" onerror="this.style.display='none'">
 
-        {{-- =====================================================
-        DOLE HEADER
-        ====================================================== --}}
-
-        <table class="letterhead">
-            <tr>
-                <td class="logo-cell">
-                    <div class="logo-placeholder">
-                        DOLE LOGO
-                    </div>
-                </td>
-
-                <td class="center-cell">
-                    <div class="republic">
-                        Republic of the Philippines
-                    </div>
-
-                    <div class="department">
-                        DEPARTMENT OF LABOR AND EMPLOYMENT
-                    </div>
-
-                    <div class="regional-office">
-                        Regional Office No. 5
-                    </div>
-
-                    <div class="address">
-                        DOLE RO5 Bldg., Doña Aurora St.,
-                        Old Albay, Legazpi City
-                    </div>
-
-                    <div class="contacts">
-                        ORD: 0981-461-8788
-                        TSSD: 0963-206-0008
-                        IMSD: 0912-330-4751
-                    </div>
-
-                    <div class="email">
-                        ro5@dole.gov.ph
-                    </div>
-                </td>
-
-                <td class="right-cell">
-                    <div class="logo-placeholder">
-                        BAGONG PILIPINAS / ISO
-                    </div>
-                </td>
-            </tr>
-        </table>
-
-        {{-- =====================================================
-        REPORT TITLE
-        ====================================================== --}}
-
-        <section class="report-title">
-            <h1>
-                Province Distribution Summary
-            </h1>
-
-            <p>
-                {{ now()->format('F d, Y') }}
+        <div class="min-w-[460px] text-center">
+            <p class="m-0 text-[14px] font-normal">
+                Republic of the Philippines
             </p>
-        </section>
 
-        {{-- =====================================================
-        REPORT INFORMATION
-        ====================================================== --}}
+            <p class="mb-0 mt-1 text-[17px] font-extrabold">
+                DEPARTMENT OF LABOR AND EMPLOYMENT
+            </p>
 
-        <table class="report-meta">
+            <p class="mb-0 mt-[13px] text-[15px] font-bold">
+                Regional Office No. 5
+            </p>
+
+            <p class="mb-0 mt-[14px] text-[11px] italic">
+                DOLE RO5 Bldg., Doña Aurora St., Old Albay, Legazpi City
+            </p>
+
+            <p class="mb-0 mt-[7px] text-[10px] italic">
+                ORD: 0981-461-8788&nbsp;&nbsp;
+                TSSD: 0963-206-0008&nbsp;&nbsp;
+                IMSD: 0912-330-4751
+            </p>
+
+            <p class="mb-0 mt-[7px] text-[13px] text-black underline">
+                ro5@dole.gov.ph
+            </p>
+        </div>
+
+        <img src="{{ asset('images/print/Bagong_Pilipinas.png') }}" alt="Bagong Pilipinas"
+            class="max-h-[82px] w-[105px] object-contain" onerror="this.style.display='none'">
+
+        <img src="{{ asset('images/print/iso-bureau-veritas.jpg') }}" alt="ISO Bureau Veritas"
+            class="max-h-[78px] w-[150px] object-contain" onerror="this.style.display='none'">
+    </div>
+
+    <div class="py-10"></div>
+
+    {{-- Distribution table --}}
+    <table
+        class="w-full table-fixed border-collapse text-[9px]
+        [&_th]:border [&_th]:border-[#222]
+        [&_th]:px-[4px] [&_th]:py-[6px]
+        [&_th]:text-center [&_th]:font-bold
+        [&_th]:align-middle
+        [&_td]:border [&_td]:border-[#222]
+        [&_td]:px-[4px] [&_td]:py-[6px]
+        [&_td]:text-center [&_td]:align-middle
+        [&_td]:[overflow-wrap:anywhere]
+        print-exact">
+        <thead>
             <tr>
-                <td>
-                    <span class="meta-label">
-                        Call-Off Number
-                    </span>
+                <th rowspan="2" class="w-[11%] bg-[#641D21] text-left text-white">
+                    Province
+                </th>
 
-                    <span class="meta-value">
-                        {{ $callOff->call_off_number }}
-                    </span>
-                </td>
+                <th rowspan="2" class="w-[9%] bg-[#641D21] text-white">
+                    Delivery Date
+                </th>
 
-                <td>
-                    <span class="meta-label">
-                        Purchase Order
-                    </span>
+                <th rowspan="2" class="w-[17%] bg-[#641D21] text-left text-white">
+                    Place of Delivery
+                </th>
 
-                    <span class="meta-value">
-                        {{ $purchaseOrder?->po_number ?? '—' }}
-                    </span>
-                </td>
+                <th colspan="3" class="bg-[#641D21] text-white">
+                    Long Sleeves
+                </th>
 
-                <td>
-                    <span class="meta-label">
-                        Supplier
-                    </span>
+                <th rowspan="2" class="bg-[#641D21] text-white">
+                    Bucket Hat
+                </th>
 
-                    <span class="meta-value">
-                        {{
-                            $purchaseOrder
-                                ?->supplier
-                                ?->supplier_name
-                            ?? '—'
-                        }}
-                    </span>
-                </td>
+                <th colspan="3" class="bg-[#641D21] text-white">
+                    Rubber Boots
+                </th>
 
-                <td>
-                    <span class="meta-label">
-                        Distribution Date
-                    </span>
+                <th rowspan="2" class="bg-[#641D21] text-white">
+                    Gloves
+                </th>
 
-                    <span class="meta-value">
-                        {{
-                            $batch
-                                ?->distribution_date
-                                ?->format('F d, Y')
-                            ?? '—'
-                        }}
-                    </span>
-                </td>
+                <th rowspan="2" class="bg-[#641D21] text-white">
+                    Mask
+                </th>
             </tr>
-        </table>
 
-        {{-- =====================================================
-        PROVINCE DISTRIBUTION TABLE
-        ====================================================== --}}
+            <tr>
+                <th class="bg-[#970C13] text-white">M</th>
+                <th class="bg-[#970C13] text-white">L</th>
+                <th class="bg-[#970C13] text-white">Total</th>
 
-        <table class="distribution-table">
+                <th class="bg-[#970C13] text-white">US9</th>
+                <th class="bg-[#970C13] text-white">US10</th>
+                <th class="bg-[#970C13] text-white">Total</th>
+            </tr>
+        </thead>
 
-            <thead>
+        <tbody>
+            @forelse($allocations as $allocation)
+                @php
+                    $ppe = $ppeQuantities($allocation);
 
-                <tr>
-                    <th rowspan="2">
-                        Province
-                    </th>
-
-                    <th rowspan="2">
-                        Delivery Date
-                    </th>
-
-                    <th rowspan="2">
-                        Place of Delivery
-                    </th>
-
-                    <th colspan="3">
-                        Long Sleeves
-                    </th>
-
-                    <th rowspan="2">
-                        Bucket Hat
-                    </th>
-
-                    <th colspan="3">
-                        Rubber Boots
-                    </th>
-
-                    <th rowspan="2">
-                        Gloves
-                    </th>
-
-                    <th rowspan="2">
-                        Mask
-                    </th>
-                </tr>
+                    foreach (array_keys($totals) as $key) {
+                        $totals[$key] += $ppe[$key];
+                    }
+                @endphp
 
                 <tr>
-                    <th>M</th>
-                    <th>L</th>
-                    <th>Total</th>
+                    <td class="text-left font-bold uppercase text-[#641D21]">
+                        {{ $allocation->province?->name ?? '—' }}
+                    </td>
 
-                    <th>US9</th>
-                    <th>US10</th>
-                    <th>Total</th>
+                    <td>
+                        {{ $allocation->scheduled_delivery_date?->format('M d, Y') ?? '—' }}
+                    </td>
+
+                    <td class="text-left">
+                        {{ $allocation->place_of_delivery ?? '—' }}
+                    </td>
+
+                    <td>{{ number_format($ppe['lsm']) }}</td>
+                    <td>{{ number_format($ppe['lsl']) }}</td>
+
+                    <td class="bg-red-50 font-extrabold text-[#641D21] print-exact">
+                        {{ number_format($ppe['total_ls']) }}
+                    </td>
+
+                    <td>{{ number_format($ppe['bucket']) }}</td>
+                    <td>{{ number_format($ppe['us9']) }}</td>
+                    <td>{{ number_format($ppe['us10']) }}</td>
+
+                    <td class="bg-red-50 font-extrabold text-[#641D21] print-exact">
+                        {{ number_format($ppe['total_boots']) }}
+                    </td>
+
+                    <td>{{ number_format($ppe['gloves']) }}</td>
+                    <td>{{ number_format($ppe['mask']) }}</td>
                 </tr>
 
-            </thead>
+            @empty
+                <tr>
+                    <td colspan="12" class="py-8 text-center text-slate-500">
+                        No provincial distribution records found.
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
 
-            <tbody>
+        @if ($allocations->isNotEmpty())
+            <tfoot>
+                <tr class="font-extrabold">
+                    <td colspan="3" class="bg-slate-100 text-right uppercase print-exact">
+                        Grand Total
+                    </td>
 
-                @foreach(
-                    $batch?->provinceDistributions
-                        ?? collect()
-                    as $allocation
-                )
-                    @php
-                        $items =
-                            $allocation->items
-                            ?? collect();
+                    <td class="bg-slate-100 print-exact">
+                        {{ number_format($totals['lsm']) }}
+                    </td>
 
-                        $lsm = $items
-                            ->filter(
-                                fn ($row) =>
-                                    $row->item
-                                    && $row->item->item_name
-                                        === 'Long Sleeve'
-                                    && $row->item->label
-                                        === 'Medium'
-                            )
-                            ->sum('quantity');
+                    <td class="bg-slate-100 print-exact">
+                        {{ number_format($totals['lsl']) }}
+                    </td>
 
-                        $lsl = $items
-                            ->filter(
-                                fn ($row) =>
-                                    $row->item
-                                    && $row->item->item_name
-                                        === 'Long Sleeve'
-                                    && $row->item->label
-                                        === 'Large'
-                            )
-                            ->sum('quantity');
+                    <td class="bg-[#DF979B]/30 text-[#641D21] print-exact">
+                        {{ number_format($totals['total_ls']) }}
+                    </td>
 
-                        $bucket = $items
-                            ->filter(
-                                fn ($row) =>
-                                    $row->item
-                                    && $row->item->item_name
-                                        === 'Bucket Hat'
-                            )
-                            ->sum('quantity');
+                    <td class="bg-slate-100 print-exact">
+                        {{ number_format($totals['bucket']) }}
+                    </td>
 
-                        $us9 = $items
-                            ->filter(
-                                fn ($row) =>
-                                    $row->item
-                                    && $row->item->item_name
-                                        === 'Rubber Boots'
-                                    && $row->item->label
-                                        === 'US9'
-                            )
-                            ->sum('quantity');
+                    <td class="bg-slate-100 print-exact">
+                        {{ number_format($totals['us9']) }}
+                    </td>
 
-                        $us10 = $items
-                            ->filter(
-                                fn ($row) =>
-                                    $row->item
-                                    && $row->item->item_name
-                                        === 'Rubber Boots'
-                                    && $row->item->label
-                                        === 'US10'
-                            )
-                            ->sum('quantity');
+                    <td class="bg-slate-100 print-exact">
+                        {{ number_format($totals['us10']) }}
+                    </td>
 
-                        $gloves = $items
-                            ->filter(
-                                fn ($row) =>
-                                    $row->item
-                                    && $row->item->item_name
-                                        === 'Hand Gloves'
-                            )
-                            ->sum('quantity');
+                    <td class="bg-[#DF979B]/30 text-[#641D21] print-exact">
+                        {{ number_format($totals['total_boots']) }}
+                    </td>
 
-                        $mask = $items
-                            ->filter(
-                                fn ($row) =>
-                                    $row->item
-                                    && $row->item->item_name
-                                        === 'Mask'
-                            )
-                            ->sum('quantity');
-                    @endphp
+                    <td class="bg-slate-100 print-exact">
+                        {{ number_format($totals['gloves']) }}
+                    </td>
 
-                    <tr>
-                        <td class="text-left font-bold">
-                            {{
-                                $allocation
-                                    ->province
-                                    ?->name
-                                ?? '—'
-                            }}
-                        </td>
+                    <td class="bg-slate-100 print-exact">
+                        {{ number_format($totals['mask']) }}
+                    </td>
+                </tr>
+            </tfoot>
+        @endif
+    </table>
 
-                        <td class="text-center">
-                            {{
-                                $allocation
-                                    ->scheduled_delivery_date
-                                    ?->format('M d, Y')
-                                ?? '—'
-                            }}
-                        </td>
+    {{-- Signatures --}}
+    <table class="mt-8 w-full border-collapse [page-break-inside:avoid]">
+        <tr>
+            <td class="w-1/2 border-0 px-[35px] py-0 align-top">
+                <div class="border-r border-slate-300 px-4 py-3">
+                    <p class="m-0 text-[8px] font-bold uppercase tracking-wide text-slate-500">
+                        Call-Off Number
+                    </p>
 
-                        <td class="text-left">
-                            {{
-                                $allocation
-                                    ->place_of_delivery
-                                ?? '—'
-                            }}
-                        </td>
-
-                        <td class="text-center">
-                            {{ number_format($lsm) }}
-                        </td>
-
-                        <td class="text-center">
-                            {{ number_format($lsl) }}
-                        </td>
-
-                        <td class="text-center font-bold">
-                            {{
-                                number_format(
-                                    $lsm + $lsl
-                                )
-                            }}
-                        </td>
-
-                        <td class="text-center">
-                            {{ number_format($bucket) }}
-                        </td>
-
-                        <td class="text-center">
-                            {{ number_format($us9) }}
-                        </td>
-
-                        <td class="text-center">
-                            {{ number_format($us10) }}
-                        </td>
-
-                        <td class="text-center font-bold">
-                            {{
-                                number_format(
-                                    $us9 + $us10
-                                )
-                            }}
-                        </td>
-
-                        <td class="text-center">
-                            {{ number_format($gloves) }}
-                        </td>
-
-                        <td class="text-center">
-                            {{ number_format($mask) }}
-                        </td>
-                    </tr>
-
-                @endforeach
-
-            </tbody>
-
-        </table>
-
-        {{-- =====================================================
-        SIGNATURE FOOTER
-        ====================================================== --}}
-
-        <section class="footer">
-
-            <div class="signature">
-                <div class="signature-label">
-                    Prepared by:
+                    <p class="mb-0 mt-1 text-[11px] font-extrabold text-[#641D21]">
+                        {{ $callOff->call_off_number }}
+                    </p>
                 </div>
-
-                <div class="signature-line">
-                    Name and Signature
-                </div>
-            </div>
-
-            <div class="signature">
-                <div class="signature-label">
-                    Reviewed by:
-                </div>
-
-                <div class="signature-line">
-                    Name and Signature
-                </div>
-            </div>
-
-        </section>
-
-    </main>
+            </td>
+        </tr>
+    </table>
 
 </body>
 

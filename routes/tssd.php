@@ -24,11 +24,11 @@ Route::middleware([
             'distributions',
             TssdDistributionController::class
         )->only([
-            'index',
-            'create',
-            'store',
-            'show',
-        ]);
+                    'index',
+                    'create',
+                    'store',
+                    'show',
+                ]);
 
         Route::get(
             '/purchase-orders/{poId}/remaining',
@@ -170,4 +170,22 @@ Route::middleware([
         )
             ->whereNumber('user')
             ->name('users.update');
+        Route::get(
+            '/distributions/{distribution}/print',
+            [
+                TssdDistributionController::class,
+                'print',
+            ]
+        )
+            ->whereNumber('distribution')
+            ->name('distributions.print');
+        Route::resource(
+            'distributions',
+            TssdDistributionController::class
+        )->only([
+                    'index',
+                    'create',
+                    'store',
+                    'show',
+                ]);
     });

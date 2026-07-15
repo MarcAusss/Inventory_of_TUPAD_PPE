@@ -119,13 +119,20 @@
         </section>
 
         <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
-                <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">Provincial distribution summary
-                </p>
-                <h2 class="mt-1 text-lg font-bold text-slate-950">Province Distribution</h2>
-                <p class="mt-1 text-sm text-slate-500">
-                    Consolidated PPE quantities distributed to every provincial office.
-                </p>
+            <div class="flex justify-between items-center px-2">
+                <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
+                    <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">Provincial distribution
+                        summary
+                    </p>
+                    <h2 class="mt-1 text-lg font-bold text-slate-950">Province Distribution</h2>
+                    <p class="mt-1 text-sm text-slate-500">
+                        Consolidated PPE quantities distributed to every provincial office.
+                    </p>
+                </div>
+                <a href="{{ route('tssd.distributions.print', $purchaseOrder->id) }}" target="_blank"
+                    class="inline-flex items-center justify-center mr-5 rounded-xl border border-[#970C13] bg-white px-5 py-3 text-sm font-bold text-[#970C13] transition hover:bg-[#970C13] hover:text-white">
+                    Print Distribution
+                </a>
             </div>
 
             <div class="overflow-x-auto">

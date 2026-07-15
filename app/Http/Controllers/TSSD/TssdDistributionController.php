@@ -166,7 +166,7 @@ class TssdDistributionController extends Controller
             $purchaseOrder
                 ->distributionBatches
                 ->flatMap(
-                    fn ($batch) => $batch->provinceDistributions
+                    fn($batch) => $batch->provinceDistributions
                 )
                 ->values();
 
@@ -194,7 +194,7 @@ class TssdDistributionController extends Controller
                         $combinedItems =
                             $provinceRows
                                 ->flatMap(
-                                    fn ($distribution) => $distribution->items
+                                    fn($distribution) => $distribution->items
                                 )
                                 ->groupBy('item_id')
                                 ->map(
@@ -582,4 +582,73 @@ class TssdDistributionController extends Controller
             'mask' => 0,
         ];
     }
+    /**
+     * Print the distribution summary of one Purchase Order.
+     */
+    public function print(int $id): View
+    {
+        $purchaseOrder = PurchaseOrder::query()
+            ->with([
+                'supplier',
+                'items.item',
+
+                'distributionBatches' => function ($query): void {
+                    $query
+                        ->where('status', '!=', 'Cancelled')
+                        ->orderBy('distribution_date')
+                        ->orderBy('id');
+                },
+
+                'distributionBatches.creator',
+                'distributionBatches.callOff.approvedBy',
+                'distributionBatches.provinceDistributions.province',
+                'distributionBatches.provinceDistributions.items.item',
+            ])
+            ->findOrFail($id);
+
+        $distributions = $purchaseOrder
+            ->distributionBatches
+            ->flatMap(
+                fn($batch) => $batch->provinceDistributions
+            )
+            ->groupBy('province_id')
+            ->map(function ($provinceRows) {
+                $firstDistribution = $provinceRows->first();
+
+                $combinedItems = $provinceRows
+                    ->flatMap(
+                        fn($distribution) => $distribution->items
+                    )
+                    ->groupBy('item_id')
+                    ->map(function ($itemRows) {
+                        $summaryItem = clone $itemRows->first();
+
+                        $summaryItem->quantity = (int) $itemRows->sum(
+                            'quantity'
+                        );
+
+                        return $summaryItem;
+                    })
+                    ->values();
+
+                $summaryDistribution = clone $firstDistribution;
+
+                $summaryDistribution->setRelation(
+                    'items',
+                    $combinedItems
+                );
+
+                return $summaryDistribution;
+            })
+            ->values();
+
+        return view(
+            'tssd.distribution.print',
+            compact(
+                'purchaseOrder',
+                'distributions'
+            )
+        );
+    }
+
 }
