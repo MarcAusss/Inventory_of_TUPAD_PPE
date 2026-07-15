@@ -3,22 +3,26 @@
 namespace App\Http\Controllers\Accounting;
 
 use App\Http\Controllers\Controller;
-use App\Models\InventoryMovement;
 use App\Models\Item;
 use App\Models\Province;
-use Illuminate\Database\Eloquent\Builder;
+use App\Models\ProvinceDistribution;
+use App\Services\InventoryMovementReportService;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class InventoryLedgerController extends Controller
 {
     /**
-     * Display the read-only inventory ledger for Accounting Unit.
+     * Display the Accounting Unit read-only inventory report.
      */
-    public function index(Request $request): View
-    {
-        $currentYear = now()->year;
+    public function index(
+        Request $request,
+        InventoryMovementReportService $reportService
+    ): View {
+        $currentYear = (int) now()->year;
 
         $year = $this->resolveYear(
             $request,
@@ -29,101 +33,293 @@ class InventoryLedgerController extends Controller
             $request
         );
 
-        $search = trim(
-            (string) $request->query('search')
+        $callOffId = max(
+            0,
+            (int) $request->query(
+                'province_distribution_id',
+                0
+            )
         );
+
+        $search = trim(
+            (string) $request->query(
+                'search',
+                ''
+            )
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Provincial Office options
+        |--------------------------------------------------------------------------
+        */
 
         $provinces = Province::query()
             ->orderBy('name')
             ->get();
 
         $selectedProvince = $provinceId
-            ? $provinces->firstWhere('id', $provinceId)
+            ? $provinces->firstWhere(
+                'id',
+                $provinceId
+            )
             : null;
 
-        $movements = InventoryMovement::query()
+        /*
+        |--------------------------------------------------------------------------
+        | Call-Off allocation options
+        |--------------------------------------------------------------------------
+        */
+
+        $callOffAllocations = ProvinceDistribution::query()
             ->with([
                 'province',
-                'item',
-                'creator',
-                'deliveryReceipt.provinceDistribution.distributionBatch.callOff',
-                'deliveryReceipt.provinceDistribution.distributionBatch.purchaseOrder.supplier',
-                'supplyDesignation',
+                'distributionBatch.callOff',
+                'distributionBatch.purchaseOrder.supplier',
             ])
             ->when(
                 $provinceId,
-                fn (Builder $query): Builder => $query->where(
+                fn ($query) => $query->where(
                     'province_id',
                     $provinceId
                 )
             )
+            ->whereHas(
+                'distributionBatch.callOff',
+                function ($query): void {
+                    $query->whereIn(
+                        'status',
+                        [
+                            'Approved',
+                            'Completed',
+                        ]
+                    );
+                }
+            )
             ->whereYear(
-                'movement_date',
+                'scheduled_delivery_date',
                 $year
             )
-            ->when(
-                $search,
-                fn (Builder $query): Builder => $this->applySearch(
-                    $query,
-                    $search
-                )
+            ->orderByDesc(
+                'scheduled_delivery_date'
             )
-            ->latest('movement_date')
-            ->latest('id')
-            ->paginate(20)
-            ->withQueryString();
+            ->orderByDesc('id')
+            ->get();
 
-        $summary = $this->buildSummary(
-            $provinceId,
-            $year
+        if ($callOffId > 0) {
+            abort_unless(
+                $callOffAllocations->contains(
+                    fn (
+                        ProvinceDistribution $allocation
+                    ): bool => (int) $allocation->id
+                        === $callOffId
+                ),
+                404,
+                'The selected Call-Off allocation is unavailable.'
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Build ledger rows
+        |--------------------------------------------------------------------------
+        |
+        | The existing report service already generates:
+        |
+        | - beginning
+        | - actual
+        | - ending
+        | - Call-Off
+        | - supplier
+        | - project
+        | - province
+        |
+        */
+
+        $reportRows = collect();
+
+        $provinceIds = $provinceId
+            ? collect([$provinceId])
+            : $provinces->pluck('id');
+
+        foreach ($provinceIds as $reportProvinceId) {
+            $provinceRows = $reportService
+                ->buildForProvince(
+                    (int) $reportProvinceId
+                );
+
+            $reportRows = $reportRows->concat(
+                $provinceRows
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Apply Accounting filters
+        |--------------------------------------------------------------------------
+        */
+
+        $reportRows = $reportRows
+            ->filter(
+                function (array $row) use (
+                    $callOffId,
+                    $year,
+                    $search
+                ): bool {
+                    if (
+                        $callOffId > 0
+                        && (int) (
+                            $row[
+                                'province_distribution_id'
+                            ]
+                            ?? 0
+                        ) !== $callOffId
+                    ) {
+                        return false;
+                    }
+
+                    $rowDate =
+                        $row['movement_date']
+                        ?? $row['delivery_date']
+                        ?? null;
+
+                    if (
+                        $rowDate
+                        && (int) $rowDate->format('Y')
+                            !== $year
+                    ) {
+                        return false;
+                    }
+
+                    if ($search === '') {
+                        return true;
+                    }
+
+                    $haystack = strtolower(
+                        implode(
+                            ' ',
+                            [
+                                $row['province_name'] ?? '',
+                                $row['call_off_number'] ?? '',
+                                $row['supplier_name'] ?? '',
+                                $row['delivery_receipt_number'] ?? '',
+                                $row['project_code'] ?? '',
+                                $row['project_title'] ?? '',
+                                $row['location'] ?? '',
+                            ]
+                        )
+                    );
+
+                    return str_contains(
+                        $haystack,
+                        strtolower($search)
+                    );
+                }
+            )
+            ->sortBy([
+                [
+                    'province_name',
+                    'asc',
+                ],
+                [
+                    'movement_date',
+                    'asc',
+                ],
+                [
+                    'supply_designation_id',
+                    'asc',
+                ],
+            ])
+            ->values();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Summary
+        |--------------------------------------------------------------------------
+        */
+
+        $summary = $this->buildLedgerSummary(
+            $reportRows
         );
 
-        $totals = [
-            'beginning_inventory' => collect($summary)->sum(
-                'beginning_inventory'
-            ),
+        /*
+        |--------------------------------------------------------------------------
+        | Pagination
+        |--------------------------------------------------------------------------
+        */
 
-            'received_inventory' => collect($summary)->sum(
-                'received_inventory'
-            ),
+        $rows = $this->paginateCollection(
+            collection: $reportRows,
+            request: $request,
+            perPage: 20
+        );
 
-            'issued_inventory' => collect($summary)->sum(
-                'issued_inventory'
-            ),
+        /*
+        |--------------------------------------------------------------------------
+        | Supply Unit central inventory
+        |--------------------------------------------------------------------------
+        |
+        | This reads the central Supply Unit inventory table, not provincial
+        | inventory movements.
+        |
+        */
 
-            'actual_inventory' => collect($summary)->sum(
-                'actual_inventory'
-            ),
+        $supplyInventory = DB::table('inventory')
+            ->join(
+                'items',
+                'items.id',
+                '=',
+                'inventory.item_id'
+            )
+            ->select([
+                'items.id as item_id',
+                'items.item_name',
+                'items.label',
+                'items.unit_of_measurement',
+                'inventory.quantity',
+            ])
+            ->where(
+                'items.is_active',
+                true
+            )
+            ->orderBy('items.id')
+            ->get();
 
-            'ending_inventory' => collect($summary)->sum(
-                'ending_inventory'
-            ),
-        ];
+        $supplyInventoryTotal = (int) $supplyInventory
+            ->sum('quantity');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Available years
+        |--------------------------------------------------------------------------
+        */
 
         $availableYears = $this->availableYears(
-            $provinceId,
             $currentYear
         );
 
         return view(
             'accounting.inventory-ledger.index',
             compact(
-                'movements',
+                'rows',
                 'summary',
-                'totals',
                 'provinces',
                 'selectedProvince',
                 'provinceId',
+                'callOffId',
+                'callOffAllocations',
                 'year',
                 'currentYear',
                 'availableYears',
-                'search'
+                'search',
+                'supplyInventory',
+                'supplyInventoryTotal'
             )
         );
     }
 
     /**
-     * Resolve and validate the selected year.
+     * Resolve selected year.
      */
     private function resolveYear(
         Request $request,
@@ -134,7 +330,10 @@ class InventoryLedgerController extends Controller
             $currentYear
         );
 
-        if ($year < 2000 || $year > 2100) {
+        if (
+            $year < 2000
+            || $year > 2100
+        ) {
             return $currentYear;
         }
 
@@ -142,7 +341,7 @@ class InventoryLedgerController extends Controller
     }
 
     /**
-     * Resolve and validate the selected province.
+     * Resolve selected province.
      */
     private function resolveProvinceId(
         Request $request
@@ -172,265 +371,83 @@ class InventoryLedgerController extends Controller
     }
 
     /**
-     * Apply movement search filters.
-     */
-    private function applySearch(
-        Builder $query,
-        string $search
-    ): Builder {
-        return $query->where(
-            function (Builder $query) use ($search): void {
-                $query
-                    ->where(
-                        'reference_number',
-                        'like',
-                        "%{$search}%"
-                    )
-                    ->orWhere(
-                        'description',
-                        'like',
-                        "%{$search}%"
-                    )
-                    ->orWhere(
-                        'remarks',
-                        'like',
-                        "%{$search}%"
-                    )
-                    ->orWhereHas(
-                        'item',
-                        function (
-                            Builder $itemQuery
-                        ) use ($search): void {
-                            $itemQuery
-                                ->where(
-                                    'item_name',
-                                    'like',
-                                    "%{$search}%"
-                                )
-                                ->orWhere(
-                                    'label',
-                                    'like',
-                                    "%{$search}%"
-                                )
-                                ->orWhere(
-                                    'unit_of_measurement',
-                                    'like',
-                                    "%{$search}%"
-                                );
-                        }
-                    )
-                    ->orWhereHas(
-                        'province',
-                        fn (
-                            Builder $provinceQuery
-                        ) => $provinceQuery->where(
-                            'name',
-                            'like',
-                            "%{$search}%"
-                        )
-                    )
-                    ->orWhereHas(
-                        'deliveryReceipt',
-                        fn (
-                            Builder $receiptQuery
-                        ) => $receiptQuery->where(
-                            'dr_number',
-                            'like',
-                            "%{$search}%"
-                        )
-                    )
-                    ->orWhereHas(
-                        'supplyDesignation',
-                        function (
-                            Builder $designationQuery
-                        ) use ($search): void {
-                            $designationQuery
-                                ->where(
-                                    'project_code',
-                                    'like',
-                                    "%{$search}%"
-                                )
-                                ->orWhere(
-                                    'project_title',
-                                    'like',
-                                    "%{$search}%"
-                                );
-                        }
-                    );
-            }
-        );
-    }
-
-    /**
-     * Build the inventory summary.
+     * Build the summary expected by the Accounting Blade.
      *
-     * When no province is selected, totals are combined across all provinces.
+     * @param Collection<int, array<string, mixed>> $rows
      *
-     * @return array<int, array<string, mixed>>
+     * @return array<string, int>
      */
-    private function buildSummary(
-        ?int $provinceId,
-        int $year
+    private function buildLedgerSummary(
+        Collection $rows
     ): array {
-        $items = Item::query()
-            ->where('is_active', true)
-            ->orderBy('id')
-            ->get();
+        if ($rows->isEmpty()) {
+            return [
+                'row_count' => 0,
+                'province_count' => 0,
+                'call_off_count' => 0,
+                'project_count' => 0,
+                'beginning_total' => 0,
+                'actual_total' => 0,
+                'ending_total' => 0,
+            ];
+        }
 
-        return $items
-            ->map(
-                function (Item $item) use (
-                    $provinceId,
-                    $year
-                ): array {
-                    $beginningInventory =
-                        $this->balanceBeforeYear(
-                            $provinceId,
-                            $item->id,
-                            $year
-                        );
+        return [
+            'row_count' =>
+                $rows->count(),
 
-                    $receivedInventory =
-                        $this->sumMovements(
-                            $provinceId,
-                            $item->id,
-                            $year,
-                            [
-                                'IN',
-                                'ADJUSTMENT_IN',
-                            ]
-                        );
+            'province_count' =>
+                $rows
+                    ->pluck('province_id')
+                    ->filter()
+                    ->unique()
+                    ->count(),
 
-                    $issuedInventory =
-                        $this->sumMovements(
-                            $provinceId,
-                            $item->id,
-                            $year,
-                            [
-                                'OUT',
-                                'ADJUSTMENT_OUT',
-                            ]
-                        );
+            'call_off_count' =>
+                $rows
+                    ->pluck(
+                        'province_distribution_id'
+                    )
+                    ->filter()
+                    ->unique()
+                    ->count(),
 
-                    $actualInventory =
-                        $beginningInventory
-                        + $receivedInventory
-                        - $issuedInventory;
+            'project_count' =>
+                $rows
+                    ->pluck(
+                        'supply_designation_id'
+                    )
+                    ->filter()
+                    ->unique()
+                    ->count(),
 
-                    return [
-                        'item' => $item,
+            'beginning_total' =>
+                (int) $rows->sum(
+                    function (array $row): int {
+                        return (int) collect(
+                            $row['beginning'] ?? []
+                        )->sum();
+                    }
+                ),
 
-                        'beginning_inventory' => $beginningInventory,
+            'actual_total' =>
+                (int) $rows->sum(
+                    function (array $row): int {
+                        return (int) collect(
+                            $row['actual'] ?? []
+                        )->sum();
+                    }
+                ),
 
-                        'received_inventory' => $receivedInventory,
-
-                        'issued_inventory' => $issuedInventory,
-
-                        'actual_inventory' => $actualInventory,
-
-                        'ending_inventory' => $actualInventory,
-                    ];
-                }
-            )
-            ->all();
-    }
-
-    /**
-     * Calculate inventory balance before January 1 of the selected year.
-     */
-    private function balanceBeforeYear(
-        ?int $provinceId,
-        int $itemId,
-        int $year
-    ): int {
-        $stockIn = InventoryMovement::query()
-            ->when(
-                $provinceId,
-                fn (Builder $query): Builder => $query->where(
-                    'province_id',
-                    $provinceId
-                )
-            )
-            ->where(
-                'item_id',
-                $itemId
-            )
-            ->whereDate(
-                'movement_date',
-                '<',
-                "{$year}-01-01"
-            )
-            ->whereIn(
-                'movement_type',
-                [
-                    'IN',
-                    'ADJUSTMENT_IN',
-                ]
-            )
-            ->sum('quantity');
-
-        $stockOut = InventoryMovement::query()
-            ->when(
-                $provinceId,
-                fn (Builder $query): Builder => $query->where(
-                    'province_id',
-                    $provinceId
-                )
-            )
-            ->where(
-                'item_id',
-                $itemId
-            )
-            ->whereDate(
-                'movement_date',
-                '<',
-                "{$year}-01-01"
-            )
-            ->whereIn(
-                'movement_type',
-                [
-                    'OUT',
-                    'ADJUSTMENT_OUT',
-                ]
-            )
-            ->sum('quantity');
-
-        return (int) $stockIn
-            - (int) $stockOut;
-    }
-
-    /**
-     * Sum movements for one item and year.
-     *
-     * @param  array<int, string>  $movementTypes
-     */
-    private function sumMovements(
-        ?int $provinceId,
-        int $itemId,
-        int $year,
-        array $movementTypes
-    ): int {
-        return (int) InventoryMovement::query()
-            ->when(
-                $provinceId,
-                fn (Builder $query): Builder => $query->where(
-                    'province_id',
-                    $provinceId
-                )
-            )
-            ->where(
-                'item_id',
-                $itemId
-            )
-            ->whereYear(
-                'movement_date',
-                $year
-            )
-            ->whereIn(
-                'movement_type',
-                $movementTypes
-            )
-            ->sum('quantity');
+            'ending_total' =>
+                (int) $rows->sum(
+                    function (array $row): int {
+                        return (int) collect(
+                            $row['ending'] ?? []
+                        )->sum();
+                    }
+                ),
+        ];
     }
 
     /**
@@ -439,31 +456,70 @@ class InventoryLedgerController extends Controller
      * @return Collection<int, int>
      */
     private function availableYears(
-        ?int $provinceId,
         int $currentYear
     ): Collection {
-        $years = InventoryMovement::query()
-            ->when(
-                $provinceId,
-                fn (Builder $query): Builder => $query->where(
-                    'province_id',
-                    $provinceId
-                )
-            )
+        $years = DB::table(
+            'inventory_movements'
+        )
             ->selectRaw(
-                'YEAR(movement_date) as movement_year'
+                'YEAR(movement_date) AS movement_year'
+            )
+            ->whereNotNull(
+                'movement_date'
             )
             ->distinct()
-            ->orderByDesc('movement_year')
-            ->pluck('movement_year')
+            ->orderByDesc(
+                'movement_year'
+            )
+            ->pluck(
+                'movement_year'
+            )
             ->map(
-                fn ($value): int => (int) $value
+                fn ($year): int => (int) $year
             );
 
         if (! $years->contains($currentYear)) {
-            $years->prepend($currentYear);
+            $years->prepend(
+                $currentYear
+            );
         }
 
-        return $years->unique()->values();
+        return $years
+            ->unique()
+            ->values();
+    }
+
+    /**
+     * Paginate an in-memory collection.
+     *
+     * @param Collection<int, array<string, mixed>> $collection
+     */
+    private function paginateCollection(
+        Collection $collection,
+        Request $request,
+        int $perPage
+    ): LengthAwarePaginator {
+        $page = LengthAwarePaginator::resolveCurrentPage(
+            'page'
+        );
+
+        $pageItems = $collection
+            ->forPage(
+                $page,
+                $perPage
+            )
+            ->values();
+
+        return new LengthAwarePaginator(
+            $pageItems,
+            $collection->count(),
+            $perPage,
+            $page,
+            [
+                'path' => $request->url(),
+                'query' => $request->query(),
+                'pageName' => 'page',
+            ]
+        );
     }
 }

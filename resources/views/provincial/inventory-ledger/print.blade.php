@@ -109,7 +109,7 @@
             </p>
         </div>
         <img src="{{ asset('images/print/Bagong_Pilipinas.png') }}" alt="Bagong Pilipinas"
-            class="max-h-[82px] w-[105px] object-contain" onerror="this.style.display='none'">
+            class="max-h-[82px] w-[105px] object-contain " onerror="this.style.display='none'">
 
         <img src="{{ asset('images/print/iso-bureau-veritas.jpg') }}" alt="ISO Bureau Veritas"
             class="max-h-[78px] w-[150px] object-contain" onerror="this.style.display='none'">

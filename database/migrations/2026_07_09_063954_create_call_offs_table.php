@@ -37,7 +37,7 @@ return new class extends Migration
                 ->nullOnDelete();
 
             $table->timestamp('approved_at')->nullable();
-
+    
             // Approval Document
             $table->string('approval_document')->nullable();
 

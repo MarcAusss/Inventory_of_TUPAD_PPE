@@ -37,3 +37,4 @@ Route::middleware([
             ]
         )->name('inventory-ledger.index');
     });
+ 
