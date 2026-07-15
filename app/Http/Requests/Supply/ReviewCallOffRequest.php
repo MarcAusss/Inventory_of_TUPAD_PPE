@@ -2,14 +2,12 @@
 
 namespace App\Http\Requests\Supply;
 
+use App\Models\CallOff;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class ReviewCallOffRequest extends FormRequest
 {
-    /**
-     * Only the Supply Unit may approve or reject Call-Offs.
-     */
     public function authorize(): bool
     {
         return $this->user()?->isSupply() === true;
@@ -21,22 +19,20 @@ class ReviewCallOffRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'decision' => [
+            'call_off_number' => [
                 'required',
-                Rule::in([
-                    'Approved',
-                    'Rejected',
-                ]),
+                'string',
+                'max:100',
+                Rule::unique(CallOff::class, 'call_off_number'),
             ],
 
             'call_off_date' => [
-                'nullable',
+                'required',
                 'date',
-                'required_if:decision,Approved',
             ],
 
             'approval_document' => [
-                'nullable',
+                'required',
                 'file',
                 'mimes:pdf',
                 'max:10240',
@@ -50,25 +46,35 @@ class ReviewCallOffRequest extends FormRequest
         ];
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'call_off_number' => strtoupper(
+                trim((string) $this->input('call_off_number'))
+            ),
+        ]);
+    }
+
     /**
      * @return array<string, string>
      */
     public function messages(): array
     {
         return [
-            'decision.required' => 'Please choose whether to approve or reject the Call-Off.',
-
-            'decision.in' => 'The selected Call-Off decision is invalid.',
-
-            'call_off_date.required_if' => 'The official Call-Off date is required when approving.',
-
-            'call_off_date.date' => 'The official Call-Off date must be a valid date.',
-
-            'approval_document.file' => 'The approval document must be a valid file.',
-
-            'approval_document.mimes' => 'The approval document must be a PDF file.',
-
-            'approval_document.max' => 'The approval document must not exceed 10 MB.',
+            'call_off_number.required' =>
+                'Please enter the Call-Off Number.',
+            'call_off_number.unique' =>
+                'The Call-Off Number has already been used.',
+            'call_off_date.required' =>
+                'Please provide the official Call-Off date.',
+            'call_off_date.date' =>
+                'The official Call-Off date must be valid.',
+            'approval_document.required' =>
+                'Please upload the approved Call-Off PDF.',
+            'approval_document.mimes' =>
+                'The approved Call-Off document must be a PDF file.',
+            'approval_document.max' =>
+                'The approved Call-Off PDF must not exceed 10 MB.',
         ];
     }
 }

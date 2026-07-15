@@ -15,22 +15,10 @@ Route::middleware([
     ->prefix('supply')
     ->name('supply.')
     ->group(function (): void {
-        /*
-        |--------------------------------------------------------------------------
-        | Dashboard
-        |--------------------------------------------------------------------------
-        */
-
         Route::get(
             '/dashboard',
             DashboardController::class
         )->name('dashboard');
-
-        /*
-        |--------------------------------------------------------------------------
-        | Reference Data
-        |--------------------------------------------------------------------------
-        */
 
         Route::resource(
             'suppliers',
@@ -42,12 +30,6 @@ Route::middleware([
             ItemController::class
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Purchase Orders
-        |--------------------------------------------------------------------------
-        */
-
         Route::resource(
             'purchase-orders',
             PurchaseOrderController::class
@@ -55,7 +37,7 @@ Route::middleware([
 
         /*
         |--------------------------------------------------------------------------
-        | Call-Off Approval
+        | Supply Call-Off Assignment
         |--------------------------------------------------------------------------
         */
 
@@ -68,22 +50,22 @@ Route::middleware([
         )->name('call-offs.index');
 
         Route::get(
-            '/call-offs/{callOff}',
+            '/call-offs/batches/{distributionBatch}',
             [
                 CallOffApprovalController::class,
                 'show',
             ]
         )
-            ->whereNumber('callOff')
+            ->whereNumber('distributionBatch')
             ->name('call-offs.show');
 
-        Route::patch(
-            '/call-offs/{callOff}/review',
+        Route::post(
+            '/call-offs/batches/{distributionBatch}/assign',
             [
                 CallOffApprovalController::class,
                 'review',
             ]
         )
-            ->whereNumber('callOff')
+            ->whereNumber('distributionBatch')
             ->name('call-offs.review');
     });

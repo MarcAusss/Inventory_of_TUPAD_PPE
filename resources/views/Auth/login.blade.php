@@ -1,4 +1,4 @@
-<x-guest-layout>
+{{-- <x-guest-layout>
     <div class="flex justify-center items-center min-h-screen bg-gray-100">
         <div class="flex w-[930px] h-[565px] rounded-xl shadow-[-12px_7px_20.6px_rgba(0,0,0,0.3)] overflow-hidden bg-white">
 
@@ -114,4 +114,76 @@
             </div>
         </div>
     </div>
+</x-guest-layout> --}}
+
+<x-guest-layout>
+
+    <div class="bg-black h-screen w-screen relative flex justify-center items-center overflow-hidden">
+        <img src="{{ url('images/mainbg.png') }}" alt=""
+            class="h-full w-full object-cover absolute top-0 left-0 z-0">
+        <div class="bg-[linear-gradient(to_top_left,#F9F9F9_0%,#EEE4E4_20%,#D42525_60%,#642020_100%)] h-[900px] w-[1400px] relative  rounded-xl flex justify-between px-[200px] items-center">
+            <img src="{{ url('images/containerbg.png') }}" alt=""
+                class="h-full w-[70%] absolute top-0 left-[-2px] z-0">
+                
+            <div class=""></div>
+            <div class="w-1/2 px-14 bg-white border-2 p-5 rounded-2xl border-[#977070] relative z-10">
+                <!-- Header -->
+                <div class="flex gap-5 border-b border-gray-300 flex-col pt-9 pb-5 items-center">
+                    <img src="{{ asset('images/Primary Logo _ Full Color (3).png') }}" alt="TUPAD Logo" class="h-28">
+
+                    <h1 class="text-xl text-center">
+                        Welcome to TUPAD Inventory System
+                    </h1>
+                </div>
+
+                <h2 class="text-center my-5 text-xl font-semibold">
+                    Login
+                </h2>
+
+                <!-- Session Status -->
+                <x-auth-session-status class="mb-4" :status="session('status')" />
+
+                <form method="POST" action="{{ route('login') }}">
+                    @csrf
+
+                    <!-- Email -->
+                    <div class="flex flex-col">
+                        <label for="email">
+                            User Account
+                        </label>
+
+                        <input id="email" type="email" name="email" value="{{ old('email') }}" required
+                            autofocus class="p-1 w-full border-b-2 mt-3 outline-none border-black"
+                            placeholder="User Account">
+
+                        <x-input-error :messages="$errors->get('email')" class="mt-2" />
+                    </div>
+
+                    <!-- Password -->
+                    <div class="flex flex-col mt-5">
+                        <label for="password">
+                            Password
+                        </label>
+
+                        <input id="password" type="password" name="password" required
+                            class="p-1 w-full border-b-2 mt-3 outline-none border-black" placeholder="Password">
+
+                        <x-input-error :messages="$errors->get('password')" class="mt-2" />
+                    </div>
+
+
+
+                    <!-- Login Button -->
+                    <div class="text-center mt-6">
+                        <button type="submit"
+                            class="cursor-pointer px-10 py-2 bg-red-900 rounded-xl text-white hover:bg-red-800 transition">
+                            Login
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
 </x-guest-layout>

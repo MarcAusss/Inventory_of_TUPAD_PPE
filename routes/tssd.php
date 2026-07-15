@@ -15,32 +15,20 @@ Route::middleware([
     ->prefix('tssd')
     ->name('tssd.')
     ->group(function (): void {
-        /*
-        |--------------------------------------------------------------------------
-        | Dashboard
-        |--------------------------------------------------------------------------
-        */
-
         Route::get(
             '/dashboard',
             DashboardController::class
         )->name('dashboard');
 
-        /*
-        |--------------------------------------------------------------------------
-        | TSSD Distributions
-        |--------------------------------------------------------------------------
-        */
-
         Route::resource(
             'distributions',
             TssdDistributionController::class
         )->only([
-                    'index',
-                    'create',
-                    'store',
-                    'show',
-                ]);
+            'index',
+            'create',
+            'store',
+            'show',
+        ]);
 
         Route::get(
             '/purchase-orders/{poId}/remaining',
@@ -54,7 +42,7 @@ Route::middleware([
 
         /*
         |--------------------------------------------------------------------------
-        | Call-Off Management
+        | Call-Offs - TSSD is view-only
         |--------------------------------------------------------------------------
         */
 
@@ -66,22 +54,6 @@ Route::middleware([
             ]
         )->name('call-offs.index');
 
-        Route::get(
-            '/call-offs/create',
-            [
-                CallOffController::class,
-                'create',
-            ]
-        )->name('call-offs.create');
-
-        Route::post(
-            '/call-offs',
-            [
-                CallOffController::class,
-                'store',
-            ]
-        )->name('call-offs.store');
-        
         Route::get(
             '/call-offs/{callOff}/print',
             [
@@ -102,166 +74,99 @@ Route::middleware([
             ->whereNumber('callOff')
             ->name('call-offs.show');
 
-        Route::delete(
-            '/call-offs/{callOff}',
-            [
-                CallOffController::class,
-                'destroy',
-            ]
-        )
-            ->whereNumber('callOff')
-            ->name('call-offs.destroy');
-
-        /*
-|--------------------------------------------------------------------------
-| Uploaded PDF Print Templates
-|--------------------------------------------------------------------------
-*/
-
         Route::get(
             '/pdf-templates',
-            [
-                PdfTemplateController::class,
-                'index',
-            ]
+            [PdfTemplateController::class, 'index']
         )->name('pdf-templates.index');
 
         Route::get(
             '/pdf-templates/create',
-            [
-                PdfTemplateController::class,
-                'create',
-            ]
+            [PdfTemplateController::class, 'create']
         )->name('pdf-templates.create');
 
         Route::post(
             '/pdf-templates',
-            [
-                PdfTemplateController::class,
-                'store',
-            ]
+            [PdfTemplateController::class, 'store']
         )->name('pdf-templates.store');
 
         Route::get(
             '/pdf-templates/{pdfTemplate}',
-            [
-                PdfTemplateController::class,
-                'show',
-            ]
+            [PdfTemplateController::class, 'show']
         )
             ->whereNumber('pdfTemplate')
             ->name('pdf-templates.show');
 
         Route::get(
             '/pdf-templates/{pdfTemplate}/preview',
-            [
-                PdfTemplateController::class,
-                'preview',
-            ]
+            [PdfTemplateController::class, 'preview']
         )
             ->whereNumber('pdfTemplate')
             ->name('pdf-templates.preview');
 
         Route::get(
             '/pdf-templates/{pdfTemplate}/download',
-            [
-                PdfTemplateController::class,
-                'download',
-            ]
+            [PdfTemplateController::class, 'download']
         )
             ->whereNumber('pdfTemplate')
             ->name('pdf-templates.download');
 
         Route::get(
             '/pdf-templates/{pdfTemplate}/edit',
-            [
-                PdfTemplateController::class,
-                'edit',
-            ]
+            [PdfTemplateController::class, 'edit']
         )
             ->whereNumber('pdfTemplate')
             ->name('pdf-templates.edit');
 
         Route::put(
             '/pdf-templates/{pdfTemplate}',
-            [
-                PdfTemplateController::class,
-                'update',
-            ]
+            [PdfTemplateController::class, 'update']
         )
             ->whereNumber('pdfTemplate')
             ->name('pdf-templates.update');
 
         Route::patch(
             '/pdf-templates/{pdfTemplate}/activate',
-            [
-                PdfTemplateController::class,
-                'activate',
-            ]
+            [PdfTemplateController::class, 'activate']
         )
             ->whereNumber('pdfTemplate')
             ->name('pdf-templates.activate');
 
         Route::patch(
             '/pdf-templates/{pdfTemplate}/deactivate',
-            [
-                PdfTemplateController::class,
-                'deactivate',
-            ]
+            [PdfTemplateController::class, 'deactivate']
         )
             ->whereNumber('pdfTemplate')
             ->name('pdf-templates.deactivate');
 
         Route::delete(
             '/pdf-templates/{pdfTemplate}',
-            [
-                PdfTemplateController::class,
-                'destroy',
-            ]
+            [PdfTemplateController::class, 'destroy']
         )
             ->whereNumber('pdfTemplate')
             ->name('pdf-templates.destroy');
 
-        /*
-|--------------------------------------------------------------------------
-| TSSD User Management
-|--------------------------------------------------------------------------
-*/
-
         Route::get(
             '/users',
-            [
-                UserManagementController::class,
-                'index',
-            ]
+            [UserManagementController::class, 'index']
         )->name('users.index');
 
         Route::get(
             '/users/{user}',
-            [
-                UserManagementController::class,
-                'show',
-            ]
+            [UserManagementController::class, 'show']
         )
             ->whereNumber('user')
             ->name('users.show');
 
         Route::get(
             '/users/{user}/edit',
-            [
-                UserManagementController::class,
-                'edit',
-            ]
+            [UserManagementController::class, 'edit']
         )
             ->whereNumber('user')
             ->name('users.edit');
 
         Route::put(
             '/users/{user}',
-            [
-                UserManagementController::class,
-                'update',
-            ]
+            [UserManagementController::class, 'update']
         )
             ->whereNumber('user')
             ->name('users.update');

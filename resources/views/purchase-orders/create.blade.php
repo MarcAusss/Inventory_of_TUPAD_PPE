@@ -25,17 +25,6 @@
             </div>
         </section>
 
-        @if ($errors->any())
-            <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 shadow-sm">
-                <p class="font-bold text-red-800">Please correct the following fields:</p>
-                <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
         <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
             <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
                 <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">Purchase Order entry</p>
