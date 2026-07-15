@@ -166,22 +166,26 @@
                 DEPARTMENT OF LABOR AND EMPLOYMENT
             </p>
 
-            <p class="mb-0 mt-[13px] text-[15px] font-bold">
+            <p class="mb-0 text-[15px] font-bold">
                 Regional Office No. 5
             </p>
 
-            <p class="mb-0 mt-[14px] text-[11px] italic">
+            <p class="mb-0 text-[11px] italic">
                 DOLE RO5 Bldg., Doña Aurora St., Old Albay, Legazpi City
             </p>
 
-            <p class="mb-0 mt-[7px] text-[10px] italic">
+            <p class="mb-0 text-[10px] italic">
                 ORD: 0981-461-8788&nbsp;&nbsp;
                 TSSD: 0963-206-0008&nbsp;&nbsp;
                 IMSD: 0912-330-4751
             </p>
 
-            <p class="mb-0 mt-[7px] text-[13px] text-black underline">
+            <p class="mb-0 my-[7px] text-[13px] text-black underline">
                 ro5@dole.gov.ph
+            </p>
+
+            <p class="mb-0 mt-[7px] text-[11px] font-bold text-black">
+                {{ now()->format('F d, Y') }}
             </p>
         </div>
         <img src="{{ asset('images/print/Bagong_Pilipinas.png') }}" alt="Bagong Pilipinas"

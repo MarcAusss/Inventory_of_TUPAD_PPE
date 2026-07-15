@@ -170,6 +170,10 @@
             <p class="mb-0 mt-[7px] text-[13px] text-black underline">
                 ro5@dole.gov.ph
             </p>
+
+            <p class="mb-0 mt-[7px] text-[11px] font-bold text-black">
+                {{ now()->format('F d, Y') }}
+            </p>
         </div>
 
         <img src="{{ asset('images/print/Bagong_Pilipinas.png') }}" alt="Bagong Pilipinas"

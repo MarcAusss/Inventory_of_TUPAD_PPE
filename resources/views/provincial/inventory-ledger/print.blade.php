@@ -86,19 +86,19 @@
                 Republic of the Philippines
             </p>
 
-            <p class="mb-0 mt-1 text-[17px] font-extrabold">
+            <p class="mb-0 text-[17px] font-extrabold">
                 DEPARTMENT OF LABOR AND EMPLOYMENT
             </p>
 
-            <p class="mb-0 mt-[13px] text-[15px] font-bold">
+            <p class="mb-0 text-[15px] font-bold">
                 Regional Office No. 5
             </p>
 
-            <p class="mb-0 mt-[14px] text-[11px] italic">
+            <p class="mb-0 text-[11px] italic">
                 DOLE RO5 Bldg., Doña Aurora St., Old Albay, Legazpi City
             </p>
 
-            <p class="mb-0 mt-[7px] text-[10px] italic">
+            <p class="mb-0 text-[10px] italic">
                 ORD: 0981-461-8788&nbsp;&nbsp;
                 TSSD: 0963-206-0008&nbsp;&nbsp;
                 IMSD: 0912-330-4751
@@ -107,6 +107,10 @@
             <p class="mb-0 mt-[7px] text-[13px] text-black underline">
                 ro5@dole.gov.ph
             </p>
+
+            <p class="mb-0 mt-[7px] text-[11px] font-bold text-black">
+                {{ now()->format('F d, Y') }}
+            </p>
         </div>
         <img src="{{ asset('images/print/Bagong_Pilipinas.png') }}" alt="Bagong Pilipinas"
             class="max-h-[82px] w-[105px] object-contain " onerror="this.style.display='none'">
@@ -114,18 +118,6 @@
         <img src="{{ asset('images/print/iso-bureau-veritas.jpg') }}" alt="ISO Bureau Veritas"
             class="max-h-[78px] w-[150px] object-contain" onerror="this.style.display='none'">
     </div>
-    {{-- =========================================================
-        REPORT TITLE
-    ========================================================== --}}
-    <section class="mb-[11px] mt-4 text-center">
-        <h1 class="m-0 text-[17px] font-extrabold uppercase">
-            Inventory of Supplies Distributed
-        </h1>
-
-        <p class="mb-0 mt-1 text-[11px] font-bold">
-            {{ $printedAt->format('F d, Y') }}
-        </p>
-    </section>
 
     {{-- =========================================================
         SELECTED RECEIPT INFORMATION

@@ -9,10 +9,7 @@
         TSSD Distribution - {{ $purchaseOrder->po_number }}
     </title>
 
-    @vite([
-        'resources/css/app.css',
-        'resources/js/app.js',
-    ])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
         @page {
@@ -45,171 +42,63 @@
         $allocations = collect($distributions ?? []);
 
         $ppeQuantities = function ($allocation): array {
-            $items = collect(
-                $allocation->items
-                ?? []
-            );
+            $items = collect($allocation->items ?? []);
 
-            $normalize =
-                fn ($value): string =>
-                    strtolower(
-                        trim((string) $value)
-                    );
+            $normalize = fn($value): string => strtolower(trim((string) $value));
 
-            $matchesName = function (
-                $row,
-                array $names
-            ) use ($normalize): bool {
-                return in_array(
-                    $normalize(
-                        $row->item?->item_name
-                        ?? ''
-                    ),
-                    $names,
-                    true
-                );
+            $matchesName = function ($row, array $names) use ($normalize): bool {
+                return in_array($normalize($row->item?->item_name ?? ''), $names, true);
             };
 
-            $matchesLabel = function (
-                $row,
-                array $labels
-            ) use ($normalize): bool {
-                return in_array(
-                    $normalize(
-                        $row->item?->label
-                        ?? ''
-                    ),
-                    $labels,
-                    true
-                );
+            $matchesLabel = function ($row, array $labels) use ($normalize): bool {
+                return in_array($normalize($row->item?->label ?? ''), $labels, true);
             };
 
             $lsm = (int) $items
                 ->filter(
-                    fn ($row): bool =>
-                        $matchesName(
-                            $row,
-                            [
-                                'long sleeve',
-                                'long sleeves',
-                                'longsleeve',
-                                'longsleeves',
-                            ]
-                        )
-                        && $matchesLabel(
-                            $row,
-                            [
-                                'm',
-                                'medium',
-                            ]
-                        )
+                    fn($row): bool => $matchesName($row, [
+                        'long sleeve',
+                        'long sleeves',
+                        'longsleeve',
+                        'longsleeves',
+                    ]) && $matchesLabel($row, ['m', 'medium']),
                 )
                 ->sum('quantity');
 
             $lsl = (int) $items
                 ->filter(
-                    fn ($row): bool =>
-                        $matchesName(
-                            $row,
-                            [
-                                'long sleeve',
-                                'long sleeves',
-                                'longsleeve',
-                                'longsleeves',
-                            ]
-                        )
-                        && $matchesLabel(
-                            $row,
-                            [
-                                'l',
-                                'large',
-                            ]
-                        )
+                    fn($row): bool => $matchesName($row, [
+                        'long sleeve',
+                        'long sleeves',
+                        'longsleeve',
+                        'longsleeves',
+                    ]) && $matchesLabel($row, ['l', 'large']),
                 )
                 ->sum('quantity');
 
             $bucket = (int) $items
-                ->filter(
-                    fn ($row): bool =>
-                        $matchesName(
-                            $row,
-                            [
-                                'bucket hat',
-                                'bucket hats',
-                            ]
-                        )
-                )
+                ->filter(fn($row): bool => $matchesName($row, ['bucket hat', 'bucket hats']))
                 ->sum('quantity');
 
             $us9 = (int) $items
                 ->filter(
-                    fn ($row): bool =>
-                        $matchesName(
-                            $row,
-                            [
-                                'rubber boot',
-                                'rubber boots',
-                            ]
-                        )
-                        && $matchesLabel(
-                            $row,
-                            [
-                                'us9',
-                                'us 9',
-                                '9',
-                            ]
-                        )
+                    fn($row): bool => $matchesName($row, ['rubber boot', 'rubber boots']) &&
+                        $matchesLabel($row, ['us9', 'us 9', '9']),
                 )
                 ->sum('quantity');
 
             $us10 = (int) $items
                 ->filter(
-                    fn ($row): bool =>
-                        $matchesName(
-                            $row,
-                            [
-                                'rubber boot',
-                                'rubber boots',
-                            ]
-                        )
-                        && $matchesLabel(
-                            $row,
-                            [
-                                'us10',
-                                'us 10',
-                                '10',
-                            ]
-                        )
+                    fn($row): bool => $matchesName($row, ['rubber boot', 'rubber boots']) &&
+                        $matchesLabel($row, ['us10', 'us 10', '10']),
                 )
                 ->sum('quantity');
 
             $gloves = (int) $items
-                ->filter(
-                    fn ($row): bool =>
-                        $matchesName(
-                            $row,
-                            [
-                                'hand glove',
-                                'hand gloves',
-                                'glove',
-                                'gloves',
-                            ]
-                        )
-                )
+                ->filter(fn($row): bool => $matchesName($row, ['hand glove', 'hand gloves', 'glove', 'gloves']))
                 ->sum('quantity');
 
-            $mask = (int) $items
-                ->filter(
-                    fn ($row): bool =>
-                        $matchesName(
-                            $row,
-                            [
-                                'mask',
-                                'masks',
-                            ]
-                        )
-                )
-                ->sum('quantity');
+            $mask = (int) $items->filter(fn($row): bool => $matchesName($row, ['mask', 'masks']))->sum('quantity');
 
             return [
                 'lsm' => $lsm,
@@ -237,34 +126,22 @@
         ];
     @endphp
 
-    <div
-        class="mb-[14px] flex justify-end gap-2 rounded-lg border border-slate-300 bg-slate-50 p-[10px] print:hidden"
-    >
-        <button
-            type="button"
-            onclick="window.close()"
-            class="inline-flex cursor-pointer items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-[9px] text-[13px] font-bold text-slate-700 hover:bg-slate-100"
-        >
+    <div class="mb-[14px] flex justify-end gap-2 rounded-lg border border-slate-300 bg-slate-50 p-[10px] print:hidden">
+        <button type="button" onclick="window.close()"
+            class="inline-flex cursor-pointer items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-[9px] text-[13px] font-bold text-slate-700 hover:bg-slate-100">
             Close
         </button>
 
-        <button
-            type="button"
-            onclick="window.print()"
-            class="inline-flex cursor-pointer items-center justify-center rounded-md border-0 bg-[#970C13] px-4 py-[9px] text-[13px] font-bold text-white hover:bg-[#7f0a10]"
-        >
+        <button type="button" onclick="window.print()"
+            class="inline-flex cursor-pointer items-center justify-center rounded-md border-0 bg-[#970C13] px-4 py-[9px] text-[13px] font-bold text-white hover:bg-[#7f0a10]">
             Print Report
         </button>
     </div>
 
     {{-- DOLE Letterhead --}}
     <div class="flex items-start justify-center gap-4 pl-24">
-        <img
-            src="{{ asset('images/print/dole_logo.webp') }}"
-            alt="DOLE Logo"
-            class="max-h-[85px] w-[120px] object-contain"
-            onerror="this.style.display='none'"
-        >
+        <img src="{{ asset('images/print/dole_logo.webp') }}" alt="DOLE Logo"
+            class="max-h-[85px] w-[120px] object-contain" onerror="this.style.display='none'">
 
         <div class="min-w-[460px] text-center">
             <p class="m-0 text-[14px] font-normal">
@@ -293,22 +170,18 @@
             <p class="mb-0 mt-[7px] text-[13px] text-black underline">
                 ro5@dole.gov.ph
             </p>
-            
+
+            <p class="mb-0 mt-[7px] text-[11px] font-bold text-black">
+                {{ now()->format('F d, Y') }}
+            </p>
+
         </div>
 
-        <img
-            src="{{ asset('images/print/Bagong_Pilipinas.png') }}"
-            alt="Bagong Pilipinas"
-            class="max-h-[82px] w-[105px] object-contain"
-            onerror="this.style.display='none'"
-        >
+        <img src="{{ asset('images/print/Bagong_Pilipinas.png') }}" alt="Bagong Pilipinas"
+            class="max-h-[82px] w-[105px] object-contain" onerror="this.style.display='none'">
 
-        <img
-            src="{{ asset('images/print/iso-bureau-veritas.jpg') }}"
-            alt="ISO Bureau Veritas"
-            class="max-h-[78px] w-[150px] object-contain"
-            onerror="this.style.display='none'"
-        >
+        <img src="{{ asset('images/print/iso-bureau-veritas.jpg') }}" alt="ISO Bureau Veritas"
+            class="max-h-[78px] w-[150px] object-contain" onerror="this.style.display='none'">
     </div>
 
     <div class="my-10"></div>
@@ -323,8 +196,7 @@
         [&_td]:px-[4px] [&_td]:py-[6px]
         [&_td]:text-center [&_td]:align-middle
         [&_td]:[overflow-wrap:anywhere]
-        print-exact"
-    >
+        print-exact">
         <thead>
             <tr>
                 <th rowspan="2" class="w-[11%] bg-[#641D21] text-left text-white">
@@ -429,7 +301,7 @@
             @endforelse
         </tbody>
 
-        @if($allocations->isNotEmpty())
+        @if ($allocations->isNotEmpty())
             <tfoot>
                 <tr class="font-extrabold">
                     <td colspan="3" class="bg-slate-100 text-right uppercase print-exact">
@@ -479,14 +351,10 @@
     </table>
 
     @php
-        $approvedCallOffs = $purchaseOrder
-            ->distributionBatches
-            ->pluck('callOff')
-            ->filter()
-            ->values();
+        $approvedCallOffs = $purchaseOrder->distributionBatches->pluck('callOff')->filter()->values();
     @endphp
 
-    @if($approvedCallOffs->isNotEmpty())
+    @if ($approvedCallOffs->isNotEmpty())
         <section class="mt-6 [page-break-inside:avoid]">
             <div class="mb-2 text-[10px] font-extrabold uppercase tracking-wide text-[#641D21]">
                 Call-Off Information
@@ -495,26 +363,30 @@
             <table class="w-full border-collapse text-[9px]">
                 <thead>
                     <tr>
-                        <th class="border border-[#222] bg-[#641D21] px-3 py-2 text-left font-bold text-white print-exact">
+                        <th
+                            class="border border-[#222] bg-[#641D21] px-3 py-2 text-left font-bold text-white print-exact">
                             Call-Off Number
                         </th>
 
-                        <th class="border border-[#222] bg-[#641D21] px-3 py-2 text-left font-bold text-white print-exact">
+                        <th
+                            class="border border-[#222] bg-[#641D21] px-3 py-2 text-left font-bold text-white print-exact">
                             Call-Off Date
                         </th>
 
-                        <th class="border border-[#222] bg-[#641D21] px-3 py-2 text-left font-bold text-white print-exact">
+                        <th
+                            class="border border-[#222] bg-[#641D21] px-3 py-2 text-left font-bold text-white print-exact">
                             Status
                         </th>
 
-                        <th class="border border-[#222] bg-[#641D21] px-3 py-2 text-left font-bold text-white print-exact">
+                        <th
+                            class="border border-[#222] bg-[#641D21] px-3 py-2 text-left font-bold text-white print-exact">
                             Remarks
                         </th>
                     </tr>
                 </thead>
 
                 <tbody>
-                    @foreach($approvedCallOffs as $callOff)
+                    @foreach ($approvedCallOffs as $callOff)
                         <tr>
                             <td class="border border-[#222] px-3 py-2 font-extrabold text-[#641D21]">
                                 {{ $callOff->call_off_number }}
@@ -537,11 +409,9 @@
             </table>
         </section>
     @endif
-    <div
-        class="my-9 overflow-hidden rounded-lg border border-slate-300 bg-slate-50 print-exact"
-    >
-        <div class="border-r border-slate-300 px-4 py-3">
-            <p class="m-0 text-[8px] font-bold uppercase tracking-wide text-slate-500">
+    <div class="my-9 overflow-hidden rounded-lg  print-exact">
+        <div class=" px-4 py-3">
+            <p class="m-0 text-[8px] font-bold uppercase tracking-wide text-black">
                 Assign Call-Off Number:
             </p>
 
@@ -549,4 +419,5 @@
     </div>
 
 </body>
+
 </html>

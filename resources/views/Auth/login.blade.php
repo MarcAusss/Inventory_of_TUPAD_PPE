@@ -129,7 +129,7 @@
             <div class="w-1/2 px-14 bg-white border-2 p-5 rounded-2xl border-[#977070] relative z-10">
                 <!-- Header -->
                 <div class="flex gap-5 border-b border-gray-300 flex-col pt-9 pb-5 items-center">
-                    <img src="{{ asset('images/Primary Logo _ Full Color (3).png') }}" alt="TUPAD Logo" class="h-28">
+                    <img src="{{ asset('images/mainlogo.jpg') }}" alt="TUPAD Logo" class="h-28">
 
                     <h1 class="text-xl text-center">
                         Welcome to TUPAD Inventory System
