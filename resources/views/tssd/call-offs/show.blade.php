@@ -1,109 +1,101 @@
-<x-po_dashboard_layout>
+<x-po_dashboard_layout title="Call-Off Details">
 
     @php
         $batch = $callOff->distributionBatch;
         $purchaseOrder = $batch?->purchaseOrder;
     @endphp
 
-    <div class="space-y-6">
+    <div class="mx-auto max-w-[1900px] space-y-6">
 
         {{-- Header --}}
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <div class="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-[#641D21] via-[#970C13] to-[#ED1B24]"></div>
+            <div class="flex flex-col gap-6 px-6 py-7 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
 
-            <div>
+                <div>
 
-                <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex flex-wrap items-center gap-3">
 
-                    <h1 class="text-3xl font-bold text-gray-900">
-                        {{ $callOff->call_off_number }}
-                    </h1>
+                        <h1 class="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+                            {{ $callOff->call_off_number }}
+                        </h1>
 
-                    @php
-                        $statusClasses = match($callOff->status) {
-                            'Approved' => 'bg-green-100 text-green-800',
-                            'Rejected' => 'bg-red-100 text-red-800',
-                            'Cancelled' => 'bg-gray-200 text-gray-700',
-                            'Completed' => 'bg-blue-100 text-blue-800',
-                            default => 'bg-yellow-100 text-yellow-800',
-                        };
-                    @endphp
+                        @php
+                            $statusClasses = match ($callOff->status) {
+                                'Approved' => 'bg-green-100 text-green-800',
+                                'Rejected' => 'bg-red-100 text-red-800',
+                                'Cancelled' => 'bg-gray-200 text-slate-600',
+                                'Completed' => 'bg-blue-100 text-blue-800',
+                                default => 'bg-yellow-100 text-yellow-800',
+                            };
+                        @endphp
 
-                    <span class="rounded-full px-3 py-1 text-sm font-semibold {{ $statusClasses }}">
-                        {{ $callOff->status }}
-                    </span>
+                        <span class="rounded-full px-3 py-1 text-sm font-semibold {{ $statusClasses }}">
+                            {{ $callOff->status }}
+                        </span>
+
+                    </div>
+
+                    <p class="mt-2 text-sm leading-6 text-slate-600">
+                        Distribution Batch #{{ $batch?->id ?? 'N/A' }}
+                    </p>
 
                 </div>
 
-                <p class="mt-2 text-sm text-gray-600">
-                    Distribution Batch #{{ $batch?->id ?? 'N/A' }}
-                </p>
+                <div class="flex flex-wrap gap-3">
+
+                    <a href="{{ route('tssd.call-offs.index') }}"
+                        class="rounded-xl border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-600 transition hover:bg-slate-50">
+                        Back to Call-Offs
+                    </a>
+
+                    @if ($callOff->status === 'Pending')
+                        <form action="{{ route('tssd.call-offs.destroy', $callOff) }}" method="POST"
+                            onsubmit="return confirm('Cancel this pending Call-Off?');">
+
+                            @csrf
+                            @method('DELETE')
+
+                            <button type="submit"
+                                class="rounded-xl bg-red-600 px-5 py-3 font-semibold text-white transition hover:bg-red-700">
+                                Cancel Call-Off
+                            </button>
+
+                        </form>
+                    @endif
+
+                </div>
 
             </div>
-
-            <div class="flex flex-wrap gap-3">
-
-                <a
-                    href="{{ route('tssd.call-offs.index') }}"
-                    class="rounded-xl border border-gray-300 bg-white px-5 py-3 font-semibold text-gray-700 transition hover:bg-gray-50"
-                >
-                    Back to Call-Offs
-                </a>
-
-                @if($callOff->status === 'Pending')
-
-                    <form
-                        action="{{ route('tssd.call-offs.destroy', $callOff) }}"
-                        method="POST"
-                        onsubmit="return confirm('Cancel this pending Call-Off?');"
-                    >
-
-                        @csrf
-                        @method('DELETE')
-
-                        <button
-                            type="submit"
-                            class="rounded-xl bg-red-600 px-5 py-3 font-semibold text-white transition hover:bg-red-700"
-                        >
-                            Cancel Call-Off
-                        </button>
-
-                    </form>
-
-                @endif
-
-            </div>
-
-        </div>
+        </section>
 
         {{-- Success --}}
-        @if(session('success'))
-
+        @if (session('success'))
             <div class="rounded-xl border border-green-200 bg-green-50 px-5 py-4 text-green-800">
                 {{ session('success') }}
             </div>
-
         @endif
 
         {{-- Call-Off Information --}}
-        <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow">
+        <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
 
-            <div class="bg-red-900 px-7 py-5">
+            <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
 
-                <h2 class="text-xl font-semibold text-white">
+                <h2 class="text-lg font-bold text-slate-950">
                     Call-Off Information
                 </h2>
 
             </div>
 
-            <div class="grid grid-cols-1 gap-6 p-7 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 sm:p-7 xl:grid-cols-4">
 
                 <div>
 
-                    <p class="text-sm font-medium text-gray-500">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
                         Call-Off Number
                     </p>
 
-                    <p class="mt-1 font-semibold text-gray-900">
+                    <p class="mt-3 font-bold text-slate-900">
                         {{ $callOff->call_off_number }}
                     </p>
 
@@ -111,11 +103,11 @@
 
                 <div>
 
-                    <p class="text-sm font-medium text-gray-500">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
                         Assigned Date
                     </p>
 
-                    <p class="mt-1 font-semibold text-gray-900">
+                    <p class="mt-3 font-bold text-slate-900">
                         {{ $callOff->assigned_at?->format('F d, Y') ?? 'Not set' }}
                     </p>
 
@@ -123,11 +115,11 @@
 
                 <div>
 
-                    <p class="text-sm font-medium text-gray-500">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
                         Assigned By
                     </p>
 
-                    <p class="mt-1 font-semibold text-gray-900">
+                    <p class="mt-3 font-bold text-slate-900">
                         {{ $callOff->assignedBy?->name ?? 'Not available' }}
                     </p>
 
@@ -135,11 +127,11 @@
 
                 <div>
 
-                    <p class="text-sm font-medium text-gray-500">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
                         Official Call-Off Date
                     </p>
 
-                    <p class="mt-1 font-semibold text-gray-900">
+                    <p class="mt-3 font-bold text-slate-900">
                         {{ $callOff->call_off_date?->format('F d, Y') ?? 'Pending Supply approval' }}
                     </p>
 
@@ -147,11 +139,11 @@
 
                 <div>
 
-                    <p class="text-sm font-medium text-gray-500">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
                         Approved By
                     </p>
 
-                    <p class="mt-1 font-semibold text-gray-900">
+                    <p class="mt-3 font-bold text-slate-900">
                         {{ $callOff->approvedBy?->name ?? 'Pending approval' }}
                     </p>
 
@@ -159,11 +151,11 @@
 
                 <div>
 
-                    <p class="text-sm font-medium text-gray-500">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
                         Approved At
                     </p>
 
-                    <p class="mt-1 font-semibold text-gray-900">
+                    <p class="mt-3 font-bold text-slate-900">
                         {{ $callOff->approved_at?->format('F d, Y h:i A') ?? 'Pending approval' }}
                     </p>
 
@@ -171,11 +163,11 @@
 
                 <div class="sm:col-span-2">
 
-                    <p class="text-sm font-medium text-gray-500">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
                         Remarks
                     </p>
 
-                    <p class="mt-1 whitespace-pre-line text-gray-900">
+                    <p class="mt-3 whitespace-pre-line text-sm leading-6 text-slate-700">
                         {{ $callOff->remarks ?: 'No remarks provided.' }}
                     </p>
 
@@ -183,28 +175,28 @@
 
             </div>
 
-        </div>
+        </section>
 
         {{-- Purchase Order Information --}}
-        <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow">
+        <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
 
-            <div class="bg-gray-900 px-7 py-5">
+            <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
 
-                <h2 class="text-xl font-semibold text-white">
+                <h2 class="text-lg font-bold text-slate-950">
                     Source Purchase Order
                 </h2>
 
             </div>
 
-            <div class="grid grid-cols-1 gap-6 p-7 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 sm:p-7 xl:grid-cols-4">
 
                 <div>
 
-                    <p class="text-sm font-medium text-gray-500">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
                         PO Number
                     </p>
 
-                    <p class="mt-1 font-semibold text-gray-900">
+                    <p class="mt-3 font-bold text-slate-900">
                         {{ $purchaseOrder?->po_number ?? 'Not available' }}
                     </p>
 
@@ -212,11 +204,11 @@
 
                 <div>
 
-                    <p class="text-sm font-medium text-gray-500">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
                         PO Date
                     </p>
 
-                    <p class="mt-1 font-semibold text-gray-900">
+                    <p class="mt-3 font-bold text-slate-900">
                         {{ $purchaseOrder?->po_date?->format('F d, Y') ?? 'Not available' }}
                     </p>
 
@@ -224,11 +216,11 @@
 
                 <div>
 
-                    <p class="text-sm font-medium text-gray-500">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
                         Supplier
                     </p>
 
-                    <p class="mt-1 font-semibold text-gray-900">
+                    <p class="mt-3 font-bold text-slate-900">
                         {{ $purchaseOrder?->supplier?->supplier_name ?? 'Not available' }}
                     </p>
 
@@ -236,11 +228,11 @@
 
                 <div>
 
-                    <p class="text-sm font-medium text-gray-500">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
                         NEFA Number
                     </p>
 
-                    <p class="mt-1 font-semibold text-gray-900">
+                    <p class="mt-3 font-bold text-slate-900">
                         {{ $purchaseOrder?->nefa_number ?? 'Not available' }}
                     </p>
 
@@ -248,136 +240,185 @@
 
             </div>
 
-        </div>
+        </section>
 
         {{-- Provincial Allocations --}}
-        <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow">
+        <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
 
-            <div class="flex flex-col gap-3 bg-red-900 px-7 py-5 sm:flex-row sm:items-center sm:justify-between">
+            <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
+                <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">
+                    Provincial Allocations
+                </p>
 
-                <div>
+                <h2 class="mt-1 text-lg font-bold text-slate-950">
+                    Province Distribution Summary
+                </h2>
 
-                    <h2 class="text-xl font-semibold text-white">
-                        Provincial Allocations
-                    </h2>
-
-                    <p class="mt-1 text-sm text-red-100">
-                        All provinces below use the same Call-Off Number.
-                    </p>
-
-                </div>
-
-                <span class="inline-flex w-fit rounded-full bg-white px-4 py-2 text-sm font-semibold text-red-900">
-                    {{ $batch?->provinceDistributions?->count() ?? 0 }} Province(s)
-                </span>
-
+                <p class="mt-1 text-sm text-slate-500">
+                    Consolidated PPE quantities distributed to every provincial office under this Call-Off Number.
+                </p>
             </div>
 
-            <div class="space-y-6 p-7">
+            <div class="overflow-x-auto">
+                <table class="min-w-[1450px] w-full border-collapse">
 
-                @forelse($batch?->provinceDistributions ?? collect() as $provinceDistribution)
+                    <thead class="bg-[#641D21] text-white">
 
-                    <div class="overflow-hidden rounded-xl border border-gray-200">
+                        <tr class="text-xs font-bold uppercase tracking-wide">
+                            <th rowspan="2" class="border border-[#7f3539] px-5 py-4 text-left">
+                                Province
+                            </th>
 
-                        <div class="flex flex-col gap-4 bg-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                            <th rowspan="2" class="border border-[#7f3539] px-4 py-4 text-center">
+                                Delivery Date
+                            </th>
 
-                            <div>
+                            <th rowspan="2" class="border border-[#7f3539] px-4 py-4 text-left">
+                                Place of Delivery
+                            </th>
 
-                                <h3 class="text-lg font-semibold text-gray-900">
-                                    {{ $provinceDistribution->province->name }}
-                                </h3>
+                            <th colspan="3" class="border border-[#7f3539] px-4 py-3 text-center">
+                                Long Sleeves
+                            </th>
 
-                                <p class="mt-1 text-sm text-gray-600">
-                                    {{ $provinceDistribution->place_of_delivery ?: 'No delivery address recorded' }}
-                                </p>
+                            <th rowspan="2" class="border border-[#7f3539] px-4 py-4 text-center">
+                                Bucket Hat
+                            </th>
 
-                            </div>
+                            <th colspan="3" class="border border-[#7f3539] px-4 py-3 text-center">
+                                Rubber Boots
+                            </th>
 
-                            <div class="text-sm text-gray-700">
+                            <th rowspan="2" class="border border-[#7f3539] px-4 py-4 text-center">
+                                Gloves
+                            </th>
 
-                                <span class="font-medium">
-                                    Scheduled Delivery:
-                                </span>
+                            <th rowspan="2" class="border border-[#7f3539] px-4 py-4 text-center">
+                                Mask
+                            </th>
+                        </tr>
 
-                                {{ $provinceDistribution->scheduled_delivery_date?->format('F d, Y') ?? 'Not set' }}
+                        <tr class="text-xs font-bold uppercase tracking-wide">
+                            <th class="border border-[#7f3539] px-4 py-3 text-center">M</th>
+                            <th class="border border-[#7f3539] px-4 py-3 text-center">L</th>
+                            <th class="border border-[#7f3539] px-4 py-3 text-center">Total</th>
 
-                            </div>
+                            <th class="border border-[#7f3539] px-4 py-3 text-center">US9</th>
+                            <th class="border border-[#7f3539] px-4 py-3 text-center">US10</th>
+                            <th class="border border-[#7f3539] px-4 py-3 text-center">Total</th>
+                        </tr>
 
-                        </div>
+                    </thead>
 
-                        <div class="overflow-x-auto">
+                    <tbody>
+                        @foreach ($batch?->provinceDistributions ?? collect() as $allocation)
+                            @php
+                                $items = $allocation->items ?? collect();
 
-                            <table class="min-w-full divide-y divide-gray-200">
+                                $lsm = $items
+                                    ->filter(
+                                        fn($row) => $row->item &&
+                                            $row->item->item_name === 'Long Sleeve' &&
+                                            $row->item->label === 'Medium',
+                                    )
+                                    ->sum('quantity');
 
-                                <thead class="bg-white">
+                                $lsl = $items
+                                    ->filter(
+                                        fn($row) => $row->item &&
+                                            $row->item->item_name === 'Long Sleeve' &&
+                                            $row->item->label === 'Large',
+                                    )
+                                    ->sum('quantity');
 
-                                    <tr class="text-xs font-semibold uppercase tracking-wide text-gray-600">
+                                $bucket = $items
+                                    ->filter(fn($row) => $row->item && $row->item->item_name === 'Bucket Hat')
+                                    ->sum('quantity');
 
-                                        <th class="px-5 py-3 text-left">
-                                            PPE Item
-                                        </th>
+                                $us9 = $items
+                                    ->filter(
+                                        fn($row) => $row->item &&
+                                            $row->item->item_name === 'Rubber Boots' &&
+                                            $row->item->label === 'US9',
+                                    )
+                                    ->sum('quantity');
 
-                                        <th class="px-5 py-3 text-left">
-                                            Size / Label
-                                        </th>
+                                $us10 = $items
+                                    ->filter(
+                                        fn($row) => $row->item &&
+                                            $row->item->item_name === 'Rubber Boots' &&
+                                            $row->item->label === 'US10',
+                                    )
+                                    ->sum('quantity');
 
-                                        <th class="px-5 py-3 text-center">
-                                            Quantity
-                                        </th>
+                                $gloves = $items
+                                    ->filter(fn($row) => $row->item && $row->item->item_name === 'Hand Gloves')
+                                    ->sum('quantity');
 
-                                        <th class="px-5 py-3 text-left">
-                                            Unit
-                                        </th>
+                                $mask = $items
+                                    ->filter(fn($row) => $row->item && $row->item->item_name === 'Mask')
+                                    ->sum('quantity');
+                            @endphp
 
-                                    </tr>
+                            <tr class="transition hover:bg-slate-50">
+                                <td class="border border-slate-200 px-5 py-4 font-bold uppercase text-[#641D21]">
+                                    {{ $allocation->province?->name ?? 'Not available' }}
+                                </td>
 
-                                </thead>
+                                <td
+                                    class="whitespace-nowrap border border-slate-200 px-4 py-4 text-center text-sm text-slate-600">
+                                    {{ $allocation->scheduled_delivery_date?->format('M d, Y') ?? '—' }}
+                                </td>
 
-                                <tbody class="divide-y divide-gray-100">
+                                <td class="border border-slate-200 px-4 py-4 text-sm text-slate-600">
+                                    {{ $allocation->place_of_delivery ?? '—' }}
+                                </td>
 
-                                    @foreach($provinceDistribution->items as $allocationItem)
+                                <td class="border border-slate-200 px-4 py-4 text-center font-semibold text-slate-700">
+                                    {{ number_format($lsm) }}
+                                </td>
 
-                                        <tr>
+                                <td class="border border-slate-200 px-4 py-4 text-center font-semibold text-slate-700">
+                                    {{ number_format($lsl) }}
+                                </td>
 
-                                            <td class="px-5 py-3 font-medium text-gray-900">
-                                                {{ $allocationItem->item->item_name }}
-                                            </td>
+                                <td
+                                    class="border border-slate-200 bg-slate-50 px-4 py-4 text-center font-bold text-[#970C13]">
+                                    {{ number_format($lsm + $lsl) }}
+                                </td>
 
-                                            <td class="px-5 py-3 text-gray-700">
-                                                {{ $allocationItem->item->label ?: '—' }}
-                                            </td>
+                                <td class="border border-slate-200 px-4 py-4 text-center font-semibold text-slate-700">
+                                    {{ number_format($bucket) }}
+                                </td>
 
-                                            <td class="px-5 py-3 text-center font-semibold text-gray-900">
-                                                {{ number_format($allocationItem->quantity) }}
-                                            </td>
+                                <td class="border border-slate-200 px-4 py-4 text-center font-semibold text-slate-700">
+                                    {{ number_format($us9) }}
+                                </td>
 
-                                            <td class="px-5 py-3 text-gray-700">
-                                                {{ $allocationItem->item->unit_of_measurement }}
-                                            </td>
+                                <td class="border border-slate-200 px-4 py-4 text-center font-semibold text-slate-700">
+                                    {{ number_format($us10) }}
+                                </td>
 
-                                        </tr>
+                                <td
+                                    class="border border-slate-200 bg-slate-50 px-4 py-4 text-center font-bold text-[#970C13]">
+                                    {{ number_format($us9 + $us10) }}
+                                </td>
 
-                                    @endforeach
+                                <td class="border border-slate-200 px-4 py-4 text-center font-semibold text-slate-700">
+                                    {{ number_format($gloves) }}
+                                </td>
 
-                                </tbody>
+                                <td class="border border-slate-200 px-4 py-4 text-center font-semibold text-slate-700">
+                                    {{ number_format($mask) }}
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
 
-                            </table>
-
-                        </div>
-
-                    </div>
-
-                @empty
-
-                    <div class="rounded-xl bg-gray-50 px-6 py-10 text-center text-gray-500">
-                        No provincial allocations were found.
-                    </div>
-
-                @endforelse
-
+                </table>
             </div>
 
-        </div>
+        </section>
 
     </div>
 

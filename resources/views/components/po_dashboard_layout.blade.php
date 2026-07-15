@@ -474,22 +474,6 @@
             {{-- Page content --}}
             <main class="p-4 sm:p-6 lg:p-8">
 
-                @if(session('success'))
-
-                    <div class="mb-6 rounded-xl border border-green-200 bg-green-50 px-5 py-4 text-green-800">
-                        {{ session('success') }}
-                    </div>
-
-                @endif
-
-                @if(session('error'))
-
-                    <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-red-800">
-                        {{ session('error') }}
-                    </div>
-
-                @endif
-
                 {{ $slot }}
                 @stack('scripts')
 

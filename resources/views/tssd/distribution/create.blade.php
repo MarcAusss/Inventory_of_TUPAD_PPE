@@ -1,641 +1,453 @@
-<x-po_dashboard_layout>
+<x-po_dashboard_layout title="Create TSSD Distribution">
 
     <form id="distributionForm" action="{{ route('tssd.distributions.store') }}" method="POST">
-
         @csrf
 
         <input type="hidden" id="distributionsInput" name="distributions">
 
-        <div class="space-y-8">
+        <div class="mx-auto max-w-[1900px] space-y-6">
 
-            <!-- ================================================= -->
-            <!-- HEADER -->
-            <!-- ================================================= -->
-
-            <div class="bg-white rounded-2xl shadow border">
-
-                <div class="bg-red-900 px-8 py-6">
-
-                    <h2 class="text-3xl font-bold text-white">
-
-                        Create TSSD Distribution
-
-                    </h2>
-
-                    <p class="text-red-100 mt-1">
-
-                        Select a Purchase Order then distribute PPE to every province.
-
-                    </p>
-
+            <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div class="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-[#641D21] via-[#970C13] to-[#ED1B24]">
                 </div>
 
-                <div class="p-8">
+                <div class="flex flex-col gap-6 px-6 py-7 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <span
+                                class="rounded-full bg-[#DF979B]/20 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#970C13] ring-1 ring-[#DF979B]">
+                                TSSD Unit
+                            </span>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-
-                        <!-- Purchase Order -->
-
-                        <div>
-
-                            <label class="font-semibold">
-
-                                Purchase Order Number
-
-                            </label>
-
-                            <select id="purchase_order" name="purchase_order_id"
-                                class="w-full rounded-xl border-gray-300">
-
-                                <option value="">
-
-                                    Select Purchase Order Number
-
-                                </option>
-
-                                @foreach($purchaseOrders as $po)
-
-                                    <option value="{{ $po->id }}">
-
-                                        {{ $po->po_number }}
-
-                                    </option>
-
-                                @endforeach
-
-                            </select>
-
+                            <span
+                                class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">
+                                Distribution
+                            </span>
                         </div>
 
-                        <!-- PO Date -->
+                        <h1 class="mt-4 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+                            Create TSSD Distribution
+                        </h1>
 
-                        <div>
-
-                            <label class="font-semibold">
-
-                                PO Date
-
-                            </label>
-
-                            <input id="po_date" readonly class="w-full rounded-xl bg-gray-100">
-
-                        </div>
-
-                        <!-- Supplier -->
-
-                        <div>
-
-                            <label class="font-semibold">
-
-                                Supplier
-
-                            </label>
-
-                            <input id="supplier" readonly class="w-full rounded-xl bg-gray-100">
-
-                        </div>
-
-                        <!-- NEFA -->
-
-                        <div>
-
-                            <label class="font-semibold">
-
-                                NEFA Number
-
-                            </label>
-
-                            <input id="nefa" readonly class="w-full rounded-xl bg-gray-100">
-
-                        </div>
-
+                        <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+                            Select a Purchase Order, review available PPE quantities, and assign items to provincial
+                            offices.
+                        </p>
                     </div>
 
+                    <a href="{{ route('tssd.distributions.index') }}"
+                        class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
+                        Back to Distribution
+                    </a>
+                </div>
+            </section>
+
+            <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
+                    <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">
+                        Purchase Order
+                    </p>
+
+                    <h2 class="mt-1 text-lg font-bold text-slate-950">
+                        Purchase Order Information
+                    </h2>
+
+                    <p class="mt-1 text-sm text-slate-500">
+                        Select the Purchase Order that will be used as the source of this distribution.
+                    </p>
                 </div>
 
-            </div>
+                <div class="grid grid-cols-1 gap-6 p-6 sm:p-7 md:grid-cols-2 xl:grid-cols-4">
+                    <div>
+                        <label for="purchase_order" class="mb-2 block text-sm font-bold text-slate-700">
+                            Purchase Order Number
+                        </label>
 
-            <!-- ================================================= -->
-            <!-- PURCHASED PPE SUMMARY -->
-            <!-- ================================================= -->
+                        <select id="purchase_order" name="purchase_order_id"
+                            class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#970C13] focus:ring-[#970C13]">
+                            <option value="">Select Purchase Order Number</option>
 
-            <div class="bg-white rounded-2xl shadow border">
+                            @foreach ($purchaseOrders as $po)
+                                <option value="{{ $po->id }}">
+                                    {{ $po->po_number }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                <div class="bg-red-900 px-8 py-6 flex justify-between items-center">
+                    <div>
+                        <label for="po_date" class="mb-2 block text-sm font-bold text-slate-700">PO Date</label>
+                        <input id="po_date" readonly
+                            class="w-full rounded-xl border-slate-200 bg-slate-100 text-slate-600 shadow-sm">
+                    </div>
 
-                    <h3 class="text-2xl font-semibold text-white">
+                    <div>
+                        <label for="supplier" class="mb-2 block text-sm font-bold text-slate-700">Supplier</label>
+                        <input id="supplier" readonly
+                            class="w-full rounded-xl border-slate-200 bg-slate-100 text-slate-600 shadow-sm">
+                    </div>
 
+                    <div>
+                        <label for="nefa" class="mb-2 block text-sm font-bold text-slate-700">NEFA Number</label>
+                        <input id="nefa" readonly
+                            class="w-full rounded-xl border-slate-200 bg-slate-100 text-slate-600 shadow-sm">
+                    </div>
+                </div>
+            </section>
+
+            <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
+                    <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">
+                        Purchased Inventory
+                    </p>
+
+                    <h2 class="mt-1 text-lg font-bold text-slate-950">
                         Purchased PPE Summary
+                    </h2>
 
-                    </h3>
-
+                    <p class="mt-1 text-sm text-slate-500">
+                        Review the purchased and remaining quantities before assigning PPE to provinces.
+                    </p>
                 </div>
 
                 <div class="overflow-x-auto">
-
-                    <table class="min-w-full">
-
-                        <thead class="bg-gray-100">
-
-                            <tr>
-
-                                <th class="px-6 py-4 text-left">
-
-                                    PPE Item
-
-                                </th>
-
-                                <th class="px-6 py-4">
-
-                                    Size
-
-                                </th>
-
-                                <th class="px-6 py-4">
-
-                                    Purchased Qty
-
-                                </th>
-
-                                <th class="px-6 py-4">
-
-                                    Remaining Qty
-
-                                </th>
-
+                    <table class="min-w-[760px] w-full divide-y divide-slate-200">
+                        <thead class="bg-slate-100">
+                            <tr class="text-xs font-bold uppercase tracking-wide text-slate-600">
+                                <th class="px-6 py-4 text-left">PPE Item</th>
+                                <th class="px-6 py-4 text-center">Size / Label</th>
+                                <th class="px-6 py-4 text-center">Purchased Qty</th>
+                                <th class="px-6 py-4 text-center">Remaining Qty</th>
                             </tr>
-
                         </thead>
 
-                        <tbody id="purchaseSummary">
-
+                        <tbody id="purchaseSummary" class="divide-y divide-slate-100">
                             <tr>
-
-                                <td colspan="4" class="text-center py-8 text-gray-500">
-
+                                <td colspan="4" class="px-6 py-14 text-center text-sm text-slate-500">
                                     Select a Purchase Order.
-
                                 </td>
-
                             </tr>
-
                         </tbody>
-
                     </table>
-
                 </div>
+            </section>
 
-            </div>
+            <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div
+                    class="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:px-7 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">
+                            Provincial Allocations
+                        </p>
 
-            <!-- ================================================= -->
-            <!-- PROVINCE DISTRIBUTION SUMMARY -->
-            <!-- ================================================= -->
+                        <h2 class="mt-1 text-lg font-bold text-slate-950">
+                            Province Distribution Summary
+                        </h2>
 
-            <div class="bg-white rounded-2xl shadow border">
-
-                <div class="bg-red-900 px-8 py-6 flex justify-between items-center">
-
-                    <h3 class="text-2xl font-semibold text-white">
-
-                        Province Distribution Summary
-
-                    </h3>
+                        <p class="mt-1 text-sm text-slate-500">
+                            Consolidated PPE quantities assigned to every provincial office in this distribution.
+                        </p>
+                    </div>
 
                     <button type="button" id="openModal"
-                        class="bg-white text-red-900 font-semibold px-5 py-2 rounded-lg">
-
-                        + Assign PPE to Province
-
+                        class="inline-flex items-center justify-center rounded-xl bg-[#970C13] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#641D21]">
+                        Assign PPE to Province
                     </button>
-
                 </div>
 
                 <div class="overflow-x-auto">
-
-                    <table class="min-w-full">
-
-                        <thead class="bg-gray-100">
-
-                            <tr>
-
-                                <th class="px-4 py-3">
-
-                                    Province
-
-                                </th>
-
-                                <th>
-
-                                    LS-M
-
-                                </th>
-
-                                <th>
-
-                                    LS-L
-
-                                </th>
-
-                                <th>
-
-                                    Bucket Hat
-
-                                </th>
-
-                                <th>
-
-                                    US9
-
-                                </th>
-
-                                <th>
-
-                                    US10
-
-                                </th>
-
-                                <th>
-
-                                    Gloves
-
-                                </th>
-
-                                <th>
-
-                                    Mask
-
-                                </th>
-
-                                <th class="px-4 py-3">
-                                    Actions
-                                </th>
-
+                    <table class="min-w-[1100px] w-full divide-y divide-slate-200">
+                        <thead class="bg-slate-100">
+                            <tr class="text-xs font-bold uppercase tracking-wide text-slate-600">
+                                <th class="px-5 py-4 text-left">Province</th>
+                                <th class="px-4 py-4 text-center">LS-M</th>
+                                <th class="px-4 py-4 text-center">LS-L</th>
+                                <th class="px-4 py-4 text-center">Bucket Hat</th>
+                                <th class="px-4 py-4 text-center">US9</th>
+                                <th class="px-4 py-4 text-center">US10</th>
+                                <th class="px-4 py-4 text-center">Gloves</th>
+                                <th class="px-4 py-4 text-center">Mask</th>
+                                <th class="px-5 py-4 text-center">Actions</th>
                             </tr>
-
                         </thead>
 
-                        <tbody id="distributionSummary">
-
+                        <tbody id="distributionSummary" class="divide-y divide-slate-100">
                             @forelse($provinceDistributions as $provinceId => $rows)
-
                                 @php
                                     $province = $rows->first()->province;
 
-                                    $lsm = $rows->filter(
-                                        fn($r) =>
-                                        $r->item &&
-                                        $r->item->item_name == 'Long Sleeve' &&
-                                        $r->item->label == 'Medium'
-                                    )->sum('quantity');
+                                    $lsm = $rows
+                                        ->filter(
+                                            fn($r) => $r->item &&
+                                                $r->item->item_name == 'Long Sleeve' &&
+                                                $r->item->label == 'Medium',
+                                        )
+                                        ->sum('quantity');
 
-                                    $lsl = $rows->filter(
-                                        fn($r) =>
-                                        $r->item &&
-                                        $r->item->item_name == 'Long Sleeve' &&
-                                        $r->item->label == 'Large'
-                                    )->sum('quantity');
+                                    $lsl = $rows
+                                        ->filter(
+                                            fn($r) => $r->item &&
+                                                $r->item->item_name == 'Long Sleeve' &&
+                                                $r->item->label == 'Large',
+                                        )
+                                        ->sum('quantity');
 
-                                    $bucket = $rows->filter(
-                                        fn($r) =>
-                                        $r->item &&
-                                        $r->item->item_name == 'Bucket Hat'
-                                    )->sum('quantity');
+                                    $bucket = $rows
+                                        ->filter(fn($r) => $r->item && $r->item->item_name == 'Bucket Hat')
+                                        ->sum('quantity');
 
-                                    $us9 = $rows->filter(
-                                        fn($r) =>
-                                        $r->item &&
-                                        $r->item->item_name == 'Rubber Boots' &&
-                                        $r->item->label == 'US9'
-                                    )->sum('quantity');
+                                    $us9 = $rows
+                                        ->filter(
+                                            fn($r) => $r->item &&
+                                                $r->item->item_name == 'Rubber Boots' &&
+                                                $r->item->label == 'US9',
+                                        )
+                                        ->sum('quantity');
 
-                                    $us10 = $rows->filter(
-                                        fn($r) =>
-                                        $r->item &&
-                                        $r->item->item_name == 'Rubber Boots' &&
-                                        $r->item->label == 'US10'
-                                    )->sum('quantity');
+                                    $us10 = $rows
+                                        ->filter(
+                                            fn($r) => $r->item &&
+                                                $r->item->item_name == 'Rubber Boots' &&
+                                                $r->item->label == 'US10',
+                                        )
+                                        ->sum('quantity');
 
-                                    $gloves = $rows->filter(
-                                        fn($r) =>
-                                        $r->item &&
-                                        $r->item->item_name == 'Hand Gloves'
-                                    )->sum('quantity');
+                                    $gloves = $rows
+                                        ->filter(fn($r) => $r->item && $r->item->item_name == 'Hand Gloves')
+                                        ->sum('quantity');
 
-                                    $mask = $rows->filter(
-                                        fn($r) =>
-                                        $r->item &&
-                                        $r->item->item_name == 'Mask'
-                                    )->sum('quantity');
+                                    $mask = $rows
+                                        ->filter(fn($r) => $r->item && $r->item->item_name == 'Mask')
+                                        ->sum('quantity');
                                 @endphp
 
-                                <tr class="border-t hover:bg-gray-50">
-
-                                    <td class="px-4 py-3 font-semibold">
-                                        {{ $province->name }}
-                                    </td>
-
-                                    <td class="text-center">{{ $lsm }}</td>
-                                    <td class="text-center">{{ $lsl }}</td>
-                                    <td class="text-center">{{ $bucket }}</td>
-                                    <td class="text-center">{{ $us9 }}</td>
-                                    <td class="text-center">{{ $us10 }}</td>
-                                    <td class="text-center">{{ $gloves }}</td>
-                                    <td class="text-center">{{ $mask }}</td>
-
+                                <tr class="transition hover:bg-slate-50">
+                                    <td class="px-5 py-4 font-bold text-[#641D21]">{{ $province->name }}</td>
+                                    <td class="px-4 py-4 text-center text-sm text-slate-700">{{ $lsm }}</td>
+                                    <td class="px-4 py-4 text-center text-sm text-slate-700">{{ $lsl }}</td>
+                                    <td class="px-4 py-4 text-center text-sm text-slate-700">{{ $bucket }}</td>
+                                    <td class="px-4 py-4 text-center text-sm text-slate-700">{{ $us9 }}</td>
+                                    <td class="px-4 py-4 text-center text-sm text-slate-700">{{ $us10 }}</td>
+                                    <td class="px-4 py-4 text-center text-sm text-slate-700">{{ $gloves }}</td>
+                                    <td class="px-4 py-4 text-center text-sm text-slate-700">{{ $mask }}</td>
+                                    <td class="px-5 py-4 text-center text-sm text-slate-400">—</td>
                                 </tr>
-
                             @empty
-
                                 <tr>
-                                    <td colspan="9" class="text-center py-8 text-gray-500">
+                                    <td colspan="9" class="px-6 py-14 text-center text-sm text-slate-500">
                                         No province assigned yet.
                                     </td>
                                 </tr>
-
                             @endforelse
-
                         </tbody>
-
                     </table>
-
                 </div>
+            </section>
 
-            </div>
+            <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
+                    <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">
+                        Delivery
+                    </p>
 
-            <!-- Delivery -->
-
-            <div class="bg-white rounded-2xl shadow border">
-
-                <div class="bg-red-900 px-8 py-6">
-
-                    <h3 class="text-2xl text-white">
-
+                    <h2 class="mt-1 text-lg font-bold text-slate-950">
                         Delivery Information
+                    </h2>
 
-                    </h3>
-
+                    <p class="mt-1 text-sm text-slate-500">
+                        Record the planned delivery date and any distribution remarks.
+                    </p>
                 </div>
 
-                <div class="p-8 grid grid-cols-2 gap-6">
-
+                <div class="grid grid-cols-1 gap-6 p-6 sm:p-7 lg:grid-cols-2">
                     <div>
-
-                        <label>
-
+                        <label for="delivery_date" class="mb-2 block text-sm font-bold text-slate-700">
                             Delivery Date
-
                         </label>
 
                         <input type="date" id="delivery_date" name="delivery_date"
-                            class="w-full rounded-xl border-gray-300">
-
+                            class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#970C13] focus:ring-[#970C13]">
                     </div>
 
                     <div>
-
-                        <label>
-
+                        <label for="remarks" class="mb-2 block text-sm font-bold text-slate-700">
                             Remarks
-
                         </label>
 
-                        <textarea name="remarks" rows="3" class="w-full rounded-xl border-gray-300"></textarea>
-
+                        <textarea id="remarks" name="remarks" rows="3"
+                            class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#970C13] focus:ring-[#970C13]"></textarea>
                     </div>
-
                 </div>
+            </section>
 
-            </div>
-
-            <div class="flex justify-end">
+            <section
+                class="flex flex-col-reverse gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:justify-end">
+                <a href="{{ route('tssd.distributions.index') }}"
+                    class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-6 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
+                    Cancel
+                </a>
 
                 <button type="submit" id="submitDistributionButton"
-                    class="bg-red-900 hover:bg-red-800 text-white px-8 py-3 rounded-xl disabled:cursor-not-allowed disabled:opacity-60">
+                    class="inline-flex items-center justify-center rounded-xl bg-[#970C13] px-7 py-3 text-sm font-bold text-white transition hover:bg-[#641D21] disabled:cursor-not-allowed disabled:opacity-60">
                     Save Distribution
                 </button>
-
-            </div>
+            </section>
 
         </div>
-
     </form>
 
 </x-po_dashboard_layout>
 
-<!-- Modal -->
-<div id="assignModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+<div id="assignModal"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
 
-    <div class="bg-white rounded-2xl w-11/12 max-w-5xl shadow-xl">
+    <div class="max-h-[92vh] w-full max-w-5xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
 
-        <div class="flex justify-between items-center border-b px-6 py-4">
+        <div class="flex items-center justify-between border-b border-slate-200 px-6 py-5 sm:px-7">
+            <div>
+                <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">
+                    Provincial Allocation
+                </p>
 
-            <h2 class="text-xl font-bold">
-                Assign PPE to Province
-            </h2>
+                <h2 class="mt-1 text-xl font-bold text-slate-950">
+                    Assign PPE to Province
+                </h2>
+            </div>
 
-            <button type="button" id="closeModal" class="text-2xl">
+            <button type="button" id="closeModal"
+                class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-2xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900">
                 &times;
             </button>
-
         </div>
 
-        <div class="p-6">
-
+        <div class="max-h-[68vh] overflow-y-auto p-6 sm:p-7">
             <div class="mb-6">
-
-                <label class="font-semibold">
+                <label for="provinceSelect" class="mb-2 block text-sm font-bold text-slate-700">
                     Province
                 </label>
 
-                <select id="provinceSelect" class="w-full rounded-xl border-gray-300">
+                <select id="provinceSelect"
+                    class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#970C13] focus:ring-[#970C13]">
+                    <option value="">Select Province</option>
 
-                    <option value="">
-                        Select Province
-                    </option>
-
-                    @foreach($provinces as $province)
-
+                    @foreach ($provinces as $province)
                         <option value="{{ $province->id }}" data-name="{{ $province->name }}">
-
                             {{ $province->name }}
-
                         </option>
-
                     @endforeach
-
                 </select>
-
             </div>
 
-            <table class="min-w-full border">
+            @php
+                $modalItems = [
+                    ['lsm', 'Long Sleeve', 'Medium'],
+                    ['lsl', 'Long Sleeve', 'Large'],
+                    ['bucket', 'Bucket Hat', '—'],
+                    ['us9', 'Rubber Boots', 'US9'],
+                    ['us10', 'Rubber Boots', 'US10'],
+                    ['gloves', 'Hand Gloves', '—'],
+                    ['mask', 'Mask', '—'],
+                ];
+            @endphp
 
-                <thead class="bg-gray-100">
+            <div class="overflow-hidden rounded-2xl border border-slate-200">
+                <table class="w-full divide-y divide-slate-200">
+                    <thead class="bg-slate-100">
+                        <tr class="text-xs font-bold uppercase tracking-wide text-slate-600">
+                            <th class="px-5 py-4 text-left">PPE Item</th>
+                            <th class="px-5 py-4 text-center">Size / Label</th>
+                            <th class="px-5 py-4 text-center">Quantity</th>
+                        </tr>
+                    </thead>
 
-                    <tr>
-
-                        <th>PPE</th>
-                        <th>Quantity</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    <tr>
-                        <td>Long Sleeve Medium</td>
-                        <td>
-                            <input type="number" id="lsm" value="0" class="w-24 rounded border-gray-300">
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td>Long Sleeve Large</td>
-                        <td>
-                            <input type="number" id="lsl" value="0" class="w-24 rounded border-gray-300">
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td>Bucket Hat</td>
-                        <td>
-                            <input type="number" id="bucket" value="0" class="w-24 rounded border-gray-300">
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td>Rubber Boots US9</td>
-                        <td>
-                            <input type="number" id="us9" value="0" class="w-24 rounded border-gray-300">
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td>Rubber Boots US10</td>
-                        <td>
-                            <input type="number" id="us10" value="0" class="w-24 rounded border-gray-300">
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td>Hand Gloves</td>
-                        <td>
-                            <input type="number" id="gloves" value="0" class="w-24 rounded border-gray-300">
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td>Mask</td>
-                        <td>
-                            <input type="number" id="mask" value="0" class="w-24 rounded border-gray-300">
-                        </td>
-                    </tr>
-
-                </tbody>
-
-            </table>
-
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach ($modalItems as [$id, $itemName, $label])
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-5 py-4 font-semibold text-slate-800">{{ $itemName }}</td>
+                                <td class="px-5 py-4 text-center text-sm text-slate-500">{{ $label }}</td>
+                                <td class="px-5 py-4 text-center">
+                                    <input type="number" id="{{ $id }}" value="0"
+                                        class="w-28 rounded-xl border-slate-300 text-center shadow-sm focus:border-[#970C13] focus:ring-[#970C13]">
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
 
-        <div class="border-t px-6 py-4 flex justify-end gap-3">
-
-            <button type="button" id="cancelAssign" class="px-5 py-2 bg-gray-300 rounded-xl">
-
+        <div
+            class="flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 px-6 py-5 sm:flex-row sm:justify-end sm:px-7">
+            <button type="button" id="cancelAssign"
+                class="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-100">
                 Cancel
-
             </button>
 
-            <button type="button" id="saveAssign" class="px-6 py-2 bg-red-900 text-white rounded-xl">
-
+            <button type="button" id="saveAssign"
+                class="rounded-xl bg-[#970C13] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#641D21]">
                 Add Province
-
             </button>
-
         </div>
 
     </div>
-
 </div>
 
 <script>
     document.addEventListener(
         'DOMContentLoaded',
-        function () {
+        function() {
             const purchaseOrders =
                 @json($purchaseOrders);
 
             const distributionIndexUrl =
-                @json(
-                    route(
-                        'tssd.distributions.index'
-                    )
-                );
+                @json(route('tssd.distributions.index'));
 
             const remainingUrlTemplate =
-                @json(
-                    route(
-                        'tssd.purchase-orders.remaining',
-                        [
-                            'poId' => '__PO_ID__',
-                        ]
-                    )
-                );
+                @json(route('tssd.purchase-orders.remaining', [
+                        'poId' => '__PO_ID__',
+                    ]));
 
             const fieldDefinitions = {
                 lsm: {
-                    requestField:
-                        'long_sleeve_medium',
+                    requestField: 'long_sleeve_medium',
 
-                    label:
-                        'Long Sleeve Medium',
+                    label: 'Long Sleeve Medium',
                 },
 
                 lsl: {
-                    requestField:
-                        'long_sleeve_large',
+                    requestField: 'long_sleeve_large',
 
-                    label:
-                        'Long Sleeve Large',
+                    label: 'Long Sleeve Large',
                 },
 
                 bucket: {
-                    requestField:
-                        'bucket_hat',
+                    requestField: 'bucket_hat',
 
-                    label:
-                        'Bucket Hat',
+                    label: 'Bucket Hat',
                 },
 
                 us9: {
-                    requestField:
-                        'rubber_boots_us9',
+                    requestField: 'rubber_boots_us9',
 
-                    label:
-                        'Rubber Boots US9',
+                    label: 'Rubber Boots US9',
                 },
 
                 us10: {
-                    requestField:
-                        'rubber_boots_us10',
+                    requestField: 'rubber_boots_us10',
 
-                    label:
-                        'Rubber Boots US10',
+                    label: 'Rubber Boots US10',
                 },
 
                 gloves: {
-                    requestField:
-                        'hand_gloves',
+                    requestField: 'hand_gloves',
 
-                    label:
-                        'Hand Gloves',
+                    label: 'Hand Gloves',
                 },
 
                 mask: {
-                    requestField:
-                        'mask',
+                    requestField: 'mask',
 
-                    label:
-                        'Mask',
+                    label: 'Mask',
                 },
             };
 
@@ -738,9 +550,9 @@
                     label ?? ''
                 ).trim();
 
-                return value === '-'
-                    ? ''
-                    : value;
+                return value === '-' ?
+                    '' :
+                    value;
             }
 
             function getKey(
@@ -748,15 +560,15 @@
                 label
             ) {
                 if (
-                    itemName === 'Long Sleeve'
-                    && label === 'Medium'
+                    itemName === 'Long Sleeve' &&
+                    label === 'Medium'
                 ) {
                     return 'lsm';
                 }
 
                 if (
-                    itemName === 'Long Sleeve'
-                    && label === 'Large'
+                    itemName === 'Long Sleeve' &&
+                    label === 'Large'
                 ) {
                     return 'lsl';
                 }
@@ -768,15 +580,15 @@
                 }
 
                 if (
-                    itemName === 'Rubber Boots'
-                    && label === 'US9'
+                    itemName === 'Rubber Boots' &&
+                    label === 'US9'
                 ) {
                     return 'us9';
                 }
 
                 if (
-                    itemName === 'Rubber Boots'
-                    && label === 'US10'
+                    itemName === 'Rubber Boots' &&
+                    label === 'US10'
                 ) {
                     return 'us10';
                 }
@@ -800,11 +612,11 @@
             ) {
                 const requestField =
                     fieldDefinitions[field]
-                        .requestField;
+                    .requestField;
 
                 return Number(
                     distribution[
-                    requestField
+                        requestField
                     ] || 0
                 );
             }
@@ -821,8 +633,8 @@
                         index
                     ) => {
                         if (
-                            exceptIndex !== null
-                            && index === exceptIndex
+                            exceptIndex !== null &&
+                            index === exceptIndex
                         ) {
                             return;
                         }
@@ -857,12 +669,12 @@
                 fields.forEach(field => {
                     recalculated[field] =
                         Number(
-                            baseStock[field]
-                            || 0
-                        )
-                        - Number(
-                            allocatedTotals[field]
-                            || 0
+                            baseStock[field] ||
+                            0
+                        ) -
+                        Number(
+                            allocatedTotals[field] ||
+                            0
                         );
                 });
 
@@ -890,11 +702,11 @@
                     );
 
                 return Number(
-                    baseStock[field] || 0
-                )
-                    - Number(
+                        baseStock[field] || 0
+                    ) -
+                    Number(
                         allocatedWithoutCurrent[
-                        field
+                            field
                         ] || 0
                     );
             }
@@ -905,15 +717,15 @@
 
                 return fields.every(
                     field =>
-                        Number(
-                            allocatedTotals[
+                    Number(
+                        allocatedTotals[
                             field
-                            ] || 0
-                        )
-                        <= Number(
-                            baseStock[field]
-                            || 0
-                        )
+                        ] || 0
+                    ) <=
+                    Number(
+                        baseStock[field] ||
+                        0
+                    )
                 );
             }
 
@@ -927,8 +739,8 @@
                         .join('\n');
                 }
 
-                return data?.message
-                    || 'The request could not be completed.';
+                return data?.message ||
+                    'The request could not be completed.';
             }
 
             function openModal() {
@@ -971,9 +783,9 @@
 
                 const warning =
                     input.parentElement
-                        .querySelector(
-                            '[data-quantity-warning]'
-                        );
+                    .querySelector(
+                        '[data-quantity-warning]'
+                    );
 
                 if (warning) {
                     warning.textContent =
@@ -996,9 +808,9 @@
 
                 const warning =
                     input.parentElement
-                        .querySelector(
-                            '[data-quantity-warning]'
-                        );
+                    .querySelector(
+                        '[data-quantity-warning]'
+                    );
 
                 if (warning) {
                     warning.textContent =
@@ -1047,10 +859,10 @@
                     new Set(
                         distributions.map(
                             distribution =>
-                                Number(
-                                    distribution
-                                        .province_id
-                                )
+                            Number(
+                                distribution
+                                .province_id
+                            )
                         )
                     );
 
@@ -1068,19 +880,19 @@
                         Number(option.value);
 
                     const editingProvinceId =
-                        editingIndex !== null
-                            ? Number(
-                                distributions[
-                                    editingIndex
-                                ]?.province_id
-                            )
-                            : null;
+                        editingIndex !== null ?
+                        Number(
+                            distributions[
+                                editingIndex
+                            ]?.province_id
+                        ) :
+                        null;
 
                     option.disabled =
                         assignedProvinceIds
-                            .has(provinceId)
-                        && provinceId
-                        !== editingProvinceId;
+                        .has(provinceId) &&
+                        provinceId !==
+                        editingProvinceId;
                 });
             }
 
@@ -1133,14 +945,14 @@
 
                         const name =
                             row.children[0]
-                                ?.innerText
-                                .trim()
-                            || '';
+                            ?.innerText
+                            .trim() ||
+                            '';
 
                         const label =
                             normaliseLabel(
                                 row.children[1]
-                                    ?.innerText
+                                ?.innerText
                             );
 
                         const key =
@@ -1156,7 +968,7 @@
                         const remaining =
                             Number(
                                 remainingStock[
-                                key
+                                    key
                                 ] || 0
                             );
 
@@ -1167,16 +979,16 @@
                             ).toLocaleString();
 
                         cell.className =
-                            remaining < 0
-                                ? 'remainingQty border px-4 py-2 text-center font-semibold text-red-700'
-                                : 'remainingQty border px-4 py-2 text-center font-semibold text-green-700';
+                            remaining < 0 ?
+                            'remainingQty border px-4 py-2 text-center font-semibold text-red-700' :
+                            'remainingQty border px-4 py-2 text-center font-semibold text-green-700';
                     });
             }
 
             function renderDistributionSummary() {
                 if (
-                    distributions.length
-                    === 0
+                    distributions.length ===
+                    0
                 ) {
                     resetDistributionSummary();
                     refreshProvinceOptions();
@@ -1198,20 +1010,20 @@
                                 provinceSelect.options
                             ).find(
                                 provinceOption =>
-                                    Number(
-                                        provinceOption.value
-                                    )
-                                    === Number(
-                                        distribution
-                                            .province_id
-                                    )
+                                Number(
+                                    provinceOption.value
+                                ) ===
+                                Number(
+                                    distribution
+                                    .province_id
+                                )
                             );
 
                         const provinceName =
-                            option?.dataset.name
-                            || option?.textContent
-                                ?.trim()
-                            || 'Province';
+                            option?.dataset.name ||
+                            option?.textContent
+                            ?.trim() ||
+                            'Province';
 
                         distributionSummary
                             .insertAdjacentHTML(
@@ -1299,8 +1111,8 @@
                     if (
                         !Number.isFinite(
                             value
-                        )
-                        || value < 0
+                        ) ||
+                        value < 0
                     ) {
                         value = 0;
                     }
@@ -1345,8 +1157,8 @@
                     if (
                         !Number.isInteger(
                             value
-                        )
-                        || value < 0
+                        ) ||
+                        value < 0
                     ) {
                         showQuantityWarning(
                             input,
@@ -1366,9 +1178,9 @@
                     }
 
                     total +=
-                        Number.isFinite(value)
-                            ? value
-                            : 0;
+                        Number.isFinite(value) ?
+                        value :
+                        0;
                 });
 
                 if (total <= 0) {
@@ -1379,13 +1191,12 @@
                     valid = false;
                 }
 
-                saveAssignButton.disabled =
-                    !valid;
+                saveAssignButton.disabled = !valid;
 
                 saveAssignButton.className =
-                    valid
-                        ? 'bg-red-900 hover:bg-red-800 text-white px-6 py-2 rounded-xl'
-                        : 'bg-gray-400 cursor-not-allowed text-white px-6 py-2 rounded-xl';
+                    valid ?
+                    'bg-red-900 hover:bg-red-800 text-white px-6 py-2 rounded-xl' :
+                    'bg-gray-400 cursor-not-allowed text-white px-6 py-2 rounded-xl';
 
                 return valid;
             }
@@ -1405,11 +1216,10 @@
                         deliveryDateInput.value
                     );
 
-                submitButton.disabled =
-                    !hasSelectedPO
-                    || !hasDistributions
-                    || !validCombinedTotals
-                    || !hasDeliveryDate;
+                submitButton.disabled = !hasSelectedPO ||
+                    !hasDistributions ||
+                    !validCombinedTotals ||
+                    !hasDeliveryDate;
             }
 
             async function loadRemaining(
@@ -1417,23 +1227,20 @@
             ) {
                 const url =
                     remainingUrlTemplate
-                        .replace(
-                            '__PO_ID__',
-                            poId
-                        );
+                    .replace(
+                        '__PO_ID__',
+                        poId
+                    );
 
                 const response =
                     await fetch(
-                        url,
-                        {
+                        url, {
                             method: 'GET',
 
                             headers: {
-                                Accept:
-                                    'application/json',
+                                Accept: 'application/json',
 
-                                'X-Requested-With':
-                                    'XMLHttpRequest',
+                                'X-Requested-With': 'XMLHttpRequest',
                             },
                         }
                     );
@@ -1459,41 +1266,41 @@
 
                 baseStock = {
                     lsm: Number(
-                        data.remaining?.lsm
-                        || 0
+                        data.remaining?.lsm ||
+                        0
                     ),
 
                     lsl: Number(
-                        data.remaining?.lsl
-                        || 0
+                        data.remaining?.lsl ||
+                        0
                     ),
 
                     bucket: Number(
                         data.remaining
-                            ?.bucket
-                        || 0
+                        ?.bucket ||
+                        0
                     ),
 
                     us9: Number(
-                        data.remaining?.us9
-                        || 0
+                        data.remaining?.us9 ||
+                        0
                     ),
 
                     us10: Number(
                         data.remaining
-                            ?.us10
-                        || 0
+                        ?.us10 ||
+                        0
                     ),
 
                     gloves: Number(
                         data.remaining
-                            ?.gloves
-                        || 0
+                        ?.gloves ||
+                        0
                     ),
 
                     mask: Number(
-                        data.remaining?.mask
-                        || 0
+                        data.remaining?.mask ||
+                        0
                     ),
                 };
 
@@ -1504,16 +1311,16 @@
             purchaseOrderSelect
                 .addEventListener(
                     'change',
-                    async function () {
+                    async function() {
                         const id =
                             Number(this.value);
 
                         selectedPO =
                             purchaseOrders.find(
                                 purchaseOrder =>
-                                    Number(
-                                        purchaseOrder.id
-                                    ) === id
+                                Number(
+                                    purchaseOrder.id
+                                ) === id
                             ) || null;
 
                         resetDistributionState();
@@ -1556,8 +1363,8 @@
                                 'po_date'
                             )
                             .value =
-                            selectedPO.po_date
-                            ?? '';
+                            selectedPO.po_date ??
+                            '';
 
                         document
                             .getElementById(
@@ -1565,9 +1372,9 @@
                             )
                             .value =
                             selectedPO
-                                .supplier
-                                ?.supplier_name
-                            ?? '';
+                            .supplier
+                            ?.supplier_name ??
+                            '';
 
                         document
                             .getElementById(
@@ -1575,16 +1382,16 @@
                             )
                             .value =
                             selectedPO
-                                .nefa_number
-                            ?? '';
+                            .nefa_number ??
+                            '';
 
                         const items =
-                            selectedPO.items
-                            || selectedPO
-                                .purchase_order_items
-                            || selectedPO
-                                .purchaseOrderItems
-                            || [];
+                            selectedPO.items ||
+                            selectedPO
+                            .purchase_order_items ||
+                            selectedPO
+                            .purchaseOrderItems ||
+                            [];
 
                         purchaseSummary.innerHTML =
                             '';
@@ -1607,13 +1414,13 @@
                         items.forEach(item => {
                             const name =
                                 item.item
-                                    ?.item_name
-                                ?? '';
+                                ?.item_name ??
+                                '';
 
                             const label =
                                 item.item
-                                    ?.label
-                                ?? '';
+                                ?.label ??
+                                '';
 
                             purchaseSummary
                                 .insertAdjacentHTML(
@@ -1646,8 +1453,8 @@
                             );
                         } catch (error) {
                             alert(
-                                error.message
-                                || 'Unable to load remaining quantities.'
+                                error.message ||
+                                'Unable to load remaining quantities.'
                             );
                         }
                     }
@@ -1659,7 +1466,7 @@
                 )
                 .addEventListener(
                     'click',
-                    function () {
+                    function() {
                         if (!selectedPO) {
                             alert(
                                 'Please select a Purchase Order first.'
@@ -1737,18 +1544,18 @@
 
                 input.addEventListener(
                     'input',
-                    function () {
+                    function() {
                         let value =
                             Number(
-                                this.value
-                                || 0
+                                this.value ||
+                                0
                             );
 
                         if (
                             !Number.isFinite(
                                 value
-                            )
-                            || value < 0
+                            ) ||
+                            value < 0
                         ) {
                             value = 0;
                         }
@@ -1773,7 +1580,7 @@
             saveAssignButton
                 .addEventListener(
                     'click',
-                    function () {
+                    function() {
                         if (
                             !validateAssignmentForm()
                         ) {
@@ -1787,36 +1594,28 @@
                         const provinceId =
                             Number(
                                 provinceSelect
-                                    .value
+                                .value
                             );
 
                         const values =
                             readModalValues();
 
                         const newDistribution = {
-                            province_id:
-                                provinceId,
+                            province_id: provinceId,
 
-                            long_sleeve_medium:
-                                values.lsm,
+                            long_sleeve_medium: values.lsm,
 
-                            long_sleeve_large:
-                                values.lsl,
+                            long_sleeve_large: values.lsl,
 
-                            bucket_hat:
-                                values.bucket,
+                            bucket_hat: values.bucket,
 
-                            rubber_boots_us9:
-                                values.us9,
+                            rubber_boots_us9: values.us9,
 
-                            rubber_boots_us10:
-                                values.us10,
+                            rubber_boots_us10: values.us10,
 
-                            hand_gloves:
-                                values.gloves,
+                            hand_gloves: values.gloves,
 
-                            mask:
-                                values.mask,
+                            mask: values.mask,
                         };
 
                         if (
@@ -1839,7 +1638,7 @@
             distributionSummary
                 .addEventListener(
                     'click',
-                    function (event) {
+                    function(event) {
                         const editButton =
                             event.target.closest(
                                 '[data-edit-index]'
@@ -1854,8 +1653,8 @@
                             const index =
                                 Number(
                                     editButton
-                                        .dataset
-                                        .editIndex
+                                    .dataset
+                                    .editIndex
                                 );
 
                             const distribution =
@@ -1873,7 +1672,7 @@
                             provinceSelect.value =
                                 String(
                                     distribution
-                                        .province_id
+                                    .province_id
                                 );
 
                             /*
@@ -1910,8 +1709,8 @@
                             const index =
                                 Number(
                                     removeButton
-                                        .dataset
-                                        .removeIndex
+                                    .dataset
+                                    .removeIndex
                                 );
 
                             const distribution =
@@ -1926,21 +1725,21 @@
                                     provinceSelect.options
                                 ).find(
                                     provinceOption =>
-                                        Number(
-                                            provinceOption
-                                                .value
-                                        )
-                                        === Number(
-                                            distribution
-                                                .province_id
-                                        )
+                                    Number(
+                                        provinceOption
+                                        .value
+                                    ) ===
+                                    Number(
+                                        distribution
+                                        .province_id
+                                    )
                                 );
 
                             const provinceName =
-                                option?.dataset.name
-                                || option?.textContent
-                                    ?.trim()
-                                || 'this province';
+                                option?.dataset.name ||
+                                option?.textContent
+                                ?.trim() ||
+                                'this province';
 
                             const confirmed =
                                 confirm(
@@ -1969,7 +1768,7 @@
 
             form.addEventListener(
                 'submit',
-                async function (
+                async function(
                     event
                 ) {
                     event.preventDefault();
@@ -1983,8 +1782,8 @@
                     }
 
                     if (
-                        distributions.length
-                        === 0
+                        distributions.length ===
+                        0
                     ) {
                         alert(
                             'Please assign PPE to at least one province.'
@@ -2007,7 +1806,7 @@
 
                     if (
                         !deliveryDateInput
-                            .value
+                        .value
                     ) {
                         alert(
                             'Please provide the delivery date.'
@@ -2026,8 +1825,8 @@
 
                     const originalText =
                         submitButton
-                            .textContent
-                            .trim();
+                        .textContent
+                        .trim();
 
                     submitButton.disabled =
                         true;
@@ -2038,22 +1837,17 @@
                     try {
                         const response =
                             await fetch(
-                                this.action,
-                                {
-                                    method:
-                                        'POST',
+                                this.action, {
+                                    method: 'POST',
 
-                                    body:
-                                        new FormData(
-                                            this
-                                        ),
+                                    body: new FormData(
+                                        this
+                                    ),
 
                                     headers: {
-                                        Accept:
-                                            'application/json',
+                                        Accept: 'application/json',
 
-                                        'X-Requested-With':
-                                            'XMLHttpRequest',
+                                        'X-Requested-With': 'XMLHttpRequest',
                                     },
                                 }
                             );
@@ -2063,7 +1857,7 @@
                         try {
                             data =
                                 await response
-                                    .json();
+                                .json();
                         } catch (error) {
                             throw new Error(
                                 'The server returned an invalid response. Check the Laravel log for details.'
@@ -2079,17 +1873,17 @@
                         }
 
                         alert(
-                            data.message
-                            || 'Distribution saved successfully.'
+                            data.message ||
+                            'Distribution saved successfully.'
                         );
 
                         window.location.href =
-                            data.redirect_url
-                            || distributionIndexUrl;
+                            data.redirect_url ||
+                            distributionIndexUrl;
                     } catch (error) {
                         alert(
-                            error.message
-                            || 'An unexpected error occurred.'
+                            error.message ||
+                            'An unexpected error occurred.'
                         );
 
                         submitButton.disabled =
