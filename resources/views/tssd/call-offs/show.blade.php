@@ -44,23 +44,35 @@
 
                 <div class="flex flex-wrap gap-3">
 
+                    <a href="{{ route('tssd.call-offs.print', $callOff) }}" target="_blank"
+                        class="rounded-xl bg-[#970C13]
+               px-5 py-3 font-semibold text-white
+               transition hover:bg-[#641D21]">
+                        Print Distribution Summary
+                    </a>
+
                     <a href="{{ route('tssd.call-offs.index') }}"
-                        class="rounded-xl border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-600 transition hover:bg-slate-50">
+                        class="rounded-xl border border-slate-300
+               bg-white px-5 py-3 font-semibold
+               text-slate-600 transition
+               hover:bg-slate-50">
                         Back to Call-Offs
                     </a>
 
                     @if ($callOff->status === 'Pending')
                         <form action="{{ route('tssd.call-offs.destroy', $callOff) }}" method="POST"
-                            onsubmit="return confirm('Cancel this pending Call-Off?');">
-
+                            onsubmit="return confirm(
+                'Cancel this pending Call-Off?'
+            );">
                             @csrf
                             @method('DELETE')
 
                             <button type="submit"
-                                class="rounded-xl bg-red-600 px-5 py-3 font-semibold text-white transition hover:bg-red-700">
+                                class="rounded-xl bg-red-600
+                       px-5 py-3 font-semibold text-white
+                       transition hover:bg-red-700">
                                 Cancel Call-Off
                             </button>
-
                         </form>
                     @endif
 

@@ -1,143 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>{{ $reportTitle }}</title>
 
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            padding: 10mm;
-            color: #000;
-            background: #fff;
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 8px;
-        }
-
-        .no-print {
-            margin-bottom: 14px;
-            text-align: right;
-        }
-
-        .button {
-            display: inline-block;
-            padding: 9px 16px;
-            border: 0;
-            border-radius: 6px;
-            color: #fff;
-            background: #970c13;
-            font-weight: 700;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        .report-header {
-            margin-bottom: 14px;
-            text-align: center;
-        }
-
-        .report-header h1 {
-            margin: 0;
-            font-size: 18px;
-            text-transform: uppercase;
-        }
-
-        .report-header p {
-            margin: 5px 0 0;
-            font-size: 10px;
-        }
-
-        table.report {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-            font-size: 6.8px;
-        }
-
-        table.report th,
-        table.report td {
-            padding: 4px 3px;
-            border: 1px solid #222;
-            text-align: center;
-            vertical-align: middle;
-            overflow-wrap: anywhere;
-        }
-
-        table.report th {
-            color: #fff;
-            background: #641d21;
-            font-weight: 700;
-        }
-
-        table.report td.text-left {
-            text-align: left;
-        }
-
-        table.report td.total {
-            font-weight: 700;
-            background: #f3f4f6;
-        }
-
-        .signatures {
-            width: 100%;
-            margin-top: 28px;
-            border-collapse: collapse;
-        }
-
-        .signatures td {
-            width: 50%;
-            padding: 0 35px;
-            border: 0;
-        }
-
-        .signature-label {
-            margin-bottom: 28px;
-            font-size: 10px;
-            font-weight: 700;
-        }
-
-        .signature-line {
-            padding-top: 5px;
-            border-top: 1px solid #000;
-            text-align: center;
-            font-size: 9px;
-            font-weight: 700;
-        }
-
         @page {
-            size: A3 landscape;
+            size: A4 landscape;
             margin: 8mm;
         }
 
         @media print {
-            body {
-                padding: 0;
-            }
-
-            .no-print {
-                display: none;
-            }
-
             thead {
                 display: table-header-group;
             }
 
-            tr {
+            tr,
+            th,
+            td {
                 page-break-inside: avoid;
             }
 
-            table.report th,
-            table.report td.total {
+            .print-exact {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
@@ -145,46 +35,165 @@
     </style>
 </head>
 
-<body>
+<body class="m-0 bg-white p-[10mm] font-sans text-[8px] text-black print:p-0">
+
     @php
-        $itemQuantity = function (
-            $designation,
-            int $itemId
-        ): int {
-            return (int) $designation
-                ->items
-                ->where('item_id', $itemId)
+        /*
+         * Resolve project PPE quantities by item name and label.
+         *
+         * This does not depend on fixed database item IDs.
+         */
+        $projectPpeQuantities = function ($designation): array {
+            $items = collect($designation->items ?? []);
+
+            $normalize = fn($value): string => strtolower(trim((string) $value));
+
+            $matchesName = function ($designationItem, array $acceptedNames) use ($normalize): bool {
+                $name = $normalize($designationItem->item?->item_name ?? '');
+
+                return in_array($name, $acceptedNames, true);
+            };
+
+            $matchesLabel = function ($designationItem, array $acceptedLabels) use ($normalize): bool {
+                $label = $normalize($designationItem->item?->label ?? '');
+
+                return in_array($label, $acceptedLabels, true);
+            };
+
+            $longSleeveMedium = (int) $items
+                ->filter(
+                    fn($row): bool => $matchesName($row, [
+                        'long sleeve',
+                        'long sleeves',
+                        'longsleeve',
+                        'longsleeves',
+                    ]) && $matchesLabel($row, ['m', 'medium']),
+                )
                 ->sum('quantity');
+
+            $longSleeveLarge = (int) $items
+                ->filter(
+                    fn($row): bool => $matchesName($row, [
+                        'long sleeve',
+                        'long sleeves',
+                        'longsleeve',
+                        'longsleeves',
+                    ]) && $matchesLabel($row, ['l', 'large']),
+                )
+                ->sum('quantity');
+
+            $bucketHat = (int) $items
+                ->filter(fn($row): bool => $matchesName($row, ['bucket hat', 'bucket hats']))
+                ->sum('quantity');
+
+            $rubberBootsUs9 = (int) $items
+                ->filter(
+                    fn($row): bool => $matchesName($row, ['rubber boot', 'rubber boots']) &&
+                        $matchesLabel($row, ['us9', 'us 9', '9']),
+                )
+                ->sum('quantity');
+
+            $rubberBootsUs10 = (int) $items
+                ->filter(
+                    fn($row): bool => $matchesName($row, ['rubber boot', 'rubber boots']) &&
+                        $matchesLabel($row, ['us10', 'us 10', '10']),
+                )
+                ->sum('quantity');
+
+            $gloves = (int) $items
+                ->filter(fn($row): bool => $matchesName($row, ['hand glove', 'hand gloves', 'glove', 'gloves']))
+                ->sum('quantity');
+
+            $mask = (int) $items->filter(fn($row): bool => $matchesName($row, ['mask', 'masks']))->sum('quantity');
+
+            $totalLongSleeve = $longSleeveMedium + $longSleeveLarge;
+
+            $totalRubberBoots = $rubberBootsUs9 + $rubberBootsUs10;
+
+            $totalPpe = $totalLongSleeve + $bucketHat + $totalRubberBoots + $gloves + $mask;
+
+            return [
+                'long_sleeve_medium' => $longSleeveMedium,
+
+                'long_sleeve_large' => $longSleeveLarge,
+
+                'total_long_sleeve' => $totalLongSleeve,
+
+                'bucket_hat' => $bucketHat,
+
+                'rubber_boots_us9' => $rubberBootsUs9,
+
+                'rubber_boots_us10' => $rubberBootsUs10,
+
+                'total_rubber_boots' => $totalRubberBoots,
+
+                'gloves' => $gloves,
+
+                'mask' => $mask,
+
+                'total_ppe' => $totalPpe,
+            ];
         };
     @endphp
 
-    <div class="no-print">
-        <button
-            type="button"
-            class="button"
-            onclick="window.print()"
-        >
+    {{-- Screen controls --}}
+    <div class="mb-[14px] flex justify-end gap-2 rounded-lg border border-slate-300 bg-slate-50 p-[10px] print:hidden">
+        <a href="{{ route('provincial.project-designations.index', [
+            'search' => $search,
+        ]) }}"
+            class="inline-flex cursor-pointer items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-[9px] text-[13px] font-bold text-slate-700 no-underline hover:bg-slate-100">
+            Back to Projects
+        </a>
+
+        <button type="button"
+            class="inline-flex cursor-pointer items-center justify-center rounded-md border-0 bg-[#970C13] px-4 py-[9px] text-[13px] font-bold text-white hover:bg-[#7f0a10]"
+            onclick="window.print()">
             Print Report
         </button>
     </div>
 
-    <header class="report-header">
-        <h1>Project PPE Distribution Report</h1>
+    {{-- Letterhead --}}
+    <div class="flex justify-center pl-28">
+        <img src="{{ asset('images/print/dole_logo.webp') }}" alt="DOLE Logo"
+            class="max-h-[85px] w-[120px] object-contain" onerror="this.style.display='none'">
 
-        <p>{{ $reportTitle }}</p>
+        <div class="text-center">
+            <p class="m-0 text-center text-[14px] font-normal">
+                Republic of the Philippines
+            </p>
 
-        <p>
-            Provincial Office:
-            <strong>{{ $provinceName }}</strong>
-        </p>
+            <p class="mb-0 mt-1 text-[17px] font-extrabold">
+                DEPARTMENT OF LABOR AND EMPLOYMENT
+            </p>
 
-        <p>
-            Printed:
-            {{ $printedAt->format('F d, Y h:i A') }}
-        </p>
-    </header>
+            <p class="mb-0 mt-[13px] text-[15px] font-bold">
+                Regional Office No. 5
+            </p>
 
-    <table class="report">
+            <p class="mb-0 mt-[14px] text-[11px] italic">
+                DOLE RO5 Bldg., Doña Aurora St., Old Albay, Legazpi City
+            </p>
+
+            <p class="mb-0 mt-[7px] text-[10px] italic">
+                ORD: 0981-461-8788&nbsp;&nbsp;
+                TSSD: 0963-206-0008&nbsp;&nbsp;
+                IMSD: 0912-330-4751
+            </p>
+
+            <p class="mb-0 mt-[7px] text-[13px] text-black underline">
+                ro5@dole.gov.ph
+            </p>
+        </div>
+        <img src="{{ asset('images/print/Bagong_Pilipinas.png') }}" alt="Bagong Pilipinas"
+            class="max-h-[82px] w-[105px] object-contain" onerror="this.style.display='none'">
+
+        <img src="{{ asset('images/print/iso-bureau-veritas.jpg') }}" alt="ISO Bureau Veritas"
+            class="max-h-[78px] w-[150px] object-contain" onerror="this.style.display='none'">
+    </div>
+
+
+    <table
+        class="w-full table-fixed border-collapse text-[12px] [&_th]:border [&_th]:border-[#222] [&_th]:bg-[#641D21] [&_th]:px-[3px] [&_th]:py-1 [&_th]:text-center [&_th]:font-bold [&_th]:text-white [&_th]:align-middle [&_td]:border [&_td]:border-[#222] [&_td]:px-[3px] [&_td]:py-1 [&_td]:text-center [&_td]:align-middle [&_td]:[overflow-wrap:anywhere] print-exact">
         <thead>
             <tr>
                 <th>No.</th>
@@ -212,85 +221,25 @@
         <tbody>
             @forelse($designations as $index => $designation)
                 @php
-                    $allocation =
-                        $designation
-                            ->provinceDistribution;
+                    $allocation = $designation->provinceDistribution;
 
-                    $batch =
-                        $allocation
-                            ?->distributionBatch;
+                    $batch = $allocation?->distributionBatch;
 
-                    $callOff =
-                        $batch?->callOff;
+                    $callOff = $batch?->callOff;
 
-                    $supplier =
-                        $batch
-                            ?->purchaseOrder
-                            ?->supplier;
+                    $purchaseOrder = $batch?->purchaseOrder;
 
-                    $receipt =
-                        $designation
-                            ->deliveryReceipt;
+                    $supplier = $purchaseOrder?->supplier;
 
-                    $lsM =
-                        $itemQuantity(
-                            $designation,
-                            1
-                        );
+                    $deliveryReceipt = $designation->deliveryReceipt;
 
-                    $lsL =
-                        $itemQuantity(
-                            $designation,
-                            2
-                        );
-
-                    $bucketHat =
-                        $itemQuantity(
-                            $designation,
-                            3
-                        );
-
-                    $bootsUs9 =
-                        $itemQuantity(
-                            $designation,
-                            4
-                        );
-
-                    $bootsUs10 =
-                        $itemQuantity(
-                            $designation,
-                            5
-                        );
-
-                    $gloves =
-                        $itemQuantity(
-                            $designation,
-                            6
-                        );
-
-                    $mask =
-                        $itemQuantity(
-                            $designation,
-                            7
-                        );
-
-                    $totalLs =
-                        $lsM + $lsL;
-
-                    $totalBoots =
-                        $bootsUs9
-                        + $bootsUs10;
-
-                    $totalPpe =
-                        $totalLs
-                        + $bucketHat
-                        + $totalBoots
-                        + $gloves
-                        + $mask;
+                    $ppe = $projectPpeQuantities($designation);
                 @endphp
 
                 <tr>
-                    <td>{{ $index + 1 }}</td>
+                    <td>
+                        {{ $index + 1 }}
+                    </td>
 
                     <td class="text-left">
                         {{ $designation->project_code }}
@@ -305,52 +254,66 @@
                     </td>
 
                     <td>
-                        {{
-                            number_format(
-                                $designation
-                                    ->number_of_beneficiaries
-                            )
-                        }}
+                        {{ number_format((int) $designation->number_of_beneficiaries) }}
                     </td>
 
                     <td>
-                        {{
-                            number_format(
-                                $designation
-                                    ->number_of_days
-                            )
-                        }}
+                        {{ number_format((int) $designation->number_of_days) }}
                     </td>
 
                     <td class="text-left">
-                        {{
-                            $supplier?->supplier_name
-                            ?? '—'
-                        }}
+                        {{ $supplier?->supplier_name ?? '—' }}
                     </td>
 
                     <td>
-                        {{ $receipt?->dr_number ?? '—' }}
+                        {{ $deliveryReceipt?->dr_number ?? '—' }}
                     </td>
 
                     <td>
-                        {{
-                            $callOff?->call_off_number
-                            ?? '—'
-                        }}
+                        {{ $callOff?->call_off_number ?? '—' }}
                     </td>
 
-                    <td>{{ number_format($lsM) }}</td>
-                    <td>{{ number_format($lsL) }}</td>
-                    <td class="total">{{ number_format($totalLs) }}</td>
-                    <td>{{ number_format($bucketHat) }}</td>
-                    <td>{{ number_format($bootsUs9) }}</td>
-                    <td>{{ number_format($bootsUs10) }}</td>
-                    <td class="total">{{ number_format($totalBoots) }}</td>
-                    <td>{{ number_format($gloves) }}</td>
-                    <td>{{ number_format($mask) }}</td>
-                    <td class="total">{{ number_format($totalPpe) }}</td>
+                    <td>
+                        {{ number_format($ppe['long_sleeve_medium']) }}
+                    </td>
+
+                    <td>
+                        {{ number_format($ppe['long_sleeve_large']) }}
+                    </td>
+
+                    <td class="bg-red-50 font-bold text-[#641D21] print-exact">
+                        {{ number_format($ppe['total_long_sleeve']) }}
+                    </td>
+
+                    <td>
+                        {{ number_format($ppe['bucket_hat']) }}
+                    </td>
+
+                    <td>
+                        {{ number_format($ppe['rubber_boots_us9']) }}
+                    </td>
+
+                    <td>
+                        {{ number_format($ppe['rubber_boots_us10']) }}
+                    </td>
+
+                    <td class="bg-red-50 font-bold text-[#641D21] print-exact">
+                        {{ number_format($ppe['total_rubber_boots']) }}
+                    </td>
+
+                    <td>
+                        {{ number_format($ppe['gloves']) }}
+                    </td>
+
+                    <td>
+                        {{ number_format($ppe['mask']) }}
+                    </td>
+
+                    <td class="bg-gray-100 font-extrabold text-[#641D21] print-exact">
+                        {{ number_format($ppe['total_ppe']) }}
+                    </td>
                 </tr>
+
             @empty
                 <tr>
                     <td colspan="19">
@@ -361,28 +324,30 @@
         </tbody>
     </table>
 
-    <table class="signatures">
+    <table class="mt-7 w-full border-collapse [page-break-inside:avoid]">
         <tr>
-            <td>
-                <div class="signature-label">
+            <td class="w-1/2 border-0 px-[35px] py-0 align-top">
+                <div class="mb-7 text-[10px] font-bold">
                     Prepared by:
                 </div>
 
-                <div class="signature-line">
-                    {{ $preparedBy }}
+                <div class="min-h-[18px] border-t border-black pt-[5px] text-center text-[9px] font-bold">
                 </div>
             </td>
 
-            <td>
-                <div class="signature-label">
+            <td class="w-1/2 border-0 px-[35px] py-0 align-top">
+                <div class="mb-7 text-[10px] font-bold">
                     Reviewed by:
                 </div>
 
-                <div class="signature-line">
-                    {{ $reviewedBy }}
+                <div class="min-h-[18px] border-t border-black pt-[5px] text-center text-[9px] font-bold">
+                    {{ $reviewedBy ?: ' ' }}
                 </div>
             </td>
         </tr>
     </table>
+
+
 </body>
+
 </html>

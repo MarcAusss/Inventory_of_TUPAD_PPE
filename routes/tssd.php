@@ -36,11 +36,11 @@ Route::middleware([
             'distributions',
             TssdDistributionController::class
         )->only([
-            'index',
-            'create',
-            'store',
-            'show',
-        ]);
+                    'index',
+                    'create',
+                    'store',
+                    'show',
+                ]);
 
         Route::get(
             '/purchase-orders/{poId}/remaining',
@@ -81,6 +81,16 @@ Route::middleware([
                 'store',
             ]
         )->name('call-offs.store');
+        
+        Route::get(
+            '/call-offs/{callOff}/print',
+            [
+                CallOffController::class,
+                'print',
+            ]
+        )
+            ->whereNumber('callOff')
+            ->name('call-offs.print');
 
         Route::get(
             '/call-offs/{callOff}',

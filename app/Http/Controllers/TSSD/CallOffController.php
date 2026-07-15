@@ -86,20 +86,13 @@ class CallOffController extends Controller
     }
 
     /**
-     * Display one Call-Off and all provincial allocations.
+     * Display one Call-Off.
      */
     public function show(CallOff $callOff): View
     {
         $this->authorize('view', $callOff);
 
-        $callOff->load([
-            'distributionBatch.purchaseOrder.supplier',
-            'distributionBatch.creator',
-            'distributionBatch.provinceDistributions.province',
-            'distributionBatch.provinceDistributions.items.item',
-            'assignedBy',
-            'approvedBy',
-        ]);
+        $this->loadCallOffReportData($callOff);
 
         return view(
             'tssd.call-offs.show',
@@ -108,9 +101,22 @@ class CallOffController extends Controller
     }
 
     /**
+     * Print the Province Distribution Summary.
+     */
+    public function print(CallOff $callOff): View
+    {
+        $this->authorize('view', $callOff);
+
+        $this->loadCallOffReportData($callOff);
+
+        return view(
+            'tssd.call-offs.print',
+            compact('callOff')
+        );
+    }
+
+    /**
      * Cancel a pending Call-Off.
-     *
-     * The record is retained for audit purposes.
      */
     public function destroy(
         CallOff $callOff
@@ -133,5 +139,25 @@ class CallOffController extends Controller
                 'success',
                 'The pending Call-Off has been cancelled.'
             );
+    }
+
+    /**
+     * Load the relationships required by the
+     * Call-Off details and print report.
+     */
+    private function loadCallOffReportData(
+        CallOff $callOff
+    ): void {
+        $callOff->load([
+            'distributionBatch.purchaseOrder.supplier',
+            'distributionBatch.creator',
+
+            'distributionBatch.provinceDistributions.province',
+
+            'distributionBatch.provinceDistributions.items.item',
+
+            'assignedBy',
+            'approvedBy',
+        ]);
     }
 }

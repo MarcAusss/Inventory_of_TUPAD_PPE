@@ -1390,8 +1390,7 @@
                             selectedPO
                             .purchase_order_items ||
                             selectedPO
-                            .purchaseOrderItems ||
-                            [];
+                            .purchaseOrderItems || [];
 
                         purchaseSummary.innerHTML =
                             '';

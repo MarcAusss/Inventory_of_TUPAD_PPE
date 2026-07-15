@@ -377,7 +377,7 @@
                                 <td
                                     class="border-b border-slate-200
                                            px-4 py-4 font-semibold">
-                                    {{ $receipt?->dr_number ?? '—' }}
+                                    {{ $deliveryReceipt?->dr_number ?? '—' }}
                                 </td>
 
                                 <td
