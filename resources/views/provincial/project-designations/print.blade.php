@@ -21,6 +21,10 @@
                 display: table-header-group;
             }
 
+            tfoot {
+                display: table-row-group;
+            }
+
             tr,
             th,
             td {
@@ -39,10 +43,16 @@
 
     @php
         /*
-         * Resolve project PPE quantities by item name and label.
-         *
-         * This does not depend on fixed database item IDs.
-         */
+        |--------------------------------------------------------------------------
+        | Resolve project PPE quantities
+        |--------------------------------------------------------------------------
+        |
+        | PPE quantities are resolved by item name and label rather than
+        | fixed database IDs so new records remain compatible with the
+        | current item structure.
+        |
+        */
+
         $projectPpeQuantities = function ($designation): array {
             $items = collect($designation->items ?? []);
 
@@ -134,95 +144,224 @@
                 'total_ppe' => $totalPpe,
             ];
         };
+
+        /*
+        |--------------------------------------------------------------------------
+        | Report totals
+        |--------------------------------------------------------------------------
+        */
+
+        $totals = [
+            'beneficiaries' => 0,
+            'workdays' => 0,
+
+            'long_sleeve_medium' => 0,
+            'long_sleeve_large' => 0,
+            'total_long_sleeve' => 0,
+
+            'bucket_hat' => 0,
+
+            'rubber_boots_us9' => 0,
+            'rubber_boots_us10' => 0,
+            'total_rubber_boots' => 0,
+
+            'gloves' => 0,
+            'mask' => 0,
+
+            'total_ppe' => 0,
+        ];
     @endphp
 
     {{-- Screen controls --}}
-    <div class="mb-[14px] flex justify-end gap-2 rounded-lg border border-slate-300 bg-slate-50 p-[10px] print:hidden">
+    <div
+        class="mb-[14px] flex justify-end gap-2 rounded-lg border
+            border-slate-300 bg-slate-50 p-[10px] print:hidden">
         <a href="{{ route('provincial.project-designations.index', [
             'search' => $search,
         ]) }}"
-            class="inline-flex cursor-pointer items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-[9px] text-[13px] font-bold text-slate-700 no-underline hover:bg-slate-100">
+            class="inline-flex cursor-pointer items-center justify-center
+                rounded-md border border-slate-300 bg-white px-4 py-[9px]
+                text-[13px] font-bold text-slate-700 no-underline
+                transition hover:bg-slate-100">
             Back to Projects
         </a>
 
-        <button type="button"
-            class="inline-flex cursor-pointer items-center justify-center rounded-md border-0 bg-[#970C13] px-4 py-[9px] text-[13px] font-bold text-white hover:bg-[#7f0a10]"
-            onclick="window.print()">
+        <button type="button" onclick="window.print()"
+            class="inline-flex cursor-pointer items-center justify-center
+                rounded-md border-0 bg-[#339DCB] px-4 py-[9px]
+                text-[13px] font-bold text-white transition
+                hover:bg-[#C4ECFE] hover:text-black">
             Print Report
         </button>
     </div>
 
-    {{-- Letterhead --}}
-    <div class="flex justify-center pl-28">
+    {{-- DOLE Letterhead --}}
+    <div class="flex items-start justify-center gap-4 pl-24">
+
         <img src="{{ asset('images/print/dole_logo.webp') }}" alt="DOLE Logo"
             class="max-h-[85px] w-[120px] object-contain" onerror="this.style.display='none'">
 
-        <div class="text-center">
-            <p class="m-0 text-center text-[14px] font-normal">
+        <div class="min-w-[320px] text-center">
+
+            <p class="m-0 font-arial text-[10px] font-normal">
                 Republic of the Philippines
             </p>
 
-            <p class="mb-0 mt-1 text-[17px] font-extrabold">
+            <p class="mb-0 font-arial text-[11px] font-bold">
                 DEPARTMENT OF LABOR AND EMPLOYMENT
             </p>
 
-            <p class="mb-0 text-[15px] font-bold">
+            <p class="mb-0 font-arial text-[10px] font-normal">
                 Regional Office No. 5
             </p>
 
-            <p class="mb-0 text-[11px] italic">
-                DOLE RO5 Bldg., Doña Aurora St., Old Albay, Legazpi City
+            <p class="mb-0 font-arial text-[9px] italic">
+                DOLE RO5 Bldg., Doña Aurora St.,
+                Old Albay, Legazpi City
             </p>
 
-            <p class="mb-0 text-[10px] italic">
+            <p class="mb-0 font-arial text-[9px] italic">
                 ORD: 0981-461-8788&nbsp;&nbsp;
                 TSSD: 0963-206-0008&nbsp;&nbsp;
                 IMSD: 0912-330-4751
             </p>
 
-            <p class="mb-0 my-[7px] text-[13px] text-black underline">
+            <p class="mb-0 font-arial text-[9px]
+                    text-black underline">
                 ro5@dole.gov.ph
             </p>
 
-            <p class="mb-0 mt-[7px] text-[11px] font-bold text-black">
-                {{ now()->format('F d, Y') }}
-            </p>
         </div>
+
         <img src="{{ asset('images/print/Bagong_Pilipinas.png') }}" alt="Bagong Pilipinas"
             class="max-h-[82px] w-[105px] object-contain" onerror="this.style.display='none'">
 
         <img src="{{ asset('images/print/iso-bureau-veritas.jpg') }}" alt="ISO Bureau Veritas"
             class="max-h-[78px] w-[150px] object-contain" onerror="this.style.display='none'">
+
     </div>
 
+    {{-- Date --}}
+    <div class="my-3 flex justify-between">
+        
 
+        <p class="mt-1 text-[9px] font-semibold text-slate-700">
+            Province Office: {{ $provinceName }}
+        </p>
+
+        <div>
+            <p class="mb-0 text-[9px] font-bold text-black">
+                Date: {{ now()->format('F d, Y') }}
+            </p>
+        </div>
+    </div>
+
+    {{-- Main project table --}}
     <table
-        class="w-full table-fixed border-collapse text-[12px] [&_th]:border [&_th]:border-[#222] [&_th]:bg-[#641D21] [&_th]:px-[3px] [&_th]:py-1 [&_th]:text-center [&_th]:font-bold [&_th]:text-white [&_th]:align-middle [&_td]:border [&_td]:border-[#222] [&_td]:px-[3px] [&_td]:py-1 [&_td]:text-center [&_td]:align-middle [&_td]:[overflow-wrap:anywhere] print-exact">
+        class="w-full table-fixed border-collapse text-[8px]
+            [&_th]:border [&_th]:border-[#222]
+            [&_th]:px-[3px] [&_th]:py-[5px]
+            [&_th]:text-center [&_th]:font-bold
+            [&_th]:align-middle
+            [&_td]:border [&_td]:border-[#222]
+            [&_td]:px-[3px] [&_td]:py-[5px]
+            [&_td]:text-center [&_td]:align-middle
+            [&_td]:[overflow-wrap:anywhere]
+            print-exact">
         <thead>
+
             <tr>
-                <th>No.</th>
-                <th>Project Code</th>
-                <th>Project Title</th>
-                <th>Location</th>
-                <th>Beneficiaries</th>
-                <th>Workdays</th>
-                <th>Supplier</th>
-                <th>Delivery Receipt</th>
-                <th>Call-Off Number</th>
-                <th>LS M</th>
-                <th>LS L</th>
-                <th>Total LS</th>
-                <th>Bucket Hat</th>
-                <th>Boots US9</th>
-                <th>Boots US10</th>
-                <th>Total Boots</th>
-                <th>Gloves</th>
-                <th>Mask</th>
-                <th>Total PPE</th>
+                <th rowspan="2" class="w-[3%] bg-[#339DCB] text-white">
+                    No.
+                </th>
+
+                <th rowspan="2" class="w-[7%] bg-[#339DCB] text-white">
+                    Project Code
+                </th>
+
+                <th rowspan="2" class="w-[11%] bg-[#339DCB] text-white">
+                    Project Title
+                </th>
+
+                <th rowspan="2" class="w-[9%] bg-[#339DCB] text-white">
+                    Location
+                </th>
+
+                <th rowspan="2" class="w-[5%] bg-[#339DCB] text-white">
+                    Ben.
+                </th>
+
+                <th rowspan="2" class="w-[4%] bg-[#339DCB] text-white">
+                    W.D.
+                </th>
+
+                <th rowspan="2" class="w-[8%] bg-[#339DCB] text-white">
+                    Supplier
+                </th>
+
+                <th rowspan="2" class="w-[7%] bg-[#339DCB] text-white">
+                    Delivery Receipt
+                </th>
+
+                <th rowspan="2" class="w-[7%] bg-[#339DCB] text-white">
+                    Call-Off Number
+                </th>
+
+                <th colspan="3" class="bg-[#339DCB] text-white">
+                    Long Sleeves
+                </th>
+
+                <th rowspan="2" class="bg-[#339DCB] text-white">
+                    Bucket Hat
+                </th>
+
+                <th colspan="3" class="bg-[#339DCB] text-white">
+                    Rubber Boots
+                </th>
+
+                <th rowspan="2" class="bg-[#339DCB] text-white">
+                    Gloves
+                </th>
+
+                <th rowspan="2" class="bg-[#339DCB] text-white">
+                    Mask
+                </th>
+
+                <th rowspan="2" class="w-[10%] bg-[#339DCB] text-white">
+                    Remarks
+                </th>
             </tr>
+
+            <tr>
+                <th class="bg-[#E9FFFF] text-black">
+                    M
+                </th>
+
+                <th class="bg-[#E9FFFF] text-black">
+                    L
+                </th>
+
+                <th class="bg-[#E9FFFF] text-black">
+                    Total
+                </th>
+
+                <th class="bg-[#E9FFFF] text-black">
+                    US9
+                </th>
+
+                <th class="bg-[#E9FFFF] text-black">
+                    US10
+                </th>
+
+                <th class="bg-[#E9FFFF] text-black">
+                    Total
+                </th>
+            </tr>
+
         </thead>
 
         <tbody>
+
             @forelse($designations as $index => $designation)
                 @php
                     $allocation = $designation->provinceDistribution;
@@ -238,14 +377,37 @@
                     $deliveryReceipt = $designation->deliveryReceipt;
 
                     $ppe = $projectPpeQuantities($designation);
+
+                    $totals['beneficiaries'] += (int) $designation->number_of_beneficiaries;
+
+                    $totals['workdays'] += (int) $designation->number_of_days;
+
+                    foreach (
+                        [
+                            'long_sleeve_medium',
+                            'long_sleeve_large',
+                            'total_long_sleeve',
+                            'bucket_hat',
+                            'rubber_boots_us9',
+                            'rubber_boots_us10',
+                            'total_rubber_boots',
+                            'gloves',
+                            'mask',
+                            'total_ppe',
+                        ]
+                        as $key
+                    ) {
+                        $totals[$key] += (int) $ppe[$key];
+                    }
                 @endphp
 
                 <tr>
-                    <td>
+
+                    <td class="font-bold">
                         {{ $index + 1 }}
                     </td>
 
-                    <td class="text-left">
+                    <td class="text-left font-bold text-[#143A52]">
                         {{ $designation->project_code }}
                     </td>
 
@@ -273,7 +435,7 @@
                         {{ $deliveryReceipt?->dr_number ?? '—' }}
                     </td>
 
-                    <td>
+                    <td class="font-bold text-[#143A52]">
                         {{ $callOff?->call_off_number ?? '—' }}
                     </td>
 
@@ -285,7 +447,8 @@
                         {{ number_format($ppe['long_sleeve_large']) }}
                     </td>
 
-                    <td class="bg-red-50 font-bold text-[#641D21] print-exact">
+                    <td class="bg-[#E9FFFF] font-extrabold
+                            text-[#143A52] print-exact">
                         {{ number_format($ppe['total_long_sleeve']) }}
                     </td>
 
@@ -301,7 +464,8 @@
                         {{ number_format($ppe['rubber_boots_us10']) }}
                     </td>
 
-                    <td class="bg-red-50 font-bold text-[#641D21] print-exact">
+                    <td class="bg-[#E9FFFF] font-extrabold
+                            text-[#143A52] print-exact">
                         {{ number_format($ppe['total_rubber_boots']) }}
                     </td>
 
@@ -313,44 +477,65 @@
                         {{ number_format($ppe['mask']) }}
                     </td>
 
-                    <td class="bg-gray-100 font-extrabold text-[#641D21] print-exact">
-                        {{ number_format($ppe['total_ppe']) }}
+                    <td class="text-left">
+                        {{ $designation->remarks ?: '—' }}
                     </td>
+
                 </tr>
 
             @empty
+
                 <tr>
-                    <td colspan="19">
+                    <td colspan="19" class="py-8 text-center text-slate-500">
                         No project distribution records found.
                     </td>
                 </tr>
             @endforelse
-        </tbody>
-    </table>
 
-    <table class="mt-7 w-full border-collapse [page-break-inside:avoid]">
+        </tbody>
+
+
+    </table>
+    {{-- Signatures --}}
+    <table class="mt-8 w-full border-collapse [page-break-inside:avoid]">
         <tr>
-            <td class="w-1/2 border-0 px-[35px] py-0 align-top">
-                <div class="mb-7 text-[10px] font-bold">
+
+            <td class="w-1/2 border-0 px-[45px] py-0 align-top">
+
+                <div class=" text-[11px] font-bold">
                     Prepared by:
                 </div>
 
-                <div class="min-h-[18px] border-t border-black pt-[5px] text-center text-[9px] font-bold">
-                </div>
+                <input type="text" placeholder="Name"
+                    class="mt-14 w-full border-0 border-b border-black bg-transparent
+                       text-left text-[11px] outline-none
+                       focus:border-black focus:ring-0 p-0">
+                <input type="text" placeholder="Position"
+                    class="w-full border-0  bg-transparent
+                       text-left text-[11px] font-bold outline-none
+                       focus:border-black focus:ring-0 p-0">
+
             </td>
 
-            <td class="w-1/2 border-0 px-[35px] py-0 align-top">
-                <div class="mb-7 text-[10px] font-bold">
+            <td class="w-1/2 border-0 px-[45px] py-0 align-top">
+
+                <div class=" text-[11px] font-bold">
                     Reviewed by:
                 </div>
 
-                <div class="min-h-[18px] border-t border-black pt-[5px] text-center text-[9px] font-bold">
-                    {{ $reviewedBy ?: ' ' }}
-                </div>
+                <input type="text" value="{{ $reviewedBy }}" placeholder="Name"
+                    class="mt-14 w-full border-0 border-b border-black bg-transparent
+                       text-left text-[11px] outline-none
+                       focus:border-black focus:ring-0 p-0">
+                <input type="text" placeholder="Position"
+                    class="w-full border-0 bg-transparent
+                       text-left text-[11px] font-bold outline-none
+                       focus:border-black focus:ring-0 p-0">
+
             </td>
+
         </tr>
     </table>
-
 
 </body>
 
