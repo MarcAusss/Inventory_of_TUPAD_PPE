@@ -196,12 +196,12 @@
     </div>
 
     {{-- DOLE Letterhead --}}
-    <div class="flex items-start justify-center gap-4 pl-24">
+    <div class="flex items-center justify-center gap-4 pl-24">
 
         <img src="{{ asset('images/print/dole_logo.webp') }}" alt="DOLE Logo"
-            class="max-h-[85px] w-[120px] object-contain" onerror="this.style.display='none'">
+            class="max-h-[70px] w-[120px] object-contain" onerror="this.style.display='none'">
 
-        <div class="min-w-[320px] text-center">
+        <div class="min-w-[300px] text-center">
 
             <p class="m-0 font-arial text-[10px] font-normal">
                 Republic of the Philippines
@@ -234,18 +234,16 @@
         </div>
 
         <img src="{{ asset('images/print/Bagong_Pilipinas.png') }}" alt="Bagong Pilipinas"
-            class="max-h-[82px] w-[105px] object-contain" onerror="this.style.display='none'">
+            class="max-h-[72px] w-[105px] object-contain" onerror="this.style.display='none'">
 
         <img src="{{ asset('images/print/iso-bureau-veritas.jpg') }}" alt="ISO Bureau Veritas"
-            class="max-h-[78px] w-[150px] object-contain" onerror="this.style.display='none'">
+            class="max-h-[70px] w-[150px] object-contain" onerror="this.style.display='none'">
 
     </div>
 
     {{-- Date --}}
-    <div class="my-3 flex justify-between">
-        
-
-        <p class="mt-1 text-[9px] font-semibold text-slate-700">
+    <div class="my-3 flex justify-between mr-[220px]">
+        <p class="mt-1 text-[9px] font-semibold text-black">
             Province Office: {{ $provinceName }}
         </p>
 
@@ -502,35 +500,31 @@
 
             <td class="w-1/2 border-0 px-[45px] py-0 align-top">
 
-                <div class=" text-[11px] font-bold">
+                <div class=" text-[11px] font-normal">
                     Prepared by:
                 </div>
+                <br><br>
 
-                <input type="text" placeholder="Name"
-                    class="mt-14 w-full border-0 border-b border-black bg-transparent
-                       text-left text-[11px] outline-none
-                       focus:border-black focus:ring-0 p-0">
-                <input type="text" placeholder="Position"
-                    class="w-full border-0  bg-transparent
-                       text-left text-[11px] font-bold outline-none
-                       focus:border-black focus:ring-0 p-0">
+                <input type="text" placeholder="Input Name"
+                    class="w-full p-1 font-bold border border-gray-400 print:border-0 print:p-0 bg-transparent text-left text-[11px] focus:border-black focus:ring-0">
+
+                <input type="text" placeholder="Input Position"
+                    class="w-full p-1 border border-gray-400 print:border-0 print:p-0 bg-transparent text-left text-[11px] font-normal focus:border-black focus:ring-0 p-1">
 
             </td>
 
             <td class="w-1/2 border-0 px-[45px] py-0 align-top">
 
-                <div class=" text-[11px] font-bold">
+                <div class=" text-[11px] font-normal">
                     Reviewed by:
                 </div>
+                <br><br>
 
-                <input type="text" value="{{ $reviewedBy }}" placeholder="Name"
-                    class="mt-14 w-full border-0 border-b border-black bg-transparent
-                       text-left text-[11px] outline-none
-                       focus:border-black focus:ring-0 p-0">
-                <input type="text" placeholder="Position"
-                    class="w-full border-0 bg-transparent
-                       text-left text-[11px] font-bold outline-none
-                       focus:border-black focus:ring-0 p-0">
+                <input type="text" placeholder="Input Name"
+                    class="w-full p-1 font-bold border border-gray-400 print:border-0 print:p-0 bg-transparent text-left text-[11px] focus:border-black focus:ring-0 p-1">
+
+                <input type="text" placeholder="Input Position"
+                    class="w-full p-1 border border-gray-400 print:border-0 print:p-0 bg-transparent text-left text-[11px] font-normal focus:border-black focus:ring-0 p-1">
 
             </td>
 
