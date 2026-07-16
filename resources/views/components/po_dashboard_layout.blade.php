@@ -8,24 +8,15 @@
 <head>
     <meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta
-        name="csrf-token"
-        content="{{ csrf_token() }}"
-    >
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>
         {{ $title }} | {{ config('app.name', 'TUPAD Inventory System') }}
     </title>
 
-    @vite([
-        'resources/css/app.css',
-        'resources/js/app.js',
-    ])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
         [x-cloak] {
@@ -34,7 +25,7 @@
     </style>
 </head>
 
-<body class="bg-gray-100 font-sans text-gray-900">
+<body class="bg-[#F7FBFD] font-sans text-[#36566E]">
 
     @php
         $user = auth()->user();
@@ -42,64 +33,41 @@
         $roleName = $user?->role?->name ?? 'Unknown Role';
 
         $dashboardRoute = match (true) {
-            $user?->isSupply() =>
-                'supply.dashboard',
+            $user?->isSupply() => 'supply.dashboard',
 
-            $user?->isTssd() =>
-                'tssd.dashboard',
+            $user?->isTssd() => 'tssd.dashboard',
 
-            $user?->isProvincial() =>
-                'provincial.dashboard',
+            $user?->isProvincial() => 'provincial.dashboard',
 
-            $user?->isAccounting() =>
-                'accounting.dashboard',
+            $user?->isAccounting() => 'accounting.dashboard',
 
-            default =>
-                'dashboard',
+            default => 'dashboard',
         };
     @endphp
 
-    <div
-        x-data="{ sidebarOpen: false }"
-        class="min-h-screen"
-    >
+    <div x-data="{ sidebarOpen: false }" class="min-h-screen">
 
         {{-- Mobile overlay --}}
-        <div
-            x-cloak
-            x-show="sidebarOpen"
-            x-transition.opacity
-            class="fixed inset-0 z-40 bg-black/50 lg:hidden"
-            @click="sidebarOpen = false"
-        ></div>
+        <div x-cloak x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 z-40 bg-black/50 lg:hidden"
+            @click="sidebarOpen = false"></div>
 
         {{-- Sidebar --}}
         <aside
             class="fixed inset-y-0 left-0 z-50 flex w-72 transform flex-col bg-[#F7F7F7] shadow-xl transition-transform duration-300 lg:translate-x-0"
-            :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-        >
+            :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
 
             <div class="flex h-full flex-col">
 
                 {{-- Logos --}}
                 <div class="border-b border-gray-200 px-7 py-6">
 
-                    <a
-                        href="{{ route($dashboardRoute) }}"
-                        class="flex items-center justify-center gap-3"
-                    >
+                    <a href="{{ route($dashboardRoute) }}" class="flex items-center justify-center gap-3">
 
-                        <img
-                            src="{{ asset('images/Primary Logo _ Full Color (3).png') }}"
-                            alt="Primary logo"
-                            class="h-14 w-auto object-contain"
-                        >
+                        <img src="{{ asset('images/Primary Logo _ Full Color (3).png') }}" alt="Primary logo"
+                            class="h-14 w-auto object-contain">
 
-                        <img
-                            src="{{ asset('images/Primary Logo _ Full Color (3) - Copy.png') }}"
-                            alt="Secondary logo"
-                            class="h-14 w-auto object-contain"
-                        >
+                        <img src="{{ asset('images/Primary Logo _ Full Color (3) - Copy.png') }}" alt="Secondary logo"
+                            class="h-14 w-auto object-contain">
 
                     </a>
 
@@ -113,12 +81,10 @@
                             {{ $roleName }}
                         </p>
 
-                        @if($user?->isProvincial())
-
+                        @if ($user?->isProvincial())
                             <p class="mt-1 text-xs font-semibold text-red-900">
                                 {{ $user->provinceName() ?? 'No province assigned' }}
                             </p>
-
                         @endif
 
                     </div>
@@ -133,253 +99,190 @@
                     </p>
 
                     {{-- Supply Unit --}}
-                    @if($user?->isSupply())
+                    @if ($user?->isSupply())
 
                         <div class="space-y-2">
 
-                            <a
-                                href="{{ route('supply.dashboard') }}"
+                            <a href="{{ route('supply.dashboard') }}"
                                 class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
                                     {{ request()->routeIs('supply.dashboard')
-                                        ? 'bg-red-900 text-white shadow'
-                                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-                            >
+                                        ? 'bg-[#339DCB] text-white shadow'
+                                        : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
                                 Dashboard
                             </a>
 
-                            <a
-                                href="{{ route('supply.purchase-orders.index') }}"
+                            <a href="{{ route('supply.purchase-orders.index') }}"
                                 class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
                                     {{ request()->routeIs('supply.purchase-orders.*')
-                                        ? 'bg-red-900 text-white shadow'
-                                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-                            >
+                                        ? 'bg-[#339DCB] text-white shadow'
+                                        : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
                                 Purchase Orders
                             </a>
 
-                            <a
-                                href="{{ route('supply.suppliers.index') }}"
+                            <a href="{{ route('supply.suppliers.index') }}"
                                 class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
                                     {{ request()->routeIs('supply.suppliers.*')
-                                        ? 'bg-red-900 text-white shadow'
-                                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-                            >
+                                        ? 'bg-[#339DCB] text-white shadow'
+                                        : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
                                 Suppliers
                             </a>
 
-                            <a
-                                href="{{ route('supply.items.index') }}"
+                            <a href="{{ route('supply.items.index') }}"
                                 class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
                                     {{ request()->routeIs('supply.items.*')
-                                        ? 'bg-red-900 text-white shadow'
-                                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-                            >
+                                        ? 'bg-[#339DCB] text-white shadow'
+                                        : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
                                 PPE Items
                             </a>
 
-                            @if(Route::has('supply.call-offs.index'))
-
-                                <a
-                                    href="{{ route('supply.call-offs.index') }}"
+                            @if (Route::has('supply.call-offs.index'))
+                                <a href="{{ route('supply.call-offs.index') }}"
                                     class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
                                         {{ request()->routeIs('supply.call-offs.*')
-                                            ? 'bg-red-900 text-white shadow'
-                                            : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-                                >
+                                            ? 'bg-[#339DCB] text-white shadow'
+                                            : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
                                     Call-Off Approvals
                                 </a>
-
                             @endif
 
                         </div>
 
-                    {{-- TSSD Unit --}}
+                        {{-- TSSD Unit --}}
                     @elseif($user?->isTssd())
-
                         <div class="space-y-2">
 
-                            <a
-                                href="{{ route('tssd.dashboard') }}"
+                            <a href="{{ route('tssd.dashboard') }}"
                                 class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
                                     {{ request()->routeIs('tssd.dashboard')
-                                        ? 'bg-red-900 text-white shadow'
-                                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-                            >
+                                        ? 'bg-[#339DCB] text-white shadow'
+                                        : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
                                 Dashboard
                             </a>
 
-                            <a
-                                href="{{ route('tssd.distributions.index') }}"
+                            <a href="{{ route('tssd.distributions.index') }}"
                                 class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
                                     {{ request()->routeIs('tssd.distributions.*')
-                                        ? 'bg-red-900 text-white shadow'
-                                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-                            >
+                                        ? 'bg-[#339DCB] text-white shadow'
+                                        : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
                                 Provincial Distributions
                             </a>
 
-                            <a
-                                href="{{ route('tssd.call-offs.index') }}"
+                            <a href="{{ route('tssd.call-offs.index') }}"
                                 class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
                                     {{ request()->routeIs('tssd.call-offs.*')
-                                        ? 'bg-red-900 text-white shadow'
-                                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-                            >
+                                        ? 'bg-[#339DCB] text-white shadow'
+                                        : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
                                 Call-Off Management
                             </a>
 
-                            @if(Route::has('tssd.users.index'))
-
-    <a
-        href="{{ route('tssd.users.index') }}"
-        class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                            @if (Route::has('tssd.users.index'))
+                                <a href="{{ route('tssd.users.index') }}"
+                                    class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
             {{ request()->routeIs('tssd.users.*')
-                ? 'bg-red-900 text-white shadow'
-                : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-    >
-        User Management
-    </a>
-
-@endif
+                ? 'bg-[#339DCB] text-white shadow'
+                : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
+                                    User Management
+                                </a>
+                            @endif
 
 
                         </div>
 
-                    {{-- Provincial Office --}}
+                        {{-- Provincial Office --}}
                     @elseif($user?->isProvincial())
-
-    <div class="space-y-2">
-
-        <a
-            href="{{ route('provincial.dashboard') }}"
-            class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
-                {{ request()->routeIs('provincial.dashboard')
-                    ? 'bg-red-900 text-white shadow'
-                    : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-        >
-            Dashboard
-        </a>
-
-        @if(Route::has('provincial.receiving.index'))
-
-            <a
-                href="{{ route('provincial.receiving.index') }}"
-                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
-                    {{ request()->routeIs('provincial.receiving.index')
-                        || request()->routeIs('provincial.receiving.create')
-                        || request()->routeIs('provincial.receiving.show')
-                            ? 'bg-red-900 text-white shadow'
-                            : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-            >
-                Approved Call-Offs
-            </a>
-
-        @endif
-
-        @if(Route::has('provincial.receiving.history'))
-
-            <a
-                href="{{ route('provincial.receiving.history') }}"
-                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
-                    {{ request()->routeIs('provincial.receiving.history')
-                        ? 'bg-red-900 text-white shadow'
-                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-            >
-                Receiving History
-            </a>
-
-        @endif
-
-        @if(Route::has('provincial.current-inventory.index'))
-
-            <a
-                href="{{ route('provincial.current-inventory.index') }}"
-                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
-                    {{ request()->routeIs('provincial.current-inventory.*')
-                        ? 'bg-red-900 text-white shadow'
-                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-            >
-                Current Inventory
-            </a>
-
-        @endif
-
-        @if(Route::has('provincial.inventory-ledger.index'))
-
-            <a
-                href="{{ route('provincial.inventory-ledger.index') }}"
-                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
-                    {{ request()->routeIs('provincial.inventory-ledger.*')
-                        ? 'bg-red-900 text-white shadow'
-                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-            >
-                Inventory Ledger
-            </a>
-
-        @endif
-
-        @if(Route::has('provincial.project-designations.index'))
-
-            <a
-                href="{{ route('provincial.project-designations.index') }}"
-                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
-                    {{ request()->routeIs('provincial.project-designations.*')
-                        ? 'bg-red-900 text-white shadow'
-                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-            >
-                Project PPE Designations
-            </a>
-
-
-        @endif
-        <a
-    href="{{ route(
-        'provincial.call-off-inventory.index'
-    ) }}"
-    class="{{
-        request()->routeIs(
-            'provincial.call-off-inventory.*'
-        )
-            ? 'bg-red-900 text-white'
-            : 'text-slate-700 hover:bg-slate-100'
-    }} flex items-center rounded-xl px-4 py-3
-       text-sm font-semibold transition"
->
-    Per Call-Off Inventory
-</a>
-
-    </div>@elseif($user?->isAccounting())
-
                         <div class="space-y-2">
 
-                            <a
-                                href="{{ route('accounting.dashboard') }}"
+                            <a href="{{ route('provincial.dashboard') }}"
                                 class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
-                                    {{ request()->routeIs('accounting.dashboard')
-                                        ? 'bg-red-900 text-white shadow'
-                                        : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-                            >
+                {{ request()->routeIs('provincial.dashboard')
+                    ? 'bg-[#339DCB] text-white shadow'
+                    : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
                                 Dashboard
                             </a>
 
-                            @if(Route::has('accounting.inventory-ledger.index'))
+                            @if (Route::has('provincial.receiving.index'))
+                                <a href="{{ route('provincial.receiving.index') }}"
+                                    class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                    {{ request()->routeIs('provincial.receiving.index') ||
+                    request()->routeIs('provincial.receiving.create') ||
+                    request()->routeIs('provincial.receiving.show')
+                        ? 'bg-[#339DCB] text-white shadow'
+                        : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
+                                    Approved Call-Offs
+                                </a>
+                            @endif
 
-                                <a
-                                    href="{{ route('accounting.inventory-ledger.index') }}"
+                            @if (Route::has('provincial.receiving.history'))
+                                <a href="{{ route('provincial.receiving.history') }}"
+                                    class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                    {{ request()->routeIs('provincial.receiving.history')
+                        ? 'bg-[#339DCB] text-white shadow'
+                        : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
+                                    Receiving History
+                                </a>
+                            @endif
+
+                            @if (Route::has('provincial.current-inventory.index'))
+                                <a href="{{ route('provincial.current-inventory.index') }}"
+                                    class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                    {{ request()->routeIs('provincial.current-inventory.*')
+                        ? 'bg-[#339DCB] text-white shadow'
+                        : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
+                                    Current Inventory
+                                </a>
+                            @endif
+
+                            @if (Route::has('provincial.inventory-ledger.index'))
+                                <a href="{{ route('provincial.inventory-ledger.index') }}"
+                                    class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                    {{ request()->routeIs('provincial.inventory-ledger.*')
+                        ? 'bg-[#339DCB] text-white shadow'
+                        : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
+                                    Inventory Ledger
+                                </a>
+                            @endif
+
+                            @if (Route::has('provincial.project-designations.index'))
+                                <a href="{{ route('provincial.project-designations.index') }}"
+                                    class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                    {{ request()->routeIs('provincial.project-designations.*')
+                        ? 'bg-[#339DCB] text-white shadow'
+                        : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
+                                    Project PPE Designations
+                                </a>
+                            @endif
+                            <a href="{{ route('provincial.call-off-inventory.index') }}"
+                                class="{{ request()->routeIs('provincial.call-off-inventory.*')
+                                    ? 'bg-red-900 text-white'
+                                    : 'text-slate-700 hover:bg-slate-100' }} flex items-center rounded-xl px-4 py-3
+       text-sm font-semibold transition">
+                                Per Call-Off Inventory
+                            </a>
+
+                        </div>
+                    @elseif($user?->isAccounting())
+                        <div class="space-y-2">
+
+                            <a href="{{ route('accounting.dashboard') }}"
+                                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                    {{ request()->routeIs('accounting.dashboard')
+                                        ? 'bg-[#339DCB] text-white shadow'
+                                        : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
+                                Dashboard
+                            </a>
+
+                            @if (Route::has('accounting.inventory-ledger.index'))
+                                <a href="{{ route('accounting.inventory-ledger.index') }}"
                                     class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
                                         {{ request()->routeIs('accounting.inventory-ledger.*')
-                                            ? 'bg-red-900 text-white shadow'
-                                            : 'text-gray-700 hover:bg-red-50 hover:text-red-900' }}"
-                                >
+                                            ? 'bg-[#339DCB] text-white shadow'
+                                            : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
                                     Provincial Inventory
                                 </a>
-
                             @endif
 
                         </div>
-
                     @else
-
                         <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                             No authorized navigation is available for this account.
                         </div>
@@ -392,16 +295,11 @@
                 {{-- Logout --}}
                 <div class="border-t border-gray-200 p-5">
 
-                    <form
-                        method="POST"
-                        action="{{ route('logout') }}"
-                    >
+                    <form method="POST" action="{{ route('logout') }}">
                         @csrf
 
-                        <button
-                            type="submit"
-                            class="w-full rounded-xl bg-gradient-to-tr from-black to-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90"
-                        >
+                        <button type="submit"
+                            class="w-full rounded-xl bg-gradient-to-tr from-sky-700 via-sky-600 to-cyan-500 px-5 py-3 text-sm font-semibold text-white transition duration-300 hover:from-sky-600 hover:via-sky-500 hover:to-cyan-400">
                             Log Out
                         </button>
 
@@ -423,11 +321,9 @@
 
                     <div class="flex items-center gap-4">
 
-                        <button
-                            type="button"
+                        <button type="button"
                             class="rounded-lg border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 shadow-sm lg:hidden"
-                            @click="sidebarOpen = true"
-                        >
+                            @click="sidebarOpen = true">
                             Menu
                         </button>
 
@@ -451,17 +347,11 @@
                             {{ $user?->name }}
                         </p>
 
-                        <p
-                            id="live-clock"
-                            class="text-xs text-gray-500"
-                        >
+                        <p id="live-clock" class="text-xs text-gray-500">
                             --:--:--
                         </p>
 
-                        <p
-                            id="live-date"
-                            class="text-xs text-gray-500"
-                        >
+                        <p id="live-date" class="text-xs text-gray-500">
                             --/--/----
                         </p>
 
@@ -495,8 +385,7 @@
             }
 
             clockElement.textContent = new Intl.DateTimeFormat(
-                'en-US',
-                {
+                'en-US', {
                     hour: '2-digit',
                     minute: '2-digit',
                     second: '2-digit',
@@ -505,8 +394,7 @@
             ).format(now);
 
             dateElement.textContent = new Intl.DateTimeFormat(
-                'en-US',
-                {
+                'en-US', {
                     month: '2-digit',
                     day: '2-digit',
                     year: 'numeric',

@@ -1,23 +1,23 @@
 <x-po_dashboard_layout title="Suppliers">
     <div class="mx-auto max-w-[1900px] space-y-6">
         <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <div class="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-[#641D21] via-[#970C13] to-[#ED1B24]"></div>
+            <div class="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-[#143A52] via-[#2D94BE] to-[#339DCB]"></div>
             <div class="flex flex-col gap-6 px-6 py-7 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                     <div class="flex flex-wrap items-center gap-3">
                         <span
-                            class="rounded-full bg-[#DF979B]/20 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#970C13] ring-1 ring-[#DF979B]">Supply
+                            class="rounded-full bg-[#B7D6E6]/20 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#2D94BE] ring-1 ring-[#B7D6E6]">Supply
                             Unit</span>
                         <span
-                            class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">Supplier
+                            class="rounded-full bg-[#B7D6E6]/35 px-3 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">Supplier
                             Management</span>
                     </div>
                     <h1 class="mt-4 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">Suppliers</h1>
-                    <p class="mt-2 text-sm leading-6 text-slate-600">Manage PPE supplier records, contact information,
+                    <p class="mt-2 text-sm leading-6 text-[#36566E]">Manage PPE supplier records, contact information,
                         and active status.</p>
                 </div>
                 <a href="{{ route('supply.suppliers.create') }}"
-                    class="inline-flex justify-center rounded-xl bg-[#970C13] px-5 py-3 text-sm font-bold text-white hover:bg-[#641D21]">Add
+                    class="inline-flex justify-center rounded-xl bg-[#339DCB] px-5 py-3 text-sm font-bold text-white hover:bg-[#2D94BE]">Add
                     Supplier</a>
             </div>
         </section>
@@ -30,21 +30,21 @@
 
         <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
             <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
-                <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">Registered suppliers</p>
+                <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#339DCB]">Registered suppliers</p>
                 <h2 class="mt-1 text-lg font-bold text-slate-950">Supplier Records</h2>
                 <form method="GET" class="mt-5 flex flex-col gap-3 sm:flex-row">
                     <input type="text" name="search" value="{{ request('search') }}"
                         placeholder="Search supplier..."
-                        class="w-full rounded-xl border-slate-300 focus:border-[#970C13] focus:ring-[#970C13]">
+                        class="w-full rounded-xl border-slate-300 focus:border-[#339DCB] focus:ring-[#339DCB]">
                     <button
-                        class="rounded-xl bg-slate-800 px-6 py-3 text-sm font-bold text-white hover:bg-slate-950">Search</button>
+                        class="rounded-xl bg-[#339DCB] px-6 py-3 text-sm font-bold text-white hover:bg-[#2D94BE]">Search</button>
                 </form>
             </div>
 
             <div class="overflow-x-auto">
                 <table class="min-w-[1250px] w-full divide-y divide-slate-200">
-                    <thead class="bg-slate-100">
-                        <tr class="text-xs font-bold uppercase tracking-wide text-slate-600">
+                    <thead class="bg-[#B7D6E6]/35">
+                        <tr class="text-xs font-bold uppercase tracking-wide text-[#36566E]">
                             <th class="px-6 py-4 text-left">Supplier</th>
                             <th class="px-6 py-4 text-left">Contact Person</th>
                             <th class="px-6 py-4 text-left">Contact Number</th>
@@ -57,12 +57,12 @@
                     <tbody class="divide-y divide-slate-100">
                         @forelse($suppliers as $supplier)
                             <tr class="transition hover:bg-slate-50">
-                                <td class="px-6 py-5 font-bold text-[#641D21]">{{ $supplier->supplier_name }}</td>
+                                <td class="px-6 py-5 font-bold text-[#143A52]">{{ $supplier->supplier_name }}</td>
                                 <td class="px-6 py-5 text-sm text-slate-700">{{ $supplier->contact_person }}</td>
-                                <td class="whitespace-nowrap px-6 py-5 text-sm text-slate-600">
+                                <td class="whitespace-nowrap px-6 py-5 text-sm text-[#36566E]">
                                     {{ $supplier->contact_number }}</td>
-                                <td class="px-6 py-5 text-sm text-slate-600">{{ $supplier->email ?: '—' }}</td>
-                                <td class="max-w-sm px-6 py-5 text-sm text-slate-600">{{ $supplier->address }}</td>
+                                <td class="px-6 py-5 text-sm text-[#36566E]">{{ $supplier->email ?: '—' }}</td>
+                                <td class="max-w-sm px-6 py-5 text-sm text-[#36566E]">{{ $supplier->address }}</td>
                                 <td class="px-6 py-5 text-center">
                                     @if ($supplier->is_active)
                                         <span
@@ -76,7 +76,7 @@
                                         <a href="{{ route('supply.suppliers.show', $supplier) }}"
                                             class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50">View</a>
                                         <a href="{{ route('supply.suppliers.edit', $supplier) }}"
-                                            class="rounded-lg bg-[#970C13] px-4 py-2 text-sm font-bold text-white hover:bg-[#641D21]">Edit</a>
+                                            class="rounded-lg bg-[#339DCB] px-4 py-2 text-sm font-bold text-white hover:bg-[#2D94BE]">Edit</a>
                                         <form action="{{ route('supply.suppliers.destroy', $supplier) }}"
                                             method="POST" onsubmit="return confirm('Delete this supplier?')">@csrf
                                             @method('DELETE')

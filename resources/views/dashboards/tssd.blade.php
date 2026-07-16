@@ -33,7 +33,7 @@
         >
 
             <div
-                class="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-blue-900 via-blue-700 to-cyan-600"
+                class="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-[#143A52] via-[#2D94BE] to-[#339DCB]"
             ></div>
 
             <div
@@ -47,7 +47,7 @@
                     >
 
                         <span
-                            class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-800 ring-1 ring-blue-200"
+                            class="rounded-full bg-[#B7D6E6]/35 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#143A52] ring-1 ring-[#90C4DD]"
                         >
                             TSSD Unit
                         </span>
@@ -137,7 +137,7 @@
                     </div>
 
                     <div
-                        class="rounded-xl bg-blue-50 p-3 text-blue-700"
+                        class="rounded-xl bg-[#B7D6E6]/35 p-3 text-[#2D94BE]"
                     >
                         <svg
                             viewBox="0 0 24 24"
@@ -473,7 +473,7 @@
 
                     <a
                         href="{{ route('tssd.distributions.index') }}"
-                        class="inline-flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-800 transition hover:bg-blue-100"
+                        class="inline-flex items-center justify-center rounded-xl border border-blue-200 bg-[#B7D6E6]/35 px-4 py-2 text-sm font-semibold text-[#143A52] transition hover:bg-blue-100"
                     >
                         View distributions
                     </a>
@@ -902,7 +902,7 @@
                                         'bg-emerald-50 text-emerald-700 ring-emerald-200',
 
                                     'Approved' =>
-                                        'bg-blue-50 text-blue-700 ring-blue-200',
+                                        'bg-[#B7D6E6]/35 text-blue-700 ring-[#90C4DD]',
 
                                     'Partially Received' =>
                                         'bg-amber-50 text-amber-700 ring-amber-200',
@@ -1031,11 +1031,11 @@
                  * red-family government colors.
                  */
                 const distributionColors = [
-                    '#DF979B',
-                    '#ED1B24',
-                    '#C51017',
-                    '#970C13',
-                    '#641D21',
+                    '#143A52',
+                    '#2D94BE',
+                    '#339DCB',
+                    '#61AFD2',
+                    '#90C4DD',
                 ];
 
                 const provinceCanvas =
@@ -1162,14 +1162,11 @@
                                         enabled:
                                             true,
 
-                                        backgroundColor:
-                                            'rgba(15, 23, 42, 0.96)',
-
-                                        titleColor:
-                                            '#ffffff',
-
-                                        bodyColor:
-                                            '#e2e8f0',
+                                        backgroundColor: '#143A52',
+                                        titleColor: '#FFFFFF',
+                                        bodyColor: '#D9EDF7',
+                                        borderColor: '#339DCB',
+                                        borderWidth: 1,
 
                                         padding:
                                             14,
@@ -1300,8 +1297,7 @@
                                             true,
 
                                         grid: {
-                                            color:
-                                                'rgba(148, 163, 184, 0.18)',
+                                            color: '#E4EEF5',
                                         },
 
                                         ticks: {
@@ -1381,11 +1377,11 @@
                                                 .data,
 
                                         backgroundColor: [
-                                            '#DF979B',
-                                            '#ED1B24',
-                                            '#C51017',
-                                            '#970C13',
-                                            '#641D21',
+                                            '#143A52',
+                                            '#2D94BE',
+                                            '#339DCB',
+                                            '#61AFD2',
+                                            '#90C4DD',
                                         ],
 
                                         borderColor:

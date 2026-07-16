@@ -14,12 +14,17 @@ class Item extends Model
         'unit_of_measurement',
         'is_active',
     ];
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
 
     /*
     |--------------------------------------------------------------------------
     | Relationships
     |--------------------------------------------------------------------------
     */
+
+
 
     public function purchaseOrderItems(): HasMany
     {

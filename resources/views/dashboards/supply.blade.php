@@ -1,43 +1,29 @@
 <x-po_dashboard_layout title="Supply Unit Dashboard">
 
     @php
-        $purchaseComposition =
-            $charts['ppePurchaseComposition']
-            ?? [
-                'labels' => [],
-                'data' => [],
-            ];
+        $purchaseComposition = $charts['ppePurchaseComposition'] ?? [
+            'labels' => [],
+            'data' => [],
+        ];
 
-        $poStatusChart =
-            $charts['poDistributionStatus']
-            ?? [
-                'labels' => [],
-                'data' => [],
-            ];
+        $poStatusChart = $charts['poDistributionStatus'] ?? [
+            'labels' => [],
+            'data' => [],
+        ];
 
-        $monthlyPurchaseOrders =
-            $charts['monthlyPurchaseOrders']
-            ?? [
-                'labels' => [],
-                'counts' => [],
-                'values' => [],
-            ];
+        $monthlyPurchaseOrders = $charts['monthlyPurchaseOrders'] ?? [
+            'labels' => [],
+            'counts' => [],
+            'values' => [],
+        ];
 
-        $latestPurchaseOrders =
-            $recentActivities['latestPurchaseOrders']
-            ?? collect();
+        $latestPurchaseOrders = $recentActivities['latestPurchaseOrders'] ?? collect();
 
-        $pendingCallOffs =
-            $recentActivities['pendingCallOffs']
-            ?? collect();
+        $pendingCallOffs = $recentActivities['pendingCallOffs'] ?? collect();
 
-        $supplierSummary =
-            $recentActivities['supplierSummary']
-            ?? collect();
+        $supplierSummary = $recentActivities['supplierSummary'] ?? collect();
 
-        $ppeStockSummary =
-            $recentActivities['ppeStockSummary']
-            ?? collect();
+        $ppeStockSummary = $recentActivities['ppeStockSummary'] ?? collect();
     @endphp
 
     <div class="mx-auto max-w-[1800px] space-y-6">
@@ -45,7 +31,7 @@
         {{-- Header --}}
         <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
 
-            <div class="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-emerald-950 via-emerald-800 to-emerald-500">
+            <div class="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-[#143A52] via-[#2D94BE] to-[#339DCB]">
             </div>
 
             <div class="flex flex-col gap-5 px-7 py-7 lg:flex-row lg:items-center lg:justify-between">
@@ -80,7 +66,7 @@
                 <div class="grid grid-cols-2 gap-3 sm:flex sm:items-center">
 
                     <a href="{{ route('supply.purchase-orders.create') }}"
-                        class="inline-flex items-center justify-center rounded-xl bg-emerald-800 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-900">
+                        class="inline-flex items-center justify-center rounded-xl bg-[#339DCB] px-5 py-3 text-sm font-bold text-white transition hover:hover:bg-[#2D94BE]">
                         New Purchase Order
                     </a>
 
@@ -104,7 +90,7 @@
                         'label' => 'Active Suppliers',
                         'value' => $statistics['total_suppliers'] ?? 0,
                         'description' => 'Registered suppliers',
-                        'style' => 'bg-emerald-50 text-emerald-800 ring-emerald-200',
+                        'style' => 'bg-[#B7D6E6]/35 text-[#143A52] ring-[#90C4DD]',
                     ],
                     [
                         'label' => 'Purchase Orders',
@@ -114,10 +100,7 @@
                     ],
                     [
                         'label' => 'PO Total Value',
-                        'value' => '₱' . number_format(
-                            $statistics['total_po_value'] ?? 0,
-                            2
-                        ),
+                        'value' => '₱' . number_format($statistics['total_po_value'] ?? 0, 2),
                         'description' => 'Total procurement amount',
                         'style' => 'bg-violet-50 text-violet-800 ring-violet-200',
                     ],
@@ -154,8 +137,7 @@
                 ];
             @endphp
 
-            @foreach($statCards as $card)
-
+            @foreach ($statCards as $card)
                 <article
                     class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
 
@@ -165,7 +147,7 @@
                     </span>
 
                     <p class="mt-4 break-words text-2xl font-bold text-slate-950 xl:text-3xl">
-                        @if(is_numeric($card['value']))
+                        @if (is_numeric($card['value']))
                             {{ number_format($card['value']) }}
                         @else
                             {{ $card['value'] }}
@@ -177,7 +159,6 @@
                     </p>
 
                 </article>
-
             @endforeach
 
         </section>
@@ -328,20 +309,11 @@
                         <tbody class="divide-y divide-slate-100">
 
                             @forelse($ppeStockSummary as $summary)
-
                                 @php
                                     $distributionPercentage =
                                         $summary->purchased > 0
-                                        ? min(
-                                            100,
-                                            round(
-                                                (
-                                                    $summary->distributed
-                                                    / $summary->purchased
-                                                ) * 100
-                                            )
-                                        )
-                                        : 0;
+                                            ? min(100, round(($summary->distributed / $summary->purchased) * 100))
+                                            : 0;
                                 @endphp
 
                                 <tr class="transition hover:bg-slate-50">
@@ -372,7 +344,7 @@
 
                                             <div class="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-200">
 
-                                                <div class="h-full rounded-full bg-emerald-700"
+                                                <div class="h-full rounded-full bg-[#339DCB]"
                                                     style="width: {{ $distributionPercentage }}%"></div>
 
                                             </div>
@@ -396,7 +368,6 @@
                                     </td>
 
                                 </tr>
-
                             @endforelse
 
                         </tbody>
@@ -475,50 +446,46 @@
                         <tbody class="divide-y divide-slate-100">
 
                             @forelse($pendingCallOffs as $callOff)
+                                <tr class="transition hover:bg-slate-50">
 
-                                                    <tr class="transition hover:bg-slate-50">
+                                    <td class="px-6 py-4 font-semibold text-slate-900">
+                                        {{ $callOff->call_off_number }}
+                                    </td>
 
-                                                        <td class="px-6 py-4 font-semibold text-slate-900">
-                                                            {{ $callOff->call_off_number }}
-                                                        </td>
+                                    <td class="px-6 py-4">
 
-                                                        <td class="px-6 py-4">
+                                        <p class="font-semibold text-slate-900">
+                                            {{ $callOff->purchaseOrder?->po_number }}
+                                        </p>
 
-                                                            <p class="font-semibold text-slate-900">
-                                                                {{ $callOff->purchaseOrder?->po_number }}
-                                                            </p>
+                                        <p class="mt-1 text-xs text-slate-500">
+                                            {{ $callOff->purchaseOrder?->supplier?->supplier_name }}
+                                        </p>
 
-                                                            <p class="mt-1 text-xs text-slate-500">
-                                                                {{ $callOff->purchaseOrder?->supplier?->supplier_name }}
-                                                            </p>
+                                    </td>
 
-                                                        </td>
+                                    <td class="px-4 py-4 text-center font-semibold text-slate-700">
+                                        {{ $callOff->distributionBatch?->provinceDistributions?->count() ?? 0 }}
+                                    </td>
 
-                                                        <td class="px-4 py-4 text-center font-semibold text-slate-700">
-                                                            {{ $callOff
-                                ->distributionBatch
-                                ?->provinceDistributions
-                                    ?->count() ?? 0 }}
-                                                        </td>
+                                    <td class="px-6 py-4 text-slate-600">
+                                        {{ $callOff->assignedBy?->name ?? 'TSSD Unit' }}
+                                    </td>
 
-                                                        <td class="px-6 py-4 text-slate-600">
-                                                            {{ $callOff->assignedBy?->name ?? 'TSSD Unit' }}
-                                                        </td>
+                                    <td class="px-6 py-4 text-slate-600">
+                                        {{ $callOff->assigned_at?->format('M d, Y') ?? '—' }}
+                                    </td>
 
-                                                        <td class="px-6 py-4 text-slate-600">
-                                                            {{ $callOff->assigned_at?->format('M d, Y') ?? '—' }}
-                                                        </td>
+                                    <td class="px-6 py-4 text-center">
 
-                                                        <td class="px-6 py-4 text-center">
+                                        <a href="{{ route('supply.call-offs.show', $callOff) }}"
+                                            class="inline-flex rounded-lg bg-emerald-800 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-900">
+                                            Review
+                                        </a>
 
-                                                            <a href="{{ route('supply.call-offs.show', $callOff) }}"
-                                                                class="inline-flex rounded-lg bg-emerald-800 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-900">
-                                                                Review
-                                                            </a>
+                                    </td>
 
-                                                        </td>
-
-                                                    </tr>
+                                </tr>
 
                             @empty
 
@@ -529,7 +496,6 @@
                                     </td>
 
                                 </tr>
-
                             @endforelse
 
                         </tbody>
@@ -567,48 +533,41 @@
                 <div class="divide-y divide-slate-100">
 
                     @forelse($supplierSummary as $supplier)
+                        <div class="flex items-center justify-between gap-5 px-6 py-4 transition hover:bg-slate-50">
 
-                                        <div class="flex items-center justify-between gap-5 px-6 py-4 transition hover:bg-slate-50">
+                            <div class="min-w-0">
 
-                                            <div class="min-w-0">
+                                <p class="truncate font-semibold text-slate-900">
+                                    {{ $supplier->supplier_name }}
+                                </p>
 
-                                                <p class="truncate font-semibold text-slate-900">
-                                                    {{ $supplier->supplier_name }}
-                                                </p>
+                                <p class="mt-1 text-xs text-slate-500">
+                                    {{ number_format($supplier->purchase_orders_count) }}
+                                    Purchase Orders
+                                </p>
 
-                                                <p class="mt-1 text-xs text-slate-500">
-                                                    {{ number_format(
-                            $supplier->purchase_orders_count
-                        ) }}
-                                                    Purchase Orders
-                                                </p>
+                            </div>
 
-                                            </div>
+                            <div class="shrink-0 text-right">
 
-                                            <div class="shrink-0 text-right">
+                                <p class="font-bold text-emerald-800">
+                                    ₱{{ number_format($supplier->purchase_orders_sum_total_amount ?? 0, 2) }}
+                                </p>
 
-                                                <p class="font-bold text-emerald-800">
-                                                    ₱{{ number_format(
-                            $supplier->purchase_orders_sum_total_amount ?? 0,
-                            2
-                        ) }}
-                                                </p>
+                                <span
+                                    class="mt-1 inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#2D94BE] ring-1 ring-emerald-200">
+                                    Active
+                                </span>
 
-                                                <span
-                                                    class="mt-1 inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-200">
-                                                    Active
-                                                </span>
+                            </div>
 
-                                            </div>
-
-                                        </div>
+                        </div>
 
                     @empty
 
                         <div class="px-6 py-12 text-center text-sm text-slate-500">
                             No supplier records are available.
                         </div>
-
                     @endforelse
 
                 </div>
@@ -690,83 +649,69 @@
                     <tbody class="divide-y divide-slate-100">
 
                         @forelse($latestPurchaseOrders as $purchaseOrder)
+                            @php
+                                $poStatusClass = match ($purchaseOrder->status) {
+                                    'Distributed' => 'bg-blue-50 text-blue-700 ring-blue-200',
 
-                                                @php
-                                                    $poStatusClass = match (
-                                                    $purchaseOrder->status
-                                                    ) {
-                                                        'Distributed' =>
-                                                        'bg-blue-50 text-blue-700 ring-blue-200',
+                                    'Completed' => 'bg-emerald-50 text-emerald-700 ring-emerald-200',
 
-                                                        'Completed' =>
-                                                        'bg-emerald-50 text-emerald-700 ring-emerald-200',
+                                    default => 'bg-amber-50 text-amber-700 ring-amber-200',
+                                };
+                            @endphp
 
-                                                        default =>
-                                                        'bg-amber-50 text-amber-700 ring-amber-200',
-                                                    };
-                                                @endphp
+                            <tr class="transition hover:bg-slate-50">
 
-                                                <tr class="transition hover:bg-slate-50">
+                                <td class="px-6 py-4 font-semibold text-slate-900">
+                                    {{ $purchaseOrder->po_number }}
+                                </td>
 
-                                                    <td class="px-6 py-4 font-semibold text-slate-900">
-                                                        {{ $purchaseOrder->po_number }}
-                                                    </td>
+                                <td class="px-6 py-4">
 
-                                                    <td class="px-6 py-4">
+                                    <p class="font-semibold text-slate-900">
+                                        {{ $purchaseOrder->supplier?->supplier_name }}
+                                    </p>
 
-                                                        <p class="font-semibold text-slate-900">
-                                                            {{ $purchaseOrder->supplier?->supplier_name }}
-                                                        </p>
+                                    <p class="mt-1 text-xs text-slate-500">
+                                        {{ $purchaseOrder->supplier?->address }}
+                                    </p>
 
-                                                        <p class="mt-1 text-xs text-slate-500">
-                                                            {{ $purchaseOrder->supplier?->address }}
-                                                        </p>
+                                </td>
 
-                                                    </td>
+                                <td class="px-6 py-4 text-slate-600">
+                                    {{ $purchaseOrder->nefa_number ?: '—' }}
+                                </td>
 
-                                                    <td class="px-6 py-4 text-slate-600">
-                                                        {{ $purchaseOrder->nefa_number ?: '—' }}
-                                                    </td>
+                                <td class="px-4 py-4 text-center font-semibold text-slate-700">
+                                    {{ number_format($purchaseOrder->items->sum('quantity')) }}
+                                </td>
 
-                                                    <td class="px-4 py-4 text-center font-semibold text-slate-700">
-                                                        {{ number_format(
-                                $purchaseOrder->items->sum('quantity')
-                            ) }}
-                                                    </td>
+                                <td class="px-6 py-4 text-right font-bold text-emerald-800">
+                                    ₱{{ number_format($purchaseOrder->total_amount, 2) }}
+                                </td>
 
-                                                    <td class="px-6 py-4 text-right font-bold text-emerald-800">
-                                                        ₱{{ number_format(
-                                $purchaseOrder->total_amount,
-                                2
-                            ) }}
-                                                    </td>
+                                <td class="px-6 py-4 text-slate-600">
+                                    {{ $purchaseOrder->po_date?->format('M d, Y') }}
+                                </td>
 
-                                                    <td class="px-6 py-4 text-slate-600">
-                                                        {{ $purchaseOrder->po_date?->format('M d, Y') }}
-                                                    </td>
+                                <td class="px-6 py-4 text-center">
 
-                                                    <td class="px-6 py-4 text-center">
+                                    <span
+                                        class="inline-flex rounded-full px-3 py-1 text-xs font-bold ring-1 {{ $poStatusClass }}">
+                                        {{ $purchaseOrder->status }}
+                                    </span>
 
-                                                        <span
-                                                            class="inline-flex rounded-full px-3 py-1 text-xs font-bold ring-1 {{ $poStatusClass }}">
-                                                            {{ $purchaseOrder->status }}
-                                                        </span>
+                                </td>
 
-                                                    </td>
+                                <td class="px-6 py-4 text-center">
 
-                                                    <td class="px-6 py-4 text-center">
+                                    <a href="{{ route('supply.purchase-orders.show', $purchaseOrder) }}"
+                                        class="inline-flex rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-50">
+                                        View
+                                    </a>
 
-                                                        <a href="{{ route(
-                                'supply.purchase-orders.show',
-                                $purchaseOrder
-                            ) }}"
-                                                            class="inline-flex rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-50">
-                                                            View
-                                                        </a>
+                                </td>
 
-                                                    </td>
-
-                                                </tr>
+                            </tr>
 
                         @empty
 
@@ -777,7 +722,6 @@
                                 </td>
 
                             </tr>
-
                         @endforelse
 
                     </tbody>
@@ -793,10 +737,10 @@
     <script>
         document.addEventListener(
             'DOMContentLoaded',
-            function () {
+            function() {
                 if (
-                    typeof window.Chart
-                    === 'undefined'
+                    typeof window.Chart ===
+                    'undefined'
                 ) {
                     console.error(
                         'Chart.js is not loaded.'
@@ -821,8 +765,7 @@
 
                 const currencyFormatter =
                     new Intl.NumberFormat(
-                        'en-PH',
-                        {
+                        'en-PH', {
                             style: 'currency',
                             currency: 'PHP',
                             maximumFractionDigits: 2,
@@ -839,36 +782,28 @@
 
                 if (monthlyCanvas) {
                     new window.Chart(
-                        monthlyCanvas,
-                        {
+                        monthlyCanvas, {
                             type: 'bar',
 
                             data: {
-                                labels:
-                                    monthlyPurchaseOrders
-                                        .labels,
+                                labels: monthlyPurchaseOrders
+                                    .labels,
 
-                                datasets: [
-                                    {
+                                datasets: [{
                                         type: 'bar',
 
-                                        label:
-                                            'Purchase Order Count',
+                                        label: 'Purchase Order Count',
 
-                                        data:
-                                            monthlyPurchaseOrders
-                                                .counts,
+                                        data: monthlyPurchaseOrders
+                                            .counts,
 
-                                        backgroundColor:
-                                            '#C51017',
+                                        backgroundColor: '#339DCB',
 
-                                        borderColor:
-                                            '#C51017',
+                                        borderColor: '#339DCB',
 
                                         borderRadius: 7,
 
-                                        borderSkipped:
-                                            false,
+                                        borderSkipped: false,
 
                                         yAxisID: 'countAxis',
                                     },
@@ -876,24 +811,18 @@
                                     {
                                         type: 'line',
 
-                                        label:
-                                            'Purchase Order Value',
+                                        label: 'Purchase Order Value',
 
-                                        data:
-                                            monthlyPurchaseOrders
-                                                .values,
+                                        data: monthlyPurchaseOrders
+                                            .values,
 
-                                        borderColor:
-                                            '#641D21',
+                                        borderColor: '#339DCB',
 
-                                        backgroundColor:
-                                            '#641D21',
+                                        backgroundColor: '#339DCB',
 
-                                        pointBackgroundColor:
-                                            '#ffffff',
+                                        pointBackgroundColor: '#ffffff',
 
-                                        pointBorderColor:
-                                            '#641D21',
+                                        pointBorderColor: '#339DCB',
 
                                         pointBorderWidth: 3,
 
@@ -913,8 +842,7 @@
                             options: {
                                 responsive: true,
 
-                                maintainAspectRatio:
-                                    false,
+                                maintainAspectRatio: false,
 
                                 interaction: {
                                     mode: 'index',
@@ -926,44 +854,39 @@
                                         position: 'top',
 
                                         labels: {
-                                            usePointStyle:
-                                                true,
+                                            usePointStyle: true,
 
                                             padding: 18,
 
-                                            color:
-                                                '#475569',
+                                            color: '#475569',
 
                                             font: {
-                                                weight:
-                                                    '600',
+                                                weight: '600',
                                             },
                                         },
                                     },
 
                                     tooltip: {
-                                        backgroundColor:
-                                            'rgba(15, 23, 42, 0.96)',
+                                        backgroundColor: '#143A52',
 
                                         padding: 14,
 
                                         cornerRadius: 10,
 
                                         callbacks: {
-                                            label:
-                                                function (
-                                                    context
+                                            label: function(
+                                                context
+                                            ) {
+                                                if (
+                                                    context.dataset
+                                                    .yAxisID ===
+                                                    'valueAxis'
                                                 ) {
-                                                    if (
-                                                        context.dataset
-                                                            .yAxisID
-                                                        === 'valueAxis'
-                                                    ) {
-                                                        return `${context.dataset.label}: ${currencyFormatter.format(context.raw)}`;
-                                                    }
+                                                    return `${context.dataset.label}: ${currencyFormatter.format(context.raw)}`;
+                                                }
 
-                                                    return `${context.dataset.label}: ${numberFormatter.format(context.raw)}`;
-                                                },
+                                                return `${context.dataset.label}: ${numberFormatter.format(context.raw)}`;
+                                            },
                                         },
                                     },
                                 },
@@ -975,12 +898,10 @@
                                         },
 
                                         ticks: {
-                                            color:
-                                                '#475569',
+                                            color: '#475569',
 
                                             font: {
-                                                weight:
-                                                    '600',
+                                                weight: '600',
                                             },
                                         },
                                     },
@@ -993,29 +914,24 @@
                                         beginAtZero: true,
 
                                         grid: {
-                                            color:
-                                                'rgba(148, 163, 184, 0.18)',
+                                            color: 'rgba(148, 163, 184, 0.18)',
                                         },
 
                                         ticks: {
                                             precision: 0,
 
-                                            color:
-                                                '#64748b',
+                                            color: '#64748b',
                                         },
 
                                         title: {
                                             display: true,
 
-                                            text:
-                                                'Number of Purchase Orders',
+                                            text: 'Number of Purchase Orders',
 
-                                            color:
-                                                '#334155',
+                                            color: '#334155',
 
                                             font: {
-                                                weight:
-                                                    '700',
+                                                weight: '700',
                                             },
                                         },
                                     },
@@ -1028,51 +944,40 @@
                                         beginAtZero: true,
 
                                         grid: {
-                                            drawOnChartArea:
-                                                false,
+                                            drawOnChartArea: false,
                                         },
 
                                         ticks: {
-                                            color:
-                                                '#641D21',
+                                            color: '#641D21',
 
-                                            callback:
-                                                function (
-                                                    value
-                                                ) {
-                                                    return new Intl
-                                                        .NumberFormat(
-                                                            'en-PH',
-                                                            {
-                                                                notation:
-                                                                    'compact',
+                                            callback: function(
+                                                value
+                                            ) {
+                                                return new Intl
+                                                    .NumberFormat(
+                                                        'en-PH', {
+                                                            notation: 'compact',
 
-                                                                style:
-                                                                    'currency',
+                                                            style: 'currency',
 
-                                                                currency:
-                                                                    'PHP',
+                                                            currency: 'PHP',
 
-                                                                maximumFractionDigits:
-                                                                    1,
-                                                            }
-                                                        )
-                                                        .format(value);
-                                                },
+                                                            maximumFractionDigits: 1,
+                                                        }
+                                                    )
+                                                    .format(value);
+                                            },
                                         },
 
                                         title: {
                                             display: true,
 
-                                            text:
-                                                'Purchase Order Value',
+                                            text: 'Purchase Order Value',
 
-                                            color:
-                                                '#641D21',
+                                            color: '#641D21',
 
                                             font: {
-                                                weight:
-                                                    '700',
+                                                weight: '700',
                                             },
                                         },
                                     },
@@ -1092,42 +997,35 @@
 
                 if (poStatusCanvas) {
                     new window.Chart(
-                        poStatusCanvas,
-                        {
+                        poStatusCanvas, {
                             type: 'doughnut',
 
                             data: {
-                                labels:
-                                    poStatusChart.labels,
+                                labels: poStatusChart.labels,
 
-                                datasets: [
-                                    {
-                                        data:
-                                            poStatusChart.data,
+                                datasets: [{
+                                    data: poStatusChart.data,
 
-                                        backgroundColor: [
-                                            '#DF979B',
-                                            '#ED1B24',
-                                            '#C51017',
-                                            '#970C13',
-                                            '#641D21',
-                                        ],
+                                    backgroundColor: [
+                                        '#143A52',
+                                        '#2D94BE',
+                                        '#339DCB',
+                                        '#61AFD2',
+                                        '#90C4DD',
+                                    ],
 
-                                        borderColor:
-                                            '#ffffff',
+                                    borderColor: '#ffffff',
 
-                                        borderWidth: 4,
+                                    borderWidth: 4,
 
-                                        hoverOffset: 10,
-                                    },
-                                ],
+                                    hoverOffset: 10,
+                                }, ],
                             },
 
                             options: {
                                 responsive: true,
 
-                                maintainAspectRatio:
-                                    false,
+                                maintainAspectRatio: false,
 
                                 cutout: '66%',
 
@@ -1136,65 +1034,60 @@
                                         position: 'bottom',
 
                                         labels: {
-                                            usePointStyle:
-                                                true,
+                                            usePointStyle: true,
 
-                                            pointStyle:
-                                                'circle',
+                                            pointStyle: 'circle',
 
                                             padding: 17,
 
-                                            color:
-                                                '#475569',
+                                            color: '#36566E',
 
                                             font: {
-                                                weight:
-                                                    '600',
+                                                weight: '600',
                                             },
                                         },
                                     },
 
                                     tooltip: {
                                         callbacks: {
-                                            label:
-                                                function (
+                                            label: function(
+                                                context
+                                            ) {
+                                                const total =
                                                     context
-                                                ) {
-                                                    const total =
-                                                        context
-                                                            .dataset
-                                                            .data
-                                                            .reduce(
-                                                                (
-                                                                    sum,
-                                                                    value
-                                                                ) =>
-                                                                    sum
-                                                                    + Number(
-                                                                        value
-                                                                        || 0
-                                                                    ),
-                                                                0
-                                                            );
-
-                                                    const value =
+                                                    .dataset
+                                                    .data
+                                                    .reduce(
+                                                        (
+                                                            sum,
+                                                            value
+                                                        ) =>
+                                                        sum +
                                                         Number(
-                                                            context.raw
-                                                            || 0
-                                                        );
+                                                            value ||
+                                                            0
+                                                        ),
+                                                        0
+                                                    );
 
-                                                    const percentage =
-                                                        total > 0
-                                                            ? (
-                                                                (
-                                                                    value
-                                                                    / total
-                                                                ) * 100
-                                                            ).toFixed(1)
-                                                            : '0.0';
+                                                const value =
+                                                    Number(
+                                                        context.raw ||
+                                                        0
+                                                    );
 
-                                                    return `${context.label}: ${numberFormatter.format(value)} (${percentage}%)`;
-                                                },
+                                                const percentage =
+                                                    total > 0 ?
+                                                    (
+                                                        (
+                                                            value /
+                                                            total
+                                                        ) * 100
+                                                    ).toFixed(1) :
+                                                    '0.0';
+
+                                                return `${context.label}: ${numberFormatter.format(value)} (${percentage}%)`;
+                                            },
                                         },
                                     },
                                 },
@@ -1213,114 +1106,101 @@
 
                 if (compositionCanvas) {
                     new window.Chart(
-                        compositionCanvas,
-                        {
+                        compositionCanvas, {
                             type: 'pie',
 
                             data: {
-                                labels:
-                                    purchaseComposition
-                                        .labels,
+                                labels: purchaseComposition
+                                    .labels,
 
-                                datasets: [
-                                    {
-                                        data:
-                                            purchaseComposition
-                                                .data,
+                                datasets: [{
+                                    data: purchaseComposition
+                                        .data,
 
-                                        backgroundColor: [
-                                            '#DF979B',
-                                            '#ED1B24',
-                                            '#C51017',
-                                            '#970C13',
-                                            '#641D21',
-                                            '#FFBABE',
-                                        ],
+                                    backgroundColor: [
+                                        '#143A52',
+                                        '#2D94BE',
+                                        '#339DCB',
+                                        '#61AFD2',
+                                        '#90C4DD',
+                                    ],
 
-                                        borderColor:
-                                            '#ffffff',
+                                    borderColor: '#ffffff',
 
-                                        borderWidth: 4,
+                                    borderWidth: 4,
 
-                                        hoverOffset: 10,
-                                    },
-                                ],
+                                    hoverOffset: 10,
+                                }, ],
                             },
 
                             options: {
                                 responsive: true,
 
-                                maintainAspectRatio:
-                                    false,
+                                maintainAspectRatio: false,
 
                                 plugins: {
                                     legend: {
                                         position: 'bottom',
 
                                         labels: {
-                                            usePointStyle:
-                                                true,
+                                            usePointStyle: true,
 
-                                            pointStyle:
-                                                'circle',
+                                            pointStyle: 'circle',
 
                                             padding: 15,
 
-                                            color:
-                                                '#475569',
+                                            color: '#475569',
 
                                             font: {
                                                 size: 11,
 
-                                                weight:
-                                                    '600',
+                                                weight: '600',
                                             },
                                         },
                                     },
 
                                     tooltip: {
                                         callbacks: {
-                                            label:
-                                                function (
+                                            label: function(
+                                                context
+                                            ) {
+                                                const values =
                                                     context
-                                                ) {
-                                                    const values =
-                                                        context
-                                                            .dataset
-                                                            .data;
+                                                    .dataset
+                                                    .data;
 
-                                                    const total =
-                                                        values.reduce(
-                                                            (
-                                                                sum,
-                                                                value
-                                                            ) =>
-                                                                sum
-                                                                + Number(
-                                                                    value
-                                                                    || 0
-                                                                ),
-                                                            0
-                                                        );
-
-                                                    const value =
+                                                const total =
+                                                    values.reduce(
+                                                        (
+                                                            sum,
+                                                            value
+                                                        ) =>
+                                                        sum +
                                                         Number(
-                                                            context.raw
-                                                            || 0
-                                                        );
+                                                            value ||
+                                                            0
+                                                        ),
+                                                        0
+                                                    );
 
-                                                    const percentage =
-                                                        total > 0
-                                                            ? (
-                                                                (
-                                                                    value
-                                                                    / total
-                                                                ) * 100
-                                                            ).toFixed(1)
-                                                            : '0.0';
+                                                const value =
+                                                    Number(
+                                                        context.raw ||
+                                                        0
+                                                    );
 
-                                                    return `${context.label}: ${numberFormatter.format(value)} items (${percentage}%)`;
-                                                },
+                                                const percentage =
+                                                    total > 0 ?
+                                                    (
+                                                        (
+                                                            value /
+                                                            total
+                                                        ) * 100
+                                                    ).toFixed(1) :
+                                                    '0.0';
+
+                                                return `${context.label}: ${numberFormatter.format(value)} items (${percentage}%)`;
+                                            },
                                         },
                                     },
                                 },

@@ -1,3 +1,120 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.floating-light-main {
+    animation: floatingLightMain 18s ease-in-out infinite alternate;
+    transform-origin: center;
+    will-change: transform, filter;
+}
+
+.floating-light-glow {
+    animation:
+        floatingLightGlow 24s ease-in-out infinite alternate,
+        floatingLightPulse 8s ease-in-out infinite;
+
+    transform-origin: center;
+    will-change: transform, opacity, filter;
+}
+
+@keyframes floatingLightMain {
+    0% {
+        transform:
+            translate3d(-2%, -1%, 0)
+            scale(1.04)
+            rotate(0deg);
+        filter:
+            brightness(1)
+            saturate(1.1);
+    }
+
+    25% {
+        transform:
+            translate3d(2%, -2%, 0)
+            scale(1.08)
+            rotate(0.25deg);
+    }
+
+    50% {
+        transform:
+            translate3d(1%, 2%, 0)
+            scale(1.06)
+            rotate(-0.2deg);
+        filter:
+            brightness(1.08)
+            saturate(1.25);
+    }
+
+    75% {
+        transform:
+            translate3d(-2%, 1%, 0)
+            scale(1.09)
+            rotate(0.2deg);
+    }
+
+    100% {
+        transform:
+            translate3d(2%, -1%, 0)
+            scale(1.05)
+            rotate(0deg);
+        filter:
+            brightness(1.03)
+            saturate(1.15);
+    }
+}
+
+@keyframes floatingLightGlow {
+    0% {
+        transform:
+            translate3d(4%, 2%, 0)
+            scale(1.08)
+            rotate(0deg);
+    }
+
+    33% {
+        transform:
+            translate3d(-3%, -2%, 0)
+            scale(1.14)
+            rotate(-0.5deg);
+    }
+
+    66% {
+        transform:
+            translate3d(2%, -4%, 0)
+            scale(1.1)
+            rotate(0.5deg);
+    }
+
+    100% {
+        transform:
+            translate3d(-4%, 3%, 0)
+            scale(1.16)
+            rotate(0deg);
+    }
+}
+
+@keyframes floatingLightPulse {
+    0%,
+    100% {
+        opacity: 0.3;
+        filter:
+            blur(28px)
+            brightness(1)
+            saturate(1.2);
+    }
+
+    50% {
+        opacity: 0.58;
+        filter:
+            blur(34px)
+            brightness(1.35)
+            saturate(1.6);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .floating-light-main,
+    .floating-light-glow {
+        animation: none;
+    }
+}

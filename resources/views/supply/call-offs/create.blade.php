@@ -11,7 +11,7 @@
 
             <div>
 
-                <h1 class="text-3xl font-bold text-gray-900">
+                <h1 class="text-3xl font-bold text-[#36566E]">
                     Review {{ $callOff->call_off_number }}
                 </h1>
 
@@ -23,7 +23,7 @@
 
             <a
                 href="{{ route('supply.call-offs.index') }}"
-                class="rounded-xl border border-gray-300 bg-white px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50"
+                class="rounded-xl border border-[#B7D6E6] bg-white px-5 py-3 font-semibold text-gray-700 hover:bg-[#F7FBFD]"
             >
                 Back to Call-Offs
             </a>
@@ -56,9 +56,9 @@
 
         @endif
 
-        <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow">
+        <div class="overflow-hidden rounded-2xl border border-[#E4EEF5] bg-white shadow">
 
-            <div class="bg-red-900 px-7 py-5">
+            <div class="bg-[#339DCB] px-7 py-5">
 
                 <h2 class="text-xl font-semibold text-white">
                     Call-Off and Purchase Order
@@ -70,11 +70,11 @@
 
                 <div>
 
-                    <p class="text-sm font-medium text-gray-500">
+                    <p class="text-sm font-medium text-[#70879A]">
                         Call-Off Number
                     </p>
 
-                    <p class="mt-1 font-semibold text-gray-900">
+                    <p class="mt-1 font-semibold text-[#36566E]">
                         {{ $callOff->call_off_number }}
                     </p>
 
@@ -82,11 +82,11 @@
 
                 <div>
 
-                    <p class="text-sm font-medium text-gray-500">
+                    <p class="text-sm font-medium text-[#70879A]">
                         Purchase Order
                     </p>
 
-                    <p class="mt-1 font-semibold text-gray-900">
+                    <p class="mt-1 font-semibold text-[#36566E]">
                         {{ $purchaseOrder?->po_number ?? 'Not available' }}
                     </p>
 
@@ -94,11 +94,11 @@
 
                 <div>
 
-                    <p class="text-sm font-medium text-gray-500">
+                    <p class="text-sm font-medium text-[#70879A]">
                         Supplier
                     </p>
 
-                    <p class="mt-1 font-semibold text-gray-900">
+                    <p class="mt-1 font-semibold text-[#36566E]">
                         {{ $purchaseOrder?->supplier?->supplier_name ?? 'Not available' }}
                     </p>
 
@@ -106,11 +106,11 @@
 
                 <div>
 
-                    <p class="text-sm font-medium text-gray-500">
+                    <p class="text-sm font-medium text-[#70879A]">
                         NEFA Number
                     </p>
 
-                    <p class="mt-1 font-semibold text-gray-900">
+                    <p class="mt-1 font-semibold text-[#36566E]">
                         {{ $purchaseOrder?->nefa_number ?? 'Not available' }}
                     </p>
 
@@ -118,11 +118,11 @@
 
                 <div>
 
-                    <p class="text-sm font-medium text-gray-500">
+                    <p class="text-sm font-medium text-[#70879A]">
                         Assigned By
                     </p>
 
-                    <p class="mt-1 font-semibold text-gray-900">
+                    <p class="mt-1 font-semibold text-[#36566E]">
                         {{ $callOff->assignedBy?->name ?? 'Not available' }}
                     </p>
 
@@ -130,11 +130,11 @@
 
                 <div>
 
-                    <p class="text-sm font-medium text-gray-500">
+                    <p class="text-sm font-medium text-[#70879A]">
                         Assigned Date
                     </p>
 
-                    <p class="mt-1 font-semibold text-gray-900">
+                    <p class="mt-1 font-semibold text-[#36566E]">
                         {{ $callOff->assigned_at?->format('F d, Y') ?? 'Not available' }}
                     </p>
 
@@ -142,11 +142,11 @@
 
                 <div>
 
-                    <p class="text-sm font-medium text-gray-500">
+                    <p class="text-sm font-medium text-[#70879A]">
                         Status
                     </p>
 
-                    <p class="mt-1 font-semibold text-gray-900">
+                    <p class="mt-1 font-semibold text-[#36566E]">
                         {{ $callOff->status }}
                     </p>
 
@@ -154,11 +154,11 @@
 
                 <div>
 
-                    <p class="text-sm font-medium text-gray-500">
+                    <p class="text-sm font-medium text-[#70879A]">
                         Total Provinces
                     </p>
 
-                    <p class="mt-1 font-semibold text-gray-900">
+                    <p class="mt-1 font-semibold text-[#36566E]">
                         {{ $batch?->provinceDistributions?->count() ?? 0 }}
                     </p>
 
@@ -168,9 +168,9 @@
 
         </div>
 
-        <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow">
+        <div class="overflow-hidden rounded-2xl border border-[#E4EEF5] bg-white shadow">
 
-            <div class="bg-gray-900 px-7 py-5">
+            <div class="bg-[#143A52] px-7 py-5">
 
                 <h2 class="text-xl font-semibold text-white">
                     Provincial Allocations
@@ -182,11 +182,11 @@
 
                 @forelse($batch?->provinceDistributions ?? collect() as $allocation)
 
-                    <div class="overflow-hidden rounded-xl border border-gray-200">
+                    <div class="overflow-hidden rounded-xl border border-[#E4EEF5]">
 
-                        <div class="bg-gray-100 px-5 py-4">
+                        <div class="bg-[#B7D6E6]/25 px-5 py-4">
 
-                            <h3 class="font-semibold text-gray-900">
+                            <h3 class="font-semibold text-[#36566E]">
                                 {{ $allocation->province->name }}
                             </h3>
 
@@ -252,7 +252,7 @@
 
                 @empty
 
-                    <div class="rounded-xl bg-gray-50 px-6 py-10 text-center text-gray-500">
+                    <div class="rounded-xl bg-[#F7FBFD] px-6 py-10 text-center text-[#70879A]">
                         No provincial allocations found.
                     </div>
 
@@ -268,13 +268,13 @@
                 action="{{ route('supply.call-offs.review', $callOff) }}"
                 method="POST"
                 enctype="multipart/form-data"
-                class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow"
+                class="overflow-hidden rounded-2xl border border-[#E4EEF5] bg-white shadow"
             >
 
                 @csrf
                 @method('PATCH')
 
-                <div class="bg-red-900 px-7 py-5">
+                <div class="bg-[#339DCB] px-7 py-5">
 
                     <h2 class="text-xl font-semibold text-white">
                         Supply Decision
@@ -293,7 +293,7 @@
                         <select
                             name="decision"
                             required
-                            class="w-full rounded-xl border-gray-300"
+                            class="w-full rounded-xl border-[#B7D6E6]"
                         >
 
                             <option value="">
@@ -328,7 +328,7 @@
                             type="date"
                             name="call_off_date"
                             value="{{ old('call_off_date', now()->format('Y-m-d')) }}"
-                            class="w-full rounded-xl border-gray-300"
+                            class="w-full rounded-xl border-[#B7D6E6]"
                         >
 
                     </div>
@@ -343,10 +343,10 @@
                             type="file"
                             name="approval_document"
                             accept="application/pdf,.pdf"
-                            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3"
+                            class="w-full rounded-xl border border-[#B7D6E6] bg-white px-4 py-3"
                         >
 
-                        <p class="mt-2 text-xs text-gray-500">
+                        <p class="mt-2 text-xs text-[#70879A]">
                             PDF only, maximum 10 MB.
                         </p>
 
@@ -361,7 +361,7 @@
                         <textarea
                             name="remarks"
                             rows="4"
-                            class="w-full rounded-xl border-gray-300"
+                            class="w-full rounded-xl border-[#B7D6E6]"
                         >{{ old('remarks') }}</textarea>
 
                     </div>
@@ -370,7 +370,7 @@
 
                         <button
                             type="submit"
-                            class="rounded-xl bg-red-900 px-7 py-3 font-semibold text-white hover:bg-red-800"
+                            class="rounded-xl bg-[#339DCB] px-7 py-3 font-semibold text-white hover:bg-red-800"
                         >
                             Submit Decision
                         </button>
@@ -383,9 +383,9 @@
 
         @else
 
-            <div class="rounded-2xl border border-gray-200 bg-white p-7 shadow">
+            <div class="rounded-2xl border border-[#E4EEF5] bg-white p-7 shadow">
 
-                <h2 class="text-xl font-semibold text-gray-900">
+                <h2 class="text-xl font-semibold text-[#36566E]">
                     Supply Decision Completed
                 </h2>
 
@@ -393,11 +393,11 @@
 
                     <div>
 
-                        <dt class="text-sm text-gray-500">
+                        <dt class="text-sm text-[#70879A]">
                             Decision
                         </dt>
 
-                        <dd class="mt-1 font-semibold text-gray-900">
+                        <dd class="mt-1 font-semibold text-[#36566E]">
                             {{ $callOff->status }}
                         </dd>
 
@@ -405,11 +405,11 @@
 
                     <div>
 
-                        <dt class="text-sm text-gray-500">
+                        <dt class="text-sm text-[#70879A]">
                             Reviewed By
                         </dt>
 
-                        <dd class="mt-1 font-semibold text-gray-900">
+                        <dd class="mt-1 font-semibold text-[#36566E]">
                             {{ $callOff->approvedBy?->name ?? 'Not available' }}
                         </dd>
 
@@ -417,11 +417,11 @@
 
                     <div>
 
-                        <dt class="text-sm text-gray-500">
+                        <dt class="text-sm text-[#70879A]">
                             Reviewed At
                         </dt>
 
-                        <dd class="mt-1 font-semibold text-gray-900">
+                        <dd class="mt-1 font-semibold text-[#36566E]">
                             {{ $callOff->approved_at?->format('F d, Y h:i A') ?? 'Not available' }}
                         </dd>
 

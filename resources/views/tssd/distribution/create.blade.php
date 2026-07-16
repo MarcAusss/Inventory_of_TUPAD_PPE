@@ -8,14 +8,14 @@
         <div class="mx-auto max-w-[1900px] space-y-6">
 
             <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-                <div class="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-[#641D21] via-[#970C13] to-[#ED1B24]">
+                <div class="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-[#143A52] via-[#2D94BE] to-[#339DCB]">
                 </div>
 
                 <div class="flex flex-col gap-6 px-6 py-7 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
                     <div>
                         <div class="flex flex-wrap items-center gap-3">
                             <span
-                                class="rounded-full bg-[#DF979B]/20 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#970C13] ring-1 ring-[#DF979B]">
+                                class="rounded-full bg-[#B7D6E6]/35 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#143A52] ring-1 ring-[#90C4DD]">
                                 TSSD Unit
                             </span>
 
@@ -29,14 +29,14 @@
                             Create TSSD Distribution
                         </h1>
 
-                        <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+                        <p class="mt-2 max-w-3xl text-sm leading-6 text-[#36566E]">
                             Select a Purchase Order, review available PPE quantities, and assign items to provincial
                             offices.
                         </p>
                     </div>
 
                     <a href="{{ route('tssd.distributions.index') }}"
-                        class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
+                        class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-[#F3FAFD]">
                         Back to Distribution
                     </a>
                 </div>
@@ -44,7 +44,7 @@
 
             <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                 <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
-                    <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">
+                    <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#2D94BE]">
                         Purchase Order
                     </p>
 
@@ -64,7 +64,7 @@
                         </label>
 
                         <select id="purchase_order" name="purchase_order_id"
-                            class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#970C13] focus:ring-[#970C13]">
+                            class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#339DCB] focus:ring-[#339DCB]">
                             <option value="">Select Purchase Order Number</option>
 
                             @foreach ($purchaseOrders as $po)
@@ -78,26 +78,26 @@
                     <div>
                         <label for="po_date" class="mb-2 block text-sm font-bold text-slate-700">PO Date</label>
                         <input id="po_date" readonly
-                            class="w-full rounded-xl border-slate-200 bg-slate-100 text-slate-600 shadow-sm">
+                            class="w-full rounded-xl border-slate-200 bg-slate-100 text-[#36566E] shadow-sm">
                     </div>
 
                     <div>
                         <label for="supplier" class="mb-2 block text-sm font-bold text-slate-700">Supplier</label>
                         <input id="supplier" readonly
-                            class="w-full rounded-xl border-slate-200 bg-slate-100 text-slate-600 shadow-sm">
+                            class="w-full rounded-xl border-slate-200 bg-slate-100 text-[#36566E] shadow-sm">
                     </div>
 
                     <div>
                         <label for="nefa" class="mb-2 block text-sm font-bold text-slate-700">NEFA Number</label>
                         <input id="nefa" readonly
-                            class="w-full rounded-xl border-slate-200 bg-slate-100 text-slate-600 shadow-sm">
+                            class="w-full rounded-xl border-slate-200 bg-slate-100 text-[#36566E] shadow-sm">
                     </div>
                 </div>
             </section>
 
             <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                 <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
-                    <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">
+                    <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#2D94BE]">
                         Purchased Inventory
                     </p>
 
@@ -112,8 +112,8 @@
 
                 <div class="overflow-x-auto">
                     <table class="min-w-[760px] w-full divide-y divide-slate-200">
-                        <thead class="bg-slate-100">
-                            <tr class="text-xs font-bold uppercase tracking-wide text-slate-600">
+                        <thead class="bg-[#B7D6E6]/35">
+                            <tr class="text-xs font-bold uppercase tracking-wide text-[#36566E]">
                                 <th class="px-6 py-4 text-left">PPE Item</th>
                                 <th class="px-6 py-4 text-center">Size / Label</th>
                                 <th class="px-6 py-4 text-center">Purchased Qty</th>
@@ -136,7 +136,7 @@
                 <div
                     class="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:px-7 lg:flex-row lg:items-center lg:justify-between">
                     <div>
-                        <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">
+                        <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#2D94BE]">
                             Provincial Allocations
                         </p>
 
@@ -150,15 +150,15 @@
                     </div>
 
                     <button type="button" id="openModal"
-                        class="inline-flex items-center justify-center rounded-xl bg-[#970C13] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#641D21]">
+                        class="inline-flex items-center justify-center rounded-xl bg-[#339DCB] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#2D94BE]">
                         Assign PPE to Province
                     </button>
                 </div>
 
                 <div class="overflow-x-auto">
                     <table class="min-w-[1100px] w-full divide-y divide-slate-200">
-                        <thead class="bg-slate-100">
-                            <tr class="text-xs font-bold uppercase tracking-wide text-slate-600">
+                        <thead class="bg-[#B7D6E6]/35">
+                            <tr class="text-xs font-bold uppercase tracking-wide text-[#36566E]">
                                 <th class="px-5 py-4 text-left">Province</th>
                                 <th class="px-4 py-4 text-center">LS-M</th>
                                 <th class="px-4 py-4 text-center">LS-L</th>
@@ -221,8 +221,8 @@
                                         ->sum('quantity');
                                 @endphp
 
-                                <tr class="transition hover:bg-slate-50">
-                                    <td class="px-5 py-4 font-bold text-[#641D21]">{{ $province->name }}</td>
+                                <tr class="transition hover:bg-[#F3FAFD]">
+                                    <td class="px-5 py-4 font-bold text-[#143A52]">{{ $province->name }}</td>
                                     <td class="px-4 py-4 text-center text-sm text-slate-700">{{ $lsm }}</td>
                                     <td class="px-4 py-4 text-center text-sm text-slate-700">{{ $lsl }}</td>
                                     <td class="px-4 py-4 text-center text-sm text-slate-700">{{ $bucket }}</td>
@@ -246,7 +246,7 @@
 
             <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                 <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
-                    <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">
+                    <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#2D94BE]">
                         Delivery
                     </p>
 
@@ -266,7 +266,7 @@
                         </label>
 
                         <input type="date" id="delivery_date" name="delivery_date"
-                            class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#970C13] focus:ring-[#970C13]">
+                            class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#339DCB] focus:ring-[#339DCB]">
                     </div>
 
                     <div>
@@ -275,7 +275,7 @@
                         </label>
 
                         <textarea id="remarks" name="remarks" rows="3"
-                            class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#970C13] focus:ring-[#970C13]"></textarea>
+                            class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#339DCB] focus:ring-[#339DCB]"></textarea>
                     </div>
                 </div>
             </section>
@@ -283,12 +283,12 @@
             <section
                 class="flex flex-col-reverse gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:justify-end">
                 <a href="{{ route('tssd.distributions.index') }}"
-                    class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-6 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
+                    class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-6 py-3 text-sm font-bold text-slate-700 transition hover:bg-[#F3FAFD]">
                     Cancel
                 </a>
 
                 <button type="submit" id="submitDistributionButton"
-                    class="inline-flex items-center justify-center rounded-xl bg-[#970C13] px-7 py-3 text-sm font-bold text-white transition hover:bg-[#641D21] disabled:cursor-not-allowed disabled:opacity-60">
+                    class="inline-flex items-center justify-center rounded-xl bg-[#339DCB] px-7 py-3 text-sm font-bold text-white transition hover:bg-[#2D94BE] disabled:cursor-not-allowed disabled:opacity-60">
                     Save Distribution
                 </button>
             </section>
@@ -299,13 +299,13 @@
 </x-po_dashboard_layout>
 
 <div id="assignModal"
-    class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+    class="fixed inset-0 z-50 hidden items-center justify-center border-[#E4EEF5] p-4 backdrop-blur-sm">
 
-    <div class="max-h-[92vh] w-full max-w-5xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
+    <div class="max-h-[92vh] w-full max-w-5xl overflow-hidden rounded-3xl border border-[#E4EEF5] bg-white shadow-2xl">
 
-        <div class="flex items-center justify-between border-b border-slate-200 px-6 py-5 sm:px-7">
+        <div class="flex items-center justify-between border-b border-[#E4EEF5] px-6 py-5 sm:px-7">
             <div>
-                <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">
+                <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#2D94BE]">
                     Provincial Allocation
                 </p>
 
@@ -315,7 +315,7 @@
             </div>
 
             <button type="button" id="closeModal"
-                class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-2xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900">
+                class="flex h-10 w-10 items-center justify-center rounded-xl border border-[#E4EEF5] text-2xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900">
                 &times;
             </button>
         </div>
@@ -327,7 +327,7 @@
                 </label>
 
                 <select id="provinceSelect"
-                    class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#970C13] focus:ring-[#970C13]">
+                    class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#339DCB] focus:ring-[#339DCB]">
                     <option value="">Select Province</option>
 
                     @foreach ($provinces as $province)
@@ -350,10 +350,10 @@
                 ];
             @endphp
 
-            <div class="overflow-hidden rounded-2xl border border-slate-200">
-                <table class="w-full divide-y divide-slate-200">
-                    <thead class="bg-slate-100">
-                        <tr class="text-xs font-bold uppercase tracking-wide text-slate-600">
+            <div class="overflow-hidden rounded-2xl border border-[#E4EEF5]">
+                <table class="w-full divide-y divide-bg-[#F7FBFD]">
+                    <thead class="bg-[#B7D6E6]/35">
+                        <tr class="text-xs font-bold uppercase tracking-wide text-[#70879A]">
                             <th class="px-5 py-4 text-left">PPE Item</th>
                             <th class="px-5 py-4 text-center">Size / Label</th>
                             <th class="px-5 py-4 text-center">Quantity</th>
@@ -362,12 +362,12 @@
 
                     <tbody class="divide-y divide-slate-100">
                         @foreach ($modalItems as [$id, $itemName, $label])
-                            <tr class="hover:bg-slate-50">
+                            <tr class="hover:bg-[#F3FAFD]">
                                 <td class="px-5 py-4 font-semibold text-slate-800">{{ $itemName }}</td>
-                                <td class="px-5 py-4 text-center text-sm text-slate-500">{{ $label }}</td>
+                                <td class="px-5 py-4 text-center text-sm text-[#2D94BE]">{{ $label }}</td>
                                 <td class="px-5 py-4 text-center">
                                     <input type="number" id="{{ $id }}" value="0"
-                                        class="w-28 rounded-xl border-slate-300 text-center shadow-sm focus:border-[#970C13] focus:ring-[#970C13]">
+                                        class="w-28 rounded-xl border-slate-300 text-center shadow-sm focus:border-[#339DCB] focus:ring-[#339DCB]">
                                 </td>
                             </tr>
                         @endforeach
@@ -384,7 +384,7 @@
             </button>
 
             <button type="button" id="saveAssign"
-                class="rounded-xl bg-[#970C13] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#641D21]">
+                class="rounded-xl bg-gradient-to-tr from-sky-700 via-sky-600 to-cyan-500 px-6 py-3 text-sm font-bold text-white transition hover:to-cyan-400">
                 Add Province
             </button>
         </div>
@@ -1195,7 +1195,7 @@
 
                 saveAssignButton.className =
                     valid ?
-                    'bg-red-900 hover:bg-red-800 text-white px-6 py-2 rounded-xl' :
+                    'bg-gradient-to-tr from-sky-700 via-sky-600 to-cyan-500 text-white px-6 py-2 rounded-xl' :
                     'bg-gray-400 cursor-not-allowed text-white px-6 py-2 rounded-xl';
 
                 return valid;

@@ -134,45 +134,42 @@
         </button>
 
         <button type="button" onclick="window.print()"
-            class="inline-flex cursor-pointer items-center justify-center rounded-md border-0 bg-[#970C13] px-4 py-[9px] text-[13px] font-bold text-white hover:bg-[#7f0a10]">
+            class="inline-flex cursor-pointer items-center justify-center rounded-md border-0 bg-[#339DCB] px-4 py-[9px] text-[13px] font-bold text-white hover:bg-[#C4ECFE] hover:text-black">
             Print Report
         </button>
     </div>
 
     {{-- DOLE letterhead --}}
-    <div class="flex items-start justify-center gap-4 pl-24">
+   <div class="flex items-center justify-center pl-24">
         <img src="{{ asset('images/print/dole_logo.webp') }}" alt="DOLE Logo"
             class="max-h-[85px] w-[120px] object-contain" onerror="this.style.display='none'">
 
-        <div class="min-w-[460px] text-center">
-            <p class="m-0 text-[14px] font-normal">
+        <div class="min-w-[320px] text-center">
+            <p class="m-0 text-[10px] font-normal font-arial">
                 Republic of the Philippines
             </p>
 
-            <p class="mb-0 mt-1 text-[17px] font-extrabold">
+            <p class="mb-0 text-[11px] font-bold font-arial">
                 DEPARTMENT OF LABOR AND EMPLOYMENT
             </p>
 
-            <p class="mb-0 mt-[13px] text-[15px] font-bold">
+            <p class="mb-0 text-[10px] font-normal font-arial">
                 Regional Office No. 5
             </p>
 
-            <p class="mb-0 mt-[14px] text-[11px] italic">
-                DOLE RO5 Bldg., Doña Aurora St., Old Albay, Legazpi City
+            <p class="mb-0 text-[9px] italic font-arial">
+                DOLE RO5 Bldg., Doña Aurora St.,
+                Old Albay, Legazpi City
             </p>
 
-            <p class="mb-0 mt-[7px] text-[10px] italic">
+            <p class="mb-0 text-[9px] italic font-arial">
                 ORD: 0981-461-8788&nbsp;&nbsp;
                 TSSD: 0963-206-0008&nbsp;&nbsp;
                 IMSD: 0912-330-4751
             </p>
 
-            <p class="mb-0 mt-[7px] text-[13px] text-black underline">
+            <p class="mb-0 text-[9px] text-black underline font-arial">
                 ro5@dole.gov.ph
-            </p>
-
-            <p class="mb-0 mt-[7px] text-[11px] font-bold text-black">
-                {{ now()->format('F d, Y') }}
             </p>
         </div>
 
@@ -183,7 +180,14 @@
             class="max-h-[78px] w-[150px] object-contain" onerror="this.style.display='none'">
     </div>
 
-    <div class="py-10"></div>
+        <div class="flex justify-between my-3">
+        <div class=""></div>
+        <div class="">
+            <p class="mb-0 text-[9px] font-bold text-black">
+                {{ now()->format('F d, Y') }}
+            </p>
+        </div>
+    </div>
 
     {{-- Distribution table --}}
     <table
@@ -199,47 +203,47 @@
         print-exact">
         <thead>
             <tr>
-                <th rowspan="2" class="w-[11%] bg-[#641D21] text-left text-white">
+                <th rowspan="2" class="w-[11%] bg-[#339DCB] text-left text-white">
                     Province
                 </th>
 
-                <th rowspan="2" class="w-[9%] bg-[#641D21] text-white">
+                <th rowspan="2" class="w-[9%] bg-[#339DCB] text-white">
                     Delivery Date
                 </th>
 
-                <th rowspan="2" class="w-[17%] bg-[#641D21] text-left text-white">
+                <th rowspan="2" class="w-[17%] bg-[#339DCB] text-left text-white">
                     Place of Delivery
                 </th>
 
-                <th colspan="3" class="bg-[#641D21] text-white">
+                <th colspan="3" class="bg-[#339DCB] text-white">
                     Long Sleeves
                 </th>
 
-                <th rowspan="2" class="bg-[#641D21] text-white">
+                <th rowspan="2" class="bg-[#339DCB] text-white">
                     Bucket Hat
                 </th>
 
-                <th colspan="3" class="bg-[#641D21] text-white">
+                <th colspan="3" class="bg-[#339DCB] text-white">
                     Rubber Boots
                 </th>
 
-                <th rowspan="2" class="bg-[#641D21] text-white">
+                <th rowspan="2" class="bg-[#339DCB] text-white">
                     Gloves
                 </th>
 
-                <th rowspan="2" class="bg-[#641D21] text-white">
+                <th rowspan="2" class="bg-[#339DCB] text-white">
                     Mask
                 </th>
             </tr>
 
             <tr>
-                <th class="bg-[#970C13] text-white">M</th>
-                <th class="bg-[#970C13] text-white">L</th>
-                <th class="bg-[#970C13] text-white">Total</th>
+                <th class="bg-[#E9FFFF] text-black">M</th>
+                <th class="bg-[#E9FFFF] text-black">L</th>
+                <th class="bg-[#E9FFFF] text-black">Total</th>
 
-                <th class="bg-[#970C13] text-white">US9</th>
-                <th class="bg-[#970C13] text-white">US10</th>
-                <th class="bg-[#970C13] text-white">Total</th>
+                <th class="bg-[#E9FFFF] text-black">US9</th>
+                <th class="bg-[#E9FFFF] text-black">US10</th>
+                <th class="bg-[#E9FFFF] text-black">Total</th>
             </tr>
         </thead>
 
@@ -269,7 +273,7 @@
                     <td>{{ number_format($ppe['lsm']) }}</td>
                     <td>{{ number_format($ppe['lsl']) }}</td>
 
-                    <td class="bg-red-50 font-extrabold text-[#641D21] print-exact">
+                    <td class="bg-[#E9FFFF] font-extrabold text-[#641D21] print-exact">
                         {{ number_format($ppe['total_ls']) }}
                     </td>
 
@@ -277,7 +281,7 @@
                     <td>{{ number_format($ppe['us9']) }}</td>
                     <td>{{ number_format($ppe['us10']) }}</td>
 
-                    <td class="bg-red-50 font-extrabold text-[#641D21] print-exact">
+                    <td class="bg-[#E9FFFF] font-extrabold text-[#641D21] print-exact">
                         {{ number_format($ppe['total_boots']) }}
                     </td>
 
@@ -309,7 +313,7 @@
                         {{ number_format($totals['lsl']) }}
                     </td>
 
-                    <td class="bg-[#DF979B]/30 text-[#641D21] print-exact">
+                    <td class="bg-[#E9FFFF]/30 text-[#641D21] print-exact">
                         {{ number_format($totals['total_ls']) }}
                     </td>
 
@@ -325,7 +329,7 @@
                         {{ number_format($totals['us10']) }}
                     </td>
 
-                    <td class="bg-[#DF979B]/30 text-[#641D21] print-exact">
+                    <td class="bg-[#E9FFFF]/30 text-[#641D21] print-exact">
                         {{ number_format($totals['total_boots']) }}
                     </td>
 

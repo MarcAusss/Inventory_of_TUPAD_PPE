@@ -36,7 +36,7 @@
     ========================================================== --}}
     <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
-            <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#2D94BE]">
                 Procurement information
             </p>
 
@@ -60,7 +60,7 @@
 
                     <input type="text" id="po_number" name="po_number"
                         value="{{ old('po_number', $purchaseOrder->po_number) }}" placeholder="Enter PO number"
-                        class="w-full rounded-xl border-slate-300 focus:border-[#970C13] focus:ring-[#970C13]">
+                        class="w-full rounded-xl border-slate-300 focus:border-[#339DCB] focus:ring-[#339DCB]">
 
                     @error('po_number')
                         <p class="mt-1 text-sm font-medium text-red-600">
@@ -77,7 +77,7 @@
 
                     <input type="date" id="po_date" name="po_date"
                         value="{{ old('po_date', optional($purchaseOrder->po_date)->format('Y-m-d') ?? $purchaseOrder->po_date) }}"
-                        class="w-full rounded-xl border-slate-300 focus:border-[#970C13] focus:ring-[#970C13]">
+                        class="w-full rounded-xl border-slate-300 focus:border-[#339DCB] focus:ring-[#339DCB]">
 
                     @error('po_date')
                         <p class="mt-1 text-sm font-medium text-red-600">
@@ -94,7 +94,7 @@
 
                     <input type="text" id="nefa_number" name="nefa_number"
                         value="{{ old('nefa_number', $purchaseOrder->nefa_number) }}" placeholder="Enter NEFA number"
-                        class="w-full rounded-xl border-slate-300 focus:border-[#970C13] focus:ring-[#970C13]">
+                        class="w-full rounded-xl border-slate-300 focus:border-[#339DCB] focus:ring-[#339DCB]">
 
                     @error('nefa_number')
                         <p class="mt-1 text-sm font-medium text-red-600">
@@ -113,7 +113,7 @@
                     </label>
 
                     <select id="supplier_id" name="supplier_id"
-                        class="w-full rounded-xl border-slate-300 focus:border-[#970C13] focus:ring-[#970C13]">
+                        class="w-full rounded-xl border-slate-300 focus:border-[#339DCB] focus:ring-[#339DCB]">
                         <option value="">Select supplier</option>
 
                         @foreach ($suppliers as $supplier)
@@ -137,7 +137,7 @@
                     </label>
 
                     <div id="grandTotal"
-                        class="flex min-h-11 items-center justify-end rounded-xl border border-slate-300 bg-slate-100 px-4 text-xl font-bold text-[#970C13]">
+                        class="flex min-h-11 items-center justify-end rounded-xl border border-[#B7D6E6] bg-[#F3FAFD] px-4 text-xl font-bold text-[#143A52]">
                         ₱{{ number_format(old('total_amount', $purchaseOrder->total_amount ?? 0), 2) }}
                     </div>
 
@@ -154,7 +154,7 @@
                 </label>
 
                 <textarea id="remarks" name="remarks" rows="4" placeholder="Enter optional Purchase Order remarks..."
-                    class="w-full rounded-xl border-slate-300 focus:border-[#970C13] focus:ring-[#970C13]">{{ old('remarks', $purchaseOrder->remarks) }}</textarea>
+                    class="w-full rounded-xl border-slate-300 focus:border-[#339DCB] focus:ring-[#339DCB]">{{ old('remarks', $purchaseOrder->remarks) }}</textarea>
 
                 @error('remarks')
                     <p class="mt-1 text-sm font-medium text-red-600">
@@ -170,7 +170,7 @@
     ========================================================== --}}
     <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
-            <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#2D94BE]">
                 Ordered inventory
             </p>
 
@@ -220,7 +220,7 @@
                             <td class="px-6 py-5 text-center">
                                 @if ($itemLabel)
                                     <span
-                                        class="inline-flex rounded-full bg-[#DF979B]/20 px-3 py-1 text-xs font-bold text-[#970C13] ring-1 ring-[#DF979B]">
+                                        class="inline-flex rounded-full bg-[#B7D6E6]/35 px-3 py-1 text-xs font-bold text-[#2D94BE] ring-1 ring-[#90C4DD]">
                                         {{ $itemLabel }}
                                     </span>
 
@@ -235,7 +235,7 @@
                                 <input type="number" min="0" step="1"
                                     name="items[{{ $index }}][quantity]"
                                     value="{{ old("items.$index.quantity", $poItem->quantity ?? 0) }}"
-                                    class="qty w-28 rounded-xl border-slate-300 text-center font-semibold focus:border-[#970C13] focus:ring-[#970C13]">
+                                    class="qty w-28 rounded-xl border-slate-300 text-center font-semibold focus:border-[#339DCB] focus:ring-[#339DCB]">
 
                                 @error("items.$index.quantity")
                                     <p class="mt-1 text-xs font-medium text-red-600">
@@ -254,7 +254,7 @@
                                     <input type="number" min="0" step="0.01"
                                         name="items[{{ $index }}][unit_cost]"
                                         value="{{ old("items.$index.unit_cost", $poItem->unit_cost ?? 0) }}"
-                                        class="cost w-full rounded-xl border-slate-300 pl-8 text-right font-semibold focus:border-[#970C13] focus:ring-[#970C13]">
+                                        class="cost w-full rounded-xl border-slate-300 pl-8 text-right font-semibold focus:border-[#339DCB] focus:ring-[#339DCB]">
                                 </div>
 
                                 @error("items.$index.unit_cost")
@@ -264,7 +264,7 @@
                                 @enderror
                             </td>
 
-                            <td class="px-6 py-5 text-right text-base font-bold text-[#970C13]">
+                            <td class="px-6 py-5 text-right text-base font-bold text-[#2D94BE]">
                                 ₱<span class="line-total">0.00</span>
                             </td>
                         </tr>
@@ -284,7 +284,7 @@
                             Grand Total
                         </td>
 
-                        <td class="px-6 py-5 text-right text-2xl font-bold text-[#970C13]">
+                        <td class="px-6 py-5 text-right text-2xl font-bold text-[#2D94BE]">
                             ₱<span id="grandTotalDisplay">0.00</span>
                         </td>
                     </tr>
@@ -298,7 +298,7 @@
     ========================================================== --}}
     <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
-            <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#2D94BE]">
                 File attachment
             </p>
 
@@ -334,7 +334,7 @@
 
             <label for="document"
                 class="group relative flex min-h-56 w-full cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 text-center transition hover:border-[#970C13] hover:bg-[#DF979B]/10">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-[#970C13]" fill="none"
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-[#2D94BE]" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
                         d="M12 16V4m0 0L7 9m5-5 5 5M5 20h14" />
@@ -348,7 +348,7 @@
                     PDF, DOC, or DOCX — maximum file size of 10 MB
                 </p>
 
-                <p id="fileName" class="mt-4 text-sm font-bold text-[#970C13]"></p>
+                <p id="fileName" class="mt-4 text-sm font-bold text-[#2D94BE]"></p>
 
                 <input id="document" type="file" name="document" accept=".pdf,.doc,.docx" class="hidden">
             </label>
@@ -372,7 +372,7 @@
         </a>
 
         <button type="submit"
-            class="inline-flex items-center justify-center rounded-xl bg-[#970C13] px-8 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#641D21]">
+            class="inline-flex items-center justify-center rounded-xl bg-[#339DCB] px-8 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#2D94BE]">
             {{ $editing ? 'Update Purchase Order' : 'Save Purchase Order' }}
         </button>
     </section>

@@ -21,7 +21,7 @@
             </label>
             <input type="{{ $type }}" id="{{ $name }}" name="{{ $name }}"
                 value="{{ old($name, $supplier->{$name} ?? '') }}" @required($required)
-                class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#970C13] focus:ring-[#970C13]">
+                class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#339DCB] focus:ring-[#339DCB]">
             @error($name)
                 <p class="mt-2 text-sm font-medium text-red-600">{{ $message }}</p>
             @enderror
@@ -33,7 +33,7 @@
             class="flex w-full cursor-pointer items-center gap-4 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4">
             <input type="checkbox" name="is_active" value="1"
                 {{ old('is_active', $supplier->is_active ?? true) ? 'checked' : '' }}
-                class="rounded border-slate-300 text-[#970C13] focus:ring-[#970C13]">
+                class="rounded border-slate-300 text-[#339DCB] focus:ring-[#339DCB]">
             <span>
                 <span class="block text-sm font-bold text-slate-900">Active Supplier</span>
                 <span class="mt-1 block text-xs text-slate-500">Available for Purchase Order selection.</span>
@@ -45,7 +45,7 @@
         <label for="address" class="mb-2 block text-sm font-bold text-slate-700">Address <span
                 class="text-red-600">*</span></label>
         <textarea id="address" name="address" rows="3" required
-            class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#970C13] focus:ring-[#970C13]">{{ old('address', $supplier->address ?? '') }}</textarea>
+            class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#339DCB] focus:ring-[#339DCB]">{{ old('address', $supplier->address ?? '') }}</textarea>
         @error('address')
             <p class="mt-2 text-sm font-medium text-red-600">{{ $message }}</p>
         @enderror
@@ -54,7 +54,7 @@
     <div class="lg:col-span-2">
         <label for="remarks" class="mb-2 block text-sm font-bold text-slate-700">Remarks</label>
         <textarea id="remarks" name="remarks" rows="3"
-            class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#970C13] focus:ring-[#970C13]">{{ old('remarks', $supplier->remarks ?? '') }}</textarea>
+            class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#339DCB] focus:ring-[#339DCB]">{{ old('remarks', $supplier->remarks ?? '') }}</textarea>
         @error('remarks')
             <p class="mt-2 text-sm font-medium text-red-600">{{ $message }}</p>
         @enderror

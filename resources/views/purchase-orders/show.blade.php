@@ -1,12 +1,12 @@
 <x-po_dashboard_layout title="Purchase Order Details">
     <div class="mx-auto max-w-[1900px] space-y-6">
         <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <div class="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-[#641D21] via-[#970C13] to-[#ED1B24]"></div>
+            <div class="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-[#143A52] via-[#2D94BE] to-[#339DCB]"></div>
             <div class="flex flex-col gap-6 px-6 py-7 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                     <div class="flex flex-wrap items-center gap-3">
                         <span
-                            class="rounded-full bg-[#DF979B]/20 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#970C13] ring-1 ring-[#DF979B]">Supply
+                            class="rounded-full bg-[#B7D6E6]/35 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#143A52] ring-1 ring-[#90C4DD]">Supply
                             Unit</span>
                         <span
                             class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">Purchase
@@ -22,7 +22,7 @@
                         class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">Back
                         to Purchase Orders</a>
                     <a href="{{ route('supply.purchase-orders.edit', $purchaseOrder) }}"
-                        class="inline-flex items-center justify-center rounded-xl bg-[#970C13] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#641D21]">Edit
+                        class="inline-flex items-center justify-center rounded-xl bg-[#339DCB] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#2D94BE]">Edit
                         Purchase Order</a>
                 </div>
             </div>
@@ -31,7 +31,7 @@
         <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <p class="text-xs font-bold uppercase tracking-wider text-slate-400">PO Number</p>
-                <p class="mt-3 text-xl font-bold text-[#641D21]">{{ $purchaseOrder->po_number }}</p>
+                <p class="mt-3 text-xl font-bold text-[#143A52]">{{ $purchaseOrder->po_number }}</p>
             </article>
             <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <p class="text-xs font-bold uppercase tracking-wider text-slate-400">PO Date</p>
@@ -40,19 +40,19 @@
             </article>
             <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Ordered PPE Quantity</p>
-                <p class="mt-3 text-3xl font-bold text-[#970C13]">
+                <p class="mt-3 text-3xl font-bold text-[#2D94BE]">
                     {{ number_format($purchaseOrder->items->sum('quantity')) }}</p>
             </article>
             <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Grand Total</p>
-                <p class="mt-3 text-2xl font-bold text-[#ED1B24]">₱{{ number_format($purchaseOrder->total_amount, 2) }}
+                <p class="mt-3 text-2xl font-bold text-[#339DCB]">₱{{ number_format($purchaseOrder->total_amount, 2) }}
                 </p>
             </article>
         </section>
 
         <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
             <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
-                <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">Procurement information</p>
+                <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#2D94BE]">Procurement information</p>
                 <h2 class="mt-1 text-lg font-bold text-slate-950">Purchase Order Information</h2>
                 <p class="mt-1 text-sm text-slate-500">Main supplier and reference information recorded for this order.
                 </p>
@@ -66,7 +66,7 @@
                 @endforeach
                 <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
                     <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Grand Total</p>
-                    <p class="mt-2 text-2xl font-bold text-[#970C13]">
+                    <p class="mt-2 text-2xl font-bold text-[#2D94BE]">
                         ₱{{ number_format($purchaseOrder->total_amount, 2) }}</p>
                 </div>
                 <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
@@ -79,7 +79,7 @@
 
         <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
             <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
-                <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">Ordered inventory</p>
+                <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#2D94BE]">Ordered inventory</p>
                 <h2 class="mt-1 text-lg font-bold text-slate-950">PPE Items</h2>
                 <p class="mt-1 text-sm text-slate-500">Complete quantity and pricing breakdown for every PPE item in
                     this Purchase Order.</p>
@@ -105,7 +105,7 @@
                                 <td class="px-6 py-5 text-center">
                                     @if ($poItem->item?->label)
                                         <span
-                                        class="inline-flex rounded-full bg-[#DF979B]/20 px-3 py-1 text-xs font-bold text-[#970C13] ring-1 ring-[#DF979B]">{{ $poItem->item->label }}</span>@else<span
+                                        class="inline-flex rounded-full bg-[#2D94BE]/20 px-3 py-1 text-xs font-bold text-[#2D94BE] ring-1 ring-[#2D94BE]">{{ $poItem->item->label }}</span>@else<span
                                             class="text-slate-400">—</span>
                                     @endif
                                 </td>
@@ -113,7 +113,7 @@
                                     {{ number_format($poItem->quantity) }}</td>
                                 <td class="px-6 py-5 text-right text-sm font-semibold text-slate-700">
                                     ₱{{ number_format($poItem->unit_cost, 2) }}</td>
-                                <td class="px-6 py-5 text-right text-base font-bold text-[#970C13]">
+                                <td class="px-6 py-5 text-right text-base font-bold text-[#2D94BE]">
                                     ₱{{ number_format($poItem->quantity * $poItem->unit_cost, 2) }}</td>
                             </tr>
                         @empty
@@ -128,7 +128,7 @@
                             <td colspan="5"
                                 class="px-6 py-5 text-right text-sm font-bold uppercase tracking-wide text-slate-700">
                                 Grand Total</td>
-                            <td class="px-6 py-5 text-right text-2xl font-bold text-[#970C13]">
+                            <td class="px-6 py-5 text-right text-2xl font-bold text-[#2D94BE]">
                                 ₱{{ number_format($purchaseOrder->total_amount, 2) }}</td>
                         </tr>
                     </tfoot>
@@ -138,7 +138,7 @@
 
         <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
             <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
-                <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">File attachment</p>
+                <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#2D94BE]">File attachment</p>
                 <h2 class="mt-1 text-lg font-bold text-slate-950">Supporting Document</h2>
                 <p class="mt-1 text-sm text-slate-500">Open the uploaded Purchase Order document for verification and
                     reference.</p>
@@ -151,7 +151,7 @@
                             <p class="font-bold text-slate-900">Purchase Order Document</p>
                             <p class="mt-1 text-sm text-slate-500">The supporting document is available for viewing.</p>
                         </div><a href="{{ Storage::url($purchaseOrder->document) }}" target="_blank" rel="noopener"
-                            class="inline-flex items-center justify-center rounded-xl bg-[#970C13] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#641D21]">View
+                            class="inline-flex items-center justify-center rounded-xl bg-[#339DCB] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#2D94BE]">View
                             Document</a>
                     </div>
                 @else

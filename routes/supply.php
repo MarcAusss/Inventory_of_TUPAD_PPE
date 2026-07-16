@@ -7,6 +7,7 @@ use App\Http\Controllers\Supply\PurchaseOrderController;
 use App\Http\Controllers\Supply\SupplierController;
 use Illuminate\Support\Facades\Route;
 
+
 Route::middleware([
     'auth',
     'verified',
@@ -33,6 +34,16 @@ Route::middleware([
         Route::resource(
             'purchase-orders',
             PurchaseOrderController::class
+        );
+
+        Route::patch(
+            '/items/{item}/toggle-status',
+            [ItemController::class, 'toggleStatus']
+        )->name('items.toggle-status');
+
+        Route::resource(
+            'items',
+            ItemController::class
         );
 
         /*
