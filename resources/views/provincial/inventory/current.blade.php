@@ -37,8 +37,8 @@
         >
             <div
                 class="absolute inset-y-0 left-0 w-2
-                       bg-gradient-to-b from-[#641D21]
-                       via-[#970C13] to-[#ED1B24]"
+                       bg-gradient-to-b from-[#075985]
+                       via-[#0284C7] to-[#38BDF8]"
             ></div>
 
             <div
@@ -49,11 +49,11 @@
                 <div>
                     <div class="flex flex-wrap items-center gap-3">
                         <span
-                            class="rounded-full bg-[#DF979B]/20
+                            class="rounded-full bg-[#7DD3FC]/20
                                    px-3 py-1 text-xs font-bold
                                    uppercase tracking-[0.16em]
-                                   text-[#970C13]
-                                   ring-1 ring-[#DF979B]"
+                                   text-[#0284C7]
+                                   ring-1 ring-[#7DD3FC]"
                         >
                             Provincial Office
                         </span>
@@ -105,9 +105,9 @@
                             'provincial.inventory-ledger.index'
                         ) }}"
                         class="inline-flex items-center justify-center
-                               rounded-xl bg-[#970C13] px-5 py-3
+                               rounded-xl bg-[#0284C7] px-5 py-3
                                text-sm font-bold text-white
-                               transition hover:bg-[#641D21]"
+                               transition hover:bg-[#075985]"
                     >
                         Inventory Movement History
                     </a>
@@ -145,17 +145,17 @@
                         value="{{ $search }}"
                         placeholder="Search PPE, Call-Off, PO, supplier, or Delivery Receipt..."
                         class="w-full rounded-xl border-slate-300
-                               focus:border-[#970C13]
-                               focus:ring-[#970C13]"
+                               focus:border-[#0284C7]
+                               focus:ring-[#0284C7]"
                     >
                 </div>
 
                 <button
                     type="submit"
                     class="inline-flex items-center justify-center
-                           rounded-xl bg-[#970C13] px-6 py-3
+                           rounded-xl bg-[#0284C7] px-6 py-3
                            text-sm font-bold text-white
-                           transition hover:bg-[#641D21]"
+                           transition hover:bg-[#075985]"
                 >
                     Search
                 </button>
@@ -196,7 +196,7 @@
                 </p>
 
                 <p
-                    class="mt-3 text-3xl font-bold text-[#641D21]"
+                    class="mt-3 text-3xl font-bold text-[#075985]"
                 >
                     {{ number_format($totalQuantity ?? 0) }}
                 </p>
@@ -218,7 +218,7 @@
                 </p>
 
                 <p
-                    class="mt-3 text-3xl font-bold text-[#970C13]"
+                    class="mt-3 text-3xl font-bold text-[#0284C7]"
                 >
                     {{ number_format($availableItemTypes ?? 0) }}
                 </p>
@@ -240,7 +240,7 @@
                 </p>
 
                 <p
-                    class="mt-3 text-3xl font-bold text-[#C51017]"
+                    class="mt-3 text-3xl font-bold text-[#0EA5E9]"
                 >
                     {{ number_format(
                         $callOffAllocations->total()
@@ -264,7 +264,7 @@
                 </p>
 
                 <p
-                    class="mt-3 text-3xl font-bold text-[#ED1B24]"
+                    class="mt-3 text-3xl font-bold text-[#38BDF8]"
                 >
                     {{ number_format(
                         $recentReceipts->count()
@@ -290,7 +290,7 @@
             >
                 <p
                     class="text-xs font-bold uppercase
-                           tracking-[0.16em] text-[#970C13]"
+                           tracking-[0.16em] text-[#0284C7]"
                 >
                     Provincial stock summary
                 </p>
@@ -322,7 +322,7 @@
                     >
                         <div
                             class="mb-4 h-1 w-10 rounded-full
-                                   bg-[#970C13] transition-all
+                                   bg-[#0284C7] transition-all
                                    group-hover:w-16"
                         ></div>
 
@@ -359,7 +359,7 @@
             >
                 <p
                     class="text-xs font-bold uppercase
-                           tracking-[0.16em] text-[#970C13]"
+                           tracking-[0.16em] text-[#0284C7]"
                 >
                     Available provincial stock
                 </p>
@@ -448,7 +448,7 @@
                                 <td
                                     class="px-6 py-4 text-center
                                            text-lg font-bold
-                                           text-[#641D21]"
+                                           text-[#075985]"
                                 >
                                     {{ number_format(
                                         $inventory->quantity
@@ -517,7 +517,7 @@
             >
                 <p
                     class="text-xs font-bold uppercase
-                           tracking-[0.16em] text-[#970C13]"
+                           tracking-[0.16em] text-[#0284C7]"
                 >
                     Call-Off receiving summary
                 </p>
@@ -604,8 +604,8 @@
                                 colspan="7"
                                 class="border-b border-r
                                        border-slate-300
-                                       bg-[#DF979B] px-4 py-4
-                                       text-center text-[#641D21]"
+                                       bg-[#7DD3FC] px-4 py-4
+                                       text-center text-[#075985]"
                             >
                                 Allocation
                             </th>
@@ -614,7 +614,7 @@
                                 colspan="7"
                                 class="border-b border-r
                                        border-slate-300
-                                       bg-[#ED1B24] px-4 py-4
+                                       bg-[#38BDF8] px-4 py-4
                                        text-center text-white"
                             >
                                 Actual Received
@@ -623,7 +623,7 @@
                             <th
                                 colspan="7"
                                 class="border-b border-slate-300
-                                       bg-[#641D21] px-4 py-4
+                                       bg-[#075985] px-4 py-4
                                        text-center text-white"
                             >
                                 Remaining
@@ -645,9 +645,9 @@
                                     colspan="{{ $span }}"
                                     class="border-b border-r
                                            border-slate-300
-                                           bg-[#DF979B]/60
+                                           bg-[#7DD3FC]/60
                                            px-3 py-3 text-center
-                                           text-[#641D21]"
+                                           text-[#075985]"
                                 >
                                     {{ $group }}
                                 </th>
@@ -664,7 +664,7 @@
                                     colspan="{{ $span }}"
                                     class="border-b border-r
                                            border-slate-300
-                                           bg-[#C51017]
+                                           bg-[#0EA5E9]
                                            px-3 py-3 text-center
                                            text-white"
                                 >
@@ -683,7 +683,7 @@
                                     colspan="{{ $span }}"
                                     class="border-b border-r
                                            border-slate-300
-                                           bg-[#970C13]
+                                           bg-[#0284C7]
                                            px-3 py-3 text-center
                                            text-white"
                                 >
@@ -708,9 +708,9 @@
                                 <th
                                     class="min-w-20 border-b border-r
                                            border-slate-300
-                                           bg-[#DF979B]/40
+                                           bg-[#7DD3FC]/40
                                            px-3 py-3 text-center
-                                           text-[#641D21]"
+                                           text-[#075985]"
                                 >
                                     {{ $subLabel }}
                                 </th>
@@ -728,7 +728,7 @@
                                 <th
                                     class="min-w-20 border-b border-r
                                            border-slate-300
-                                           bg-[#ED1B24]
+                                           bg-[#38BDF8]
                                            px-3 py-3 text-center
                                            text-white"
                                 >
@@ -748,7 +748,7 @@
                                 <th
                                     class="min-w-20 border-b border-r
                                            border-slate-300
-                                           bg-[#641D21]
+                                           bg-[#075985]
                                            px-3 py-3 text-center
                                            text-white"
                                 >
@@ -811,7 +811,7 @@
 
                             <tr
                                 class="group transition
-                                       hover:bg-[#DF979B]/10"
+                                       hover:bg-[#7DD3FC]/10"
                             >
                                 <td
                                     class="sticky left-0 z-10
@@ -819,7 +819,7 @@
                                            border-slate-200 bg-white
                                            px-4 py-4 text-center
                                            text-sm text-slate-500
-                                           group-hover:bg-[#FFF7F7]"
+                                           group-hover:bg-[#F0F9FF]"
                                 >
                                     {{
                                         $callOffAllocations->firstItem()
@@ -832,8 +832,8 @@
                                            border-b border-r
                                            border-slate-200 bg-white
                                            px-4 py-4 font-semibold
-                                           text-[#641D21]
-                                           group-hover:bg-[#FFF7F7]"
+                                           text-[#075985]
+                                           group-hover:bg-[#F0F9FF]"
                                 >
                                     <a
                                         href="{{ route(
@@ -907,7 +907,7 @@
                                     <td
                                         class="border-b border-r
                                                border-slate-200
-                                               bg-[#DF979B]/5
+                                               bg-[#7DD3FC]/5
                                                px-3 py-4 text-center
                                                font-semibold
                                                text-slate-800"
@@ -922,10 +922,10 @@
                                     <td
                                         class="border-b border-r
                                                border-slate-200
-                                               bg-[#ED1B24]/5
+                                               bg-[#38BDF8]/5
                                                px-3 py-4 text-center
                                                font-bold
-                                               text-[#970C13]"
+                                               text-[#0284C7]"
                                     >
                                         {{ number_format(
                                             $actualData[$key] ?? 0
@@ -972,7 +972,7 @@
                                             <summary
                                                 class="cursor-pointer
                                                        list-none font-bold
-                                                       text-[#970C13]"
+                                                       text-[#0284C7]"
                                             >
                                                 View
                                                 {{
@@ -1071,7 +1071,7 @@
                                                                 <td
                                                                     class="px-5 py-4
                                                                            font-semibold
-                                                                           text-[#641D21]"
+                                                                           text-[#075985]"
                                                                 >
                                                                     {{
                                                                         $callOff
@@ -1232,7 +1232,7 @@
             >
                 <p
                     class="text-xs font-bold uppercase
-                           tracking-[0.16em] text-[#970C13]"
+                           tracking-[0.16em] text-[#0284C7]"
                 >
                     Latest stock-in transactions
                 </p>
@@ -1329,7 +1329,7 @@
 
                                 <td
                                     class="px-6 py-4 font-semibold
-                                           text-[#641D21]"
+                                           text-[#075985]"
                                 >
                                     {{
                                         $recentCallOff

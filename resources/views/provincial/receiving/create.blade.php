@@ -44,8 +44,8 @@
         >
             <div
                 class="absolute inset-y-0 left-0 w-2
-                       bg-gradient-to-b from-[#641D21]
-                       via-[#970C13] to-[#ED1B24]"
+                       bg-gradient-to-b from-[#075985]
+                       via-[#0284C7] to-[#38BDF8]"
             ></div>
 
             <div
@@ -57,11 +57,11 @@
                     <div class="flex flex-wrap items-center gap-3">
 
                         <span
-                            class="rounded-full bg-[#DF979B]/20
+                            class="rounded-full bg-[#7DD3FC]/20
                                    px-3 py-1 text-xs font-bold
                                    uppercase tracking-wider
-                                   text-[#970C13]
-                                   ring-1 ring-[#DF979B]"
+                                   text-[#0284C7]
+                                   ring-1 ring-[#7DD3FC]"
                         >
                             Provincial Receiving
                         </span>
@@ -177,7 +177,7 @@
 
                 <p
                     class="mt-3 text-xl font-bold
-                           text-[#641D21]"
+                           text-[#075985]"
                 >
                     {{ $callOff?->call_off_number ?? 'Not available' }}
                 </p>
@@ -282,13 +282,13 @@
                        border-slate-200 bg-white shadow-sm"
             >
                 <div
-                    class="bg-[#970C13] px-6 py-5 sm:px-7"
+                    class="bg-[#0284C7] px-6 py-5 sm:px-7"
                 >
                     <h2 class="text-xl font-bold text-white">
                         Delivery Receipt Information
                     </h2>
 
-                    <p class="mt-1 text-sm text-red-100">
+                    <p class="mt-1 text-sm text-sky-100">
                         Enter the information from the current physical
                         delivery.
                     </p>
@@ -317,8 +317,8 @@
                             autocomplete="off"
                             placeholder="Example: DR-2026-001"
                             class="w-full rounded-xl border-slate-300
-                                   uppercase focus:border-[#970C13]
-                                   focus:ring-[#970C13]"
+                                   uppercase focus:border-[#0284C7]
+                                   focus:ring-[#0284C7]"
                         >
 
                         @error('dr_number')
@@ -350,8 +350,8 @@
                             ) }}"
                             required
                             class="w-full rounded-xl border-slate-300
-                                   focus:border-[#970C13]
-                                   focus:ring-[#970C13]"
+                                   focus:border-[#0284C7]
+                                   focus:ring-[#0284C7]"
                         >
 
                         @error('delivery_date')
@@ -385,8 +385,8 @@
                             maxlength="255"
                             placeholder="Full name of the receiver"
                             class="w-full rounded-xl border-slate-300
-                                   focus:border-[#970C13]
-                                   focus:ring-[#970C13]"
+                                   focus:border-[#0284C7]
+                                   focus:ring-[#0284C7]"
                         >
 
                         @error('physical_receiver_name')
@@ -449,8 +449,8 @@
                             maxlength="5000"
                             placeholder="Optional discrepancy, shortage, condition, or delivery remarks."
                             class="w-full rounded-xl border-slate-300
-                                   focus:border-[#970C13]
-                                   focus:ring-[#970C13]"
+                                   focus:border-[#0284C7]
+                                   focus:ring-[#0284C7]"
                         >{{ old('remarks') }}</textarea>
 
                         @error('remarks')
@@ -661,8 +661,8 @@
                                             class="w-28 rounded-lg
                                                    border-slate-300
                                                    text-center
-                                                   focus:border-[#970C13]
-                                                   focus:ring-[#970C13]
+                                                   focus:border-[#0284C7]
+                                                   focus:ring-[#0284C7]
                                                    read-only:cursor-not-allowed
                                                    read-only:bg-slate-100
                                                    read-only:text-slate-400"
@@ -723,7 +723,7 @@
                                 <td
                                     class="px-5 py-4 text-center
                                            text-lg font-bold
-                                           text-[#970C13]"
+                                           text-[#0284C7]"
                                 >
                                     <span id="receivingNowTotalFooter">
                                         0
@@ -923,9 +923,9 @@
                     id="submitDeliveryReceiptButton"
                     disabled
                     class="inline-flex items-center justify-center
-                           rounded-xl bg-[#970C13] px-7 py-3
+                           rounded-xl bg-[#0284C7] px-7 py-3
                            font-bold text-white transition
-                           hover:bg-[#641D21]
+                           hover:bg-[#075985]
                            disabled:cursor-not-allowed
                            disabled:opacity-50"
                 >

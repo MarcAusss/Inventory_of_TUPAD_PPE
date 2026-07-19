@@ -79,8 +79,8 @@
                    border border-slate-200 bg-white shadow-sm">
             <div
                 class="absolute inset-y-0 left-0 w-2
-                       bg-gradient-to-b from-[#641D21]
-                       via-[#970C13] to-[#ED1B24]">
+                       bg-gradient-to-b from-[#075985]
+                       via-[#0284C7] to-[#38BDF8]">
             </div>
 
             <div
@@ -90,11 +90,11 @@
                 <div>
                     <div class="flex flex-wrap items-center gap-3">
                         <span
-                            class="rounded-full bg-[#DF979B]/20
+                            class="rounded-full bg-[#7DD3FC]/20
                                    px-3 py-1 text-xs font-bold
                                    uppercase tracking-[0.16em]
-                                   text-[#970C13]
-                                   ring-1 ring-[#DF979B]">
+                                   text-[#0284C7]
+                                   ring-1 ring-[#7DD3FC]">
                             Provincial Office
                         </span>
 
@@ -130,7 +130,7 @@
                     </p>
 
                     <p class="mt-1 text-2xl font-bold
-                               text-[#641D21]">
+                               text-[#075985]">
                         {{ $year }}
                     </p>
                 </div>
@@ -170,7 +170,7 @@
                        hover:-translate-y-1 hover:shadow-md">
                 <div
                     class="mb-4 h-1 w-10 rounded-full
-                           bg-[#641D21] transition-all
+                           bg-[#075985] transition-all
                            group-hover:w-16">
                 </div>
 
@@ -196,7 +196,7 @@
                        hover:-translate-y-1 hover:shadow-md">
                 <div
                     class="mb-4 h-1 w-10 rounded-full
-                           bg-[#970C13] transition-all
+                           bg-[#0284C7] transition-all
                            group-hover:w-16">
                 </div>
 
@@ -222,7 +222,7 @@
                        hover:-translate-y-1 hover:shadow-md">
                 <div
                     class="mb-4 h-1 w-10 rounded-full
-                           bg-[#C51017] transition-all
+                           bg-[#0EA5E9] transition-all
                            group-hover:w-16">
                 </div>
 
@@ -248,7 +248,7 @@
                        hover:-translate-y-1 hover:shadow-md">
                 <div
                     class="mb-4 h-1 w-10 rounded-full
-                           bg-[#ED1B24] transition-all
+                           bg-[#38BDF8] transition-all
                            group-hover:w-16">
                 </div>
 
@@ -258,7 +258,7 @@
                 </p>
 
                 <p class="mt-3 text-3xl font-bold
-                           text-[#C51017]">
+                           text-[#0EA5E9]">
                     {{ number_format($summary['actual_total'] ?? 0) }}
                 </p>
 
@@ -274,7 +274,7 @@
                        hover:-translate-y-1 hover:shadow-md">
                 <div
                     class="mb-4 h-1 w-10 rounded-full
-                           bg-[#DF979B] transition-all
+                           bg-[#7DD3FC] transition-all
                            group-hover:w-16">
                 </div>
 
@@ -284,7 +284,7 @@
                 </p>
 
                 <p class="mt-3 text-3xl font-bold
-                           text-[#641D21]">
+                           text-[#075985]">
                     {{ number_format($summary['ending_total'] ?? 0) }}
                 </p>
 
@@ -313,8 +313,8 @@
 
                     <select id="delivery_receipt_id" name="delivery_receipt_id" required
                         class="w-full rounded-xl border-slate-300
-                            focus:border-[#970C13]
-                            focus:ring-[#970C13]">
+                            focus:border-[#0284C7]
+                            focus:ring-[#0284C7]">
                         <option value="">
                             Select a Delivery Receipt
                         </option>
@@ -356,8 +356,8 @@
 
                     <select id="year" name="year"
                         class="w-full rounded-xl border-slate-300
-                            focus:border-[#970C13]
-                            focus:ring-[#970C13]">
+                            focus:border-[#0284C7]
+                            focus:ring-[#0284C7]">
                         @foreach ($availableYears as $availableYear)
                             <option value="{{ $availableYear }}" @selected($year === (int) $availableYear)>
                                 {{ $availableYear }}
@@ -370,10 +370,10 @@
                 <div class="flex flex-wrap items-end gap-2
            xl:col-span-3">
                     <button type="submit"
-                        class="flex-1 rounded-xl bg-[#970C13]
+                        class="flex-1 rounded-xl bg-[#0284C7]
                px-5 py-2.5 text-sm font-bold
                text-white transition
-               hover:bg-[#641D21]">
+               hover:bg-[#075985]">
                         Load Ledger
                     </button>
 
@@ -421,10 +421,10 @@
                     </p>
                 </article>
 
-                <article class="rounded-2xl border border-[#DF979B]
-                       bg-[#DF979B]/10 p-5">
+                <article class="rounded-2xl border border-[#7DD3FC]
+                       bg-[#7DD3FC]/10 p-5">
                     <p class="text-xs font-bold uppercase
-                           tracking-wider text-[#970C13]">
+                           tracking-wider text-[#0284C7]">
                         Actual Distribution
                     </p>
 
@@ -461,7 +461,7 @@
                     <div>
                         <p
                             class="text-xs font-bold uppercase
-                               tracking-[0.16em] text-[#970C13]">
+                               tracking-[0.16em] text-[#0284C7]">
                             Call-Off Project Transactions
                         </p>
 
@@ -515,13 +515,13 @@
                                 MAIN HEADER
                             ====================================== --}}
                                 <tr
-                                    class="border-b border-[#641D21]
-                                       bg-[#641D21] text-white">
+                                    class="border-b border-[#075985]
+                                       bg-[#075985] text-white">
                                     <th rowspan="3"
                                         class="sticky left-0 z-30
                                            w-[70px] min-w-[70px]
                                            border-r border-white/20
-                                           bg-[#641D21]
+                                           bg-[#075985]
                                            px-3 py-4 text-center">
                                         No.
                                     </th>
@@ -530,7 +530,7 @@
                                         class="sticky left-[70px] z-30
                                            w-[170px] min-w-[170px]
                                            border-r border-white/20
-                                           bg-[#641D21]
+                                           bg-[#075985]
                                            px-4 py-4 text-left">
                                         Call-Off Number
                                     </th>
@@ -586,7 +586,7 @@
 
                                     <th colspan="7"
                                         class="border-r border-white/20
-                                           bg-[#970C13]
+                                           bg-[#0284C7]
                                            px-4 py-4 text-center
                                            text-sm font-bold uppercase
                                            tracking-wider">
@@ -595,7 +595,7 @@
 
                                     <th colspan="7"
                                         class="border-r border-white/20
-                                           bg-[#C51017]
+                                           bg-[#0EA5E9]
                                            px-4 py-4 text-center
                                            text-sm font-bold uppercase
                                            tracking-wider">
@@ -603,7 +603,7 @@
                                     </th>
 
                                     <th colspan="7"
-                                        class="bg-[#641D21]
+                                        class="bg-[#075985]
                                            px-4 py-4 text-center
                                            text-sm font-bold uppercase
                                            tracking-wider">
@@ -616,7 +616,7 @@
                             ====================================== --}}
                                 <tr
                                     class="border-b border-white/20
-                                       bg-[#970C13] text-white">
+                                       bg-[#0284C7] text-white">
                                     {{-- Beginning Inventory --}}
                                     <th colspan="2"
                                         class="border-r border-white/20
@@ -654,7 +654,7 @@
                                     {{-- Actual Distribution --}}
                                     <th colspan="2"
                                         class="border-r border-white/20
-                                           bg-[#C51017]
+                                           bg-[#0EA5E9]
                                            px-3 py-3 text-center">
                                         Long Sleeve
                                     </th>
@@ -662,14 +662,14 @@
                                     <th rowspan="2"
                                         class="min-w-[105px]
                                            border-r border-white/20
-                                           bg-[#C51017]
+                                           bg-[#0EA5E9]
                                            px-3 py-3 text-center">
                                         Bucket Hat
                                     </th>
 
                                     <th colspan="2"
                                         class="border-r border-white/20
-                                           bg-[#C51017]
+                                           bg-[#0EA5E9]
                                            px-3 py-3 text-center">
                                         Rubber Boots
                                     </th>
@@ -677,7 +677,7 @@
                                     <th rowspan="2"
                                         class="min-w-[100px]
                                            border-r border-white/20
-                                           bg-[#C51017]
+                                           bg-[#0EA5E9]
                                            px-3 py-3 text-center">
                                         Gloves
                                     </th>
@@ -685,7 +685,7 @@
                                     <th rowspan="2"
                                         class="min-w-[100px]
                                            border-r border-white/20
-                                           bg-[#C51017]
+                                           bg-[#0EA5E9]
                                            px-3 py-3 text-center">
                                         Mask
                                     </th>
@@ -693,7 +693,7 @@
                                     {{-- Ending Inventory --}}
                                     <th colspan="2"
                                         class="border-r border-white/20
-                                           bg-[#641D21]
+                                           bg-[#075985]
                                            px-3 py-3 text-center">
                                         Long Sleeve
                                     </th>
@@ -701,14 +701,14 @@
                                     <th rowspan="2"
                                         class="min-w-[105px]
                                            border-r border-white/20
-                                           bg-[#641D21]
+                                           bg-[#075985]
                                            px-3 py-3 text-center">
                                         Bucket Hat
                                     </th>
 
                                     <th colspan="2"
                                         class="border-r border-white/20
-                                           bg-[#641D21]
+                                           bg-[#075985]
                                            px-3 py-3 text-center">
                                         Rubber Boots
                                     </th>
@@ -716,7 +716,7 @@
                                     <th rowspan="2"
                                         class="min-w-[100px]
                                            border-r border-white/20
-                                           bg-[#641D21]
+                                           bg-[#075985]
                                            px-3 py-3 text-center">
                                         Gloves
                                     </th>
@@ -724,7 +724,7 @@
                                     <th rowspan="2"
                                         class="min-w-[100px]
                                            border-r border-white/20
-                                           bg-[#641D21]
+                                           bg-[#075985]
                                            px-3 py-3 text-center">
                                         Mask
                                     </th>
@@ -733,8 +733,8 @@
                                 {{-- =====================================
                                 SIZE HEADER
                             ====================================== --}}
-                                <tr class="bg-[#DF979B]
-                                       text-[#641D21]">
+                                <tr class="bg-[#7DD3FC]
+                                       text-[#075985]">
                                     {{-- Beginning sizes --}}
                                     <th class="px-3 py-2 text-center">
                                         Medium
@@ -742,7 +742,7 @@
 
                                     <th
                                         class="border-r
-                                           border-[#970C13]/20
+                                           border-[#0284C7]/20
                                            px-3 py-2 text-center">
                                         Large
                                     </th>
@@ -753,7 +753,7 @@
 
                                     <th
                                         class="border-r
-                                           border-[#970C13]/20
+                                           border-[#0284C7]/20
                                            px-3 py-2 text-center">
                                         US10
                                     </th>
@@ -765,7 +765,7 @@
 
                                     <th
                                         class="border-r
-                                           border-[#970C13]/20
+                                           border-[#0284C7]/20
                                            px-3 py-2 text-center">
                                         Large
                                     </th>
@@ -776,7 +776,7 @@
 
                                     <th
                                         class="border-r
-                                           border-[#970C13]/20
+                                           border-[#0284C7]/20
                                            px-3 py-2 text-center">
                                         US10
                                     </th>
@@ -788,7 +788,7 @@
 
                                     <th
                                         class="border-r
-                                           border-[#970C13]/20
+                                           border-[#0284C7]/20
                                            px-3 py-2 text-center">
                                         Large
                                     </th>
@@ -842,9 +842,9 @@
                                     <tr
                                         class="
                                         transition
-                                        hover:bg-[#DF979B]/10
+                                        hover:bg-[#7DD3FC]/10
 
-                                        {{ $isNewCallOff ? 'border-t-4 border-t-[#970C13]' : '' }}
+                                        {{ $isNewCallOff ? 'border-t-4 border-t-[#0284C7]' : '' }}
                                     ">
                                         {{-- Number --}}
                                         <td
@@ -863,11 +863,11 @@
                                                bg-white px-4 py-4">
                                             <span
                                                 class="inline-flex rounded-lg
-                                                   bg-[#970C13]/10
+                                                   bg-[#0284C7]/10
                                                    px-3 py-1.5
-                                                   font-bold text-[#970C13]
+                                                   font-bold text-[#0284C7]
                                                    ring-1
-                                                   ring-[#970C13]/20">
+                                                   ring-[#0284C7]/20">
                                                 {{ $row['call_off_number'] ?? '—' }}
                                             </span>
                                         </td>
@@ -988,11 +988,11 @@
 
                                             <td
                                                 class="border-r
-                                                   border-[#DF979B]/30
-                                                   bg-[#DF979B]/10
+                                                   border-[#7DD3FC]/30
+                                                   bg-[#7DD3FC]/10
                                                    px-3 py-4
                                                    text-center font-bold
-                                                   {{ $actualQuantity > 0 ? 'text-[#C51017]' : 'text-slate-400' }}">
+                                                   {{ $actualQuantity > 0 ? 'text-[#0EA5E9]' : 'text-slate-400' }}">
                                                 {{ number_format($actualQuantity) }}
                                             </td>
                                         @endforeach
@@ -1009,7 +1009,7 @@
                                                    bg-slate-50
                                                    px-3 py-4
                                                    text-center font-bold
-                                                   {{ $endingQuantity <= 0 ? 'text-red-700' : 'text-[#641D21]' }}">
+                                                   {{ $endingQuantity <= 0 ? 'text-red-700' : 'text-[#075985]' }}">
                                                 {{ number_format($endingQuantity) }}
                                             </td>
                                         @endforeach

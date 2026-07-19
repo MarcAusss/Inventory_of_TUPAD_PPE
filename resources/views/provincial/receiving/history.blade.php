@@ -6,12 +6,12 @@
             PAGE HEADER
         ========================================================== --}}
         <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <div class="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-[#641D21] via-[#970C13] to-[#ED1B24]"></div>
+            <div class="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-[#075985] via-[#0284C7] to-[#38BDF8]"></div>
 
             <div class="flex flex-col gap-6 px-6 py-7 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                     <div class="flex flex-wrap items-center gap-3">
-                        <span class="rounded-full bg-[#DF979B]/20 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#970C13] ring-1 ring-[#DF979B]">
+                        <span class="rounded-full bg-[#7DD3FC]/20 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#0284C7] ring-1 ring-[#7DD3FC]">
                             Provincial Office
                         </span>
 
@@ -41,7 +41,7 @@
 
                     <a
                         href="{{ route('provincial.current-inventory.index') }}"
-                        class="inline-flex items-center justify-center rounded-xl bg-[#970C13] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#641D21]"
+                        class="inline-flex items-center justify-center rounded-xl bg-[#0284C7] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#075985]"
                     >
                         Current Inventory
                     </a>
@@ -69,7 +69,7 @@
         ========================================================== --}}
         <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
             <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
-                <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]">
+                <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#0284C7]">
                     Provincial receiving records
                 </p>
 
@@ -132,7 +132,7 @@
                                             href="{{ asset('storage/' . $receipt->document) }}"
                                             target="_blank"
                                             rel="noopener"
-                                            class="mt-1 inline-flex text-xs font-bold text-[#970C13] hover:underline"
+                                            class="mt-1 inline-flex text-xs font-bold text-[#0284C7] hover:underline"
                                         >
                                             View uploaded PDF
                                         </a>
@@ -143,7 +143,7 @@
                                     @endif
                                 </td>
 
-                                <td class="whitespace-nowrap px-6 py-5 font-semibold text-[#641D21]">
+                                <td class="whitespace-nowrap px-6 py-5 font-semibold text-[#075985]">
                                     {{ $callOff?->call_off_number ?? '—' }}
                                 </td>
 
@@ -159,7 +159,7 @@
                                     {{ $receipt->physical_receiver_name ?? '—' }}
                                 </td>
 
-                                <td class="px-6 py-5 text-center text-lg font-bold text-[#970C13]">
+                                <td class="px-6 py-5 text-center text-lg font-bold text-[#0284C7]">
                                     {{ number_format($totalReceived) }}
                                 </td>
 
@@ -179,7 +179,7 @@
                                     @if($allocation)
                                         <a
                                             href="{{ route('provincial.receiving.show', $allocation) }}"
-                                            class="inline-flex items-center justify-center rounded-lg bg-[#970C13] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#641D21]"
+                                            class="inline-flex items-center justify-center rounded-lg bg-[#0284C7] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#075985]"
                                         >
                                             View Details
                                         </a>

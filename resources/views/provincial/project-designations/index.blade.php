@@ -105,8 +105,8 @@
                    border border-slate-200 bg-white shadow-sm">
             <div
                 class="absolute inset-y-0 left-0 w-2
-                       bg-gradient-to-b from-[#641D21]
-                       via-[#970C13] to-[#ED1B24]">
+                       bg-gradient-to-b from-[#075985]
+                       via-[#0284C7] to-[#38BDF8]">
             </div>
 
             <div
@@ -116,11 +116,11 @@
                 <div>
                     <div class="flex flex-wrap items-center gap-3">
                         <span
-                            class="rounded-full bg-[#DF979B]/20
+                            class="rounded-full bg-[#7DD3FC]/20
                                    px-3 py-1 text-xs font-bold
                                    uppercase tracking-[0.16em]
-                                   text-[#970C13]
-                                   ring-1 ring-[#DF979B]">
+                                   text-[#0284C7]
+                                   ring-1 ring-[#7DD3FC]">
                             Provincial Office
                         </span>
 
@@ -160,9 +160,9 @@
 
                     <a href="{{ route('provincial.project-designations.create') }}"
                         class="inline-flex items-center justify-center
-                               rounded-xl bg-[#970C13] px-5 py-3
+                               rounded-xl bg-[#0284C7] px-5 py-3
                                text-sm font-bold text-white transition
-                               hover:bg-[#641D21]">
+                               hover:bg-[#075985]">
                         Create Project Designation
                     </a>
                 </div>
@@ -195,15 +195,15 @@
                     <input type="search" id="search" name="search" value="{{ $search }}"
                         placeholder="Project code, title, location, supplier, DR, or Call-Off..."
                         class="w-full rounded-xl border-slate-300
-                               focus:border-[#970C13]
-                               focus:ring-[#970C13]">
+                               focus:border-[#0284C7]
+                               focus:ring-[#0284C7]">
                 </div>
 
                 <button type="submit"
-                    class="rounded-xl bg-[#970C13]
+                    class="rounded-xl bg-[#0284C7]
                            px-6 py-2.5 text-sm font-bold
                            text-white transition
-                           hover:bg-[#641D21]">
+                           hover:bg-[#075985]">
                     Search
                 </button>
 
@@ -225,7 +225,7 @@
             <div class="flex flex-col gap-2 border-b
                        border-slate-200 px-6 py-5 sm:px-7">
                 <p class="text-xs font-bold uppercase
-                           tracking-[0.16em] text-[#970C13]">
+                           tracking-[0.16em] text-[#0284C7]">
                     Project Distribution Records
                 </p>
 
@@ -254,7 +254,7 @@
                             <th class="px-4 py-4 text-left">Supplier</th>
                             <th class="px-4 py-4 text-left">Delivery Receipt</th>
 
-                            <th class="bg-[#970C13]
+                            <th class="bg-[#0284C7]
                                        px-4 py-4 text-left">
                                 Call-Off Number
                             </th>
@@ -262,7 +262,7 @@
                             <th class="px-4 py-4 text-center">Long Sleeve M</th>
                             <th class="px-4 py-4 text-center">Long Sleeve L</th>
 
-                            <th class="bg-[#970C13]/90
+                            <th class="bg-[#0284C7]/90
                                        px-4 py-4 text-center">
                                 Total Long Sleeve
                             </th>
@@ -271,7 +271,7 @@
                             <th class="px-4 py-4 text-center">Boots US9</th>
                             <th class="px-4 py-4 text-center">Boots US10</th>
 
-                            <th class="bg-[#970C13]/90
+                            <th class="bg-[#0284C7]/90
                                        px-4 py-4 text-center">
                                 Total Rubber Boots
                             </th>
@@ -279,7 +279,7 @@
                             <th class="px-4 py-4 text-center">Gloves</th>
                             <th class="px-4 py-4 text-center">Mask</th>
 
-                            <th class="bg-[#641D21]
+                            <th class="bg-[#075985]
                                        px-4 py-4 text-center">
                                 Total PPE
                             </th>
@@ -382,8 +382,8 @@
 
                                 <td
                                     class="border-b border-slate-200
-                                           bg-[#DF979B]/10 px-4 py-4
-                                           font-bold text-[#970C13]">
+                                           bg-[#7DD3FC]/10 px-4 py-4
+                                           font-bold text-[#0284C7]">
                                     {{ $callOff?->call_off_number ?? '—' }}
                                 </td>
 
@@ -397,9 +397,9 @@
 
                                 <td
                                     class="border-b border-slate-200
-                                           bg-[#DF979B]/10 px-4 py-4
+                                           bg-[#7DD3FC]/10 px-4 py-4
                                            text-center font-bold
-                                           text-[#970C13]">
+                                           text-[#0284C7]">
                                     {{ number_format($totalLongSleeve) }}
                                 </td>
 
@@ -423,9 +423,9 @@
 
                                 <td
                                     class="border-b border-slate-200
-                                           bg-[#DF979B]/10 px-4 py-4
+                                           bg-[#7DD3FC]/10 px-4 py-4
                                            text-center font-bold
-                                           text-[#970C13]">
+                                           text-[#0284C7]">
                                     {{ number_format($totalRubberBoots) }}
                                 </td>
 
@@ -445,7 +445,7 @@
                                     class="border-b border-slate-200
                                            bg-slate-100 px-4 py-4
                                            text-center font-bold
-                                           text-[#641D21]">
+                                           text-[#075985]">
                                     {{ number_format($totalPpe) }}
                                 </td>
 
@@ -459,18 +459,18 @@
                                             class="rounded-xl bg-slate-900
                                                    px-4 py-2 text-sm
                                                    font-bold text-white
-                                                   hover:bg-[#970C13]">
+                                                   hover:bg-[#0284C7]">
                                             View
                                         </a>
 
                                         <a href="{{ route('provincial.project-designations.print-one', $designation) }}"
                                             target="_blank" rel="noopener"
                                             class="rounded-xl border
-                                                   border-[#970C13]
+                                                   border-[#0284C7]
                                                    bg-white px-4 py-2
                                                    text-sm font-bold
-                                                   text-[#970C13]
-                                                   hover:bg-[#DF979B]/10">
+                                                   text-[#0284C7]
+                                                   hover:bg-[#7DD3FC]/10">
                                             Print
                                         </a>
                                     </div>

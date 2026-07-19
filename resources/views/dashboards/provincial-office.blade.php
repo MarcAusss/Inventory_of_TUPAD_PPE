@@ -37,7 +37,7 @@
         {{-- Heading --}}
         <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
 
-            <div class="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-red-950 via-red-800 to-red-600"></div>
+            <div class="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-sky-950 via-sky-700 to-sky-400"></div>
 
             <div class="flex flex-col gap-5 px-7 py-7 lg:flex-row lg:items-center lg:justify-between">
 
@@ -46,7 +46,7 @@
                     <div class="flex flex-wrap items-center gap-3">
 
                         <span
-                            class="rounded-full bg-red-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-red-900 ring-1 ring-red-200">
+                            class="rounded-full bg-sky-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-sky-900 ring-1 ring-sky-200">
                             Provincial Office
                         </span>
 
@@ -94,7 +94,7 @@
                         'label' => 'Current PPE Inventory',
                         'value' => $statistics['available_items'] ?? 0,
                         'description' => 'Available items',
-                        'class' => 'bg-red-50 text-red-800',
+                        'class' => 'bg-sky-50 text-sky-800',
                     ],
                     [
                         'label' => 'Total Received',
@@ -201,7 +201,7 @@
                     </div>
 
                     <a href="{{ route('provincial.inventory-ledger.index') }}"
-                        class="text-sm font-bold text-red-800 hover:text-red-950">
+                        class="text-sm font-bold text-sky-800 hover:text-sky-950">
                         View ledger →
                     </a>
 
@@ -236,7 +236,7 @@
                     </div>
 
                     <a href="{{ route('provincial.current-inventory.index') }}"
-                        class="text-sm font-bold text-red-800 hover:text-red-950">
+                        class="text-sm font-bold text-sky-800 hover:text-sky-950">
                         View all
                     </a>
 
@@ -278,7 +278,7 @@
                                         {{ $inventory->item->label ?: '—' }}
                                     </td>
 
-                                    <td class="px-6 py-4 text-right font-bold text-red-900">
+                                    <td class="px-6 py-4 text-right font-bold text-sky-900">
                                         {{ number_format($inventory->quantity) }}
                                     </td>
 
@@ -385,7 +385,7 @@
                     </div>
 
                     <a href="{{ route('provincial.project-designations.index') }}"
-                        class="text-sm font-bold text-red-800 hover:text-red-950">
+                        class="text-sm font-bold text-sky-800 hover:text-sky-950">
                         View all
                     </a>
 
@@ -412,7 +412,7 @@
                                                 </div>
 
                                                 <span
-                                                    class="shrink-0 rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-red-800 ring-1 ring-red-200">
+                                                    class="shrink-0 rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-sky-800 ring-1 ring-sky-200">
                                                     {{ number_format(
                             $designation->items->sum('quantity')
                         ) }}
@@ -490,12 +490,12 @@
                                             inventoryData.data,
 
                                         backgroundColor: [
-                                            '#DF979B',
-                                            '#ED1B24',
-                                            '#C51017',
-                                            '#970C13',
-                                            '#641D21',
-                                            '#FFBABE',
+                                            '#7DD3FC',
+                                            '#38BDF8',
+                                            '#0EA5E9',
+                                            '#0284C7',
+                                            '#075985',
+                                            '#BAE6FD',
                                         ],
 
                                         borderColor:
@@ -615,7 +615,7 @@
                                             ?? [],
 
                                         backgroundColor:
-                                            '#C51017',
+                                            '#0EA5E9',
 
                                         borderRadius:
                                             6,
@@ -636,7 +636,7 @@
                                             ?? [],
 
                                         backgroundColor:
-                                            '#641D21',
+                                            '#075985',
 
                                         borderRadius:
                                             6,

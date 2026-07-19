@@ -48,8 +48,8 @@
         >
             <div
                 class="absolute inset-y-0 left-0 w-2
-                       bg-gradient-to-b from-[#641D21]
-                       via-[#970C13] to-[#ED1B24]"
+                       bg-gradient-to-b from-[#075985]
+                       via-[#0284C7] to-[#38BDF8]"
             ></div>
 
             <div
@@ -60,11 +60,11 @@
                 <div>
                     <div class="flex flex-wrap items-center gap-3">
                         <span
-                            class="rounded-full bg-[#DF979B]/20
+                            class="rounded-full bg-[#7DD3FC]/20
                                    px-3 py-1 text-xs font-bold
                                    uppercase tracking-[0.16em]
-                                   text-[#970C13]
-                                   ring-1 ring-[#DF979B]"
+                                   text-[#0284C7]
+                                   ring-1 ring-[#7DD3FC]"
                         >
                             Project PPE Designation
                         </span>
@@ -107,10 +107,10 @@
                         href="{{ route(
                             'provincial.call-off-inventory.index'
                         ) }}"
-                        class="rounded-xl bg-[#970C13]
+                        class="rounded-xl bg-[#0284C7]
                                px-5 py-3 text-sm font-bold
                                text-white transition
-                               hover:bg-[#641D21]"
+                               hover:bg-[#075985]"
                     >
                         Call-Off Inventory
                     </a>
@@ -141,7 +141,7 @@
             >
                 <p
                     class="text-xs font-bold uppercase
-                           tracking-[0.16em] text-[#DF979B]"
+                           tracking-[0.16em] text-[#7DD3FC]"
                 >
                     Inventory Source
                 </p>
@@ -178,19 +178,19 @@
                            sm:grid-cols-2 xl:grid-cols-4"
                 >
                     <div
-                        class="rounded-2xl border border-[#DF979B]
-                               bg-[#DF979B]/10 p-5"
+                        class="rounded-2xl border border-[#7DD3FC]
+                               bg-[#7DD3FC]/10 p-5"
                     >
                         <p
                             class="text-xs font-bold uppercase
-                                   tracking-wider text-[#970C13]"
+                                   tracking-wider text-[#0284C7]"
                         >
                             Call-Off Number
                         </p>
 
                         <p
                             class="mt-2 text-xl font-bold
-                                   text-[#641D21]"
+                                   text-[#075985]"
                         >
                             {{ $callOff?->call_off_number ?? '—' }}
                         </p>
@@ -273,7 +273,7 @@
             >
                 <p
                     class="text-xs font-bold uppercase
-                           tracking-[0.16em] text-[#970C13]"
+                           tracking-[0.16em] text-[#0284C7]"
                 >
                     Project Record
                 </p>
@@ -434,7 +434,7 @@
                             class="inline-flex rounded-xl
                                    bg-slate-900 px-5 py-3
                                    text-sm font-bold text-white
-                                   transition hover:bg-[#970C13]"
+                                   transition hover:bg-[#0284C7]"
                         >
                             View ARE PDF
                         </a>
@@ -456,7 +456,7 @@
             >
                 <p
                     class="text-xs font-bold uppercase
-                           tracking-[0.16em] text-[#970C13]"
+                           tracking-[0.16em] text-[#0284C7]"
                 >
                     PPE Movement
                 </p>
@@ -497,21 +497,21 @@
                             </th>
 
                             <th
-                                class="bg-[#641D21]
+                                class="bg-[#075985]
                                        px-5 py-4 text-center"
                             >
                                 Beginning Inventory
                             </th>
 
                             <th
-                                class="bg-[#C51017]
+                                class="bg-[#0EA5E9]
                                        px-5 py-4 text-center"
                             >
                                 Actual Distributed
                             </th>
 
                             <th
-                                class="bg-[#970C13]
+                                class="bg-[#0284C7]
                                        px-5 py-4 text-center"
                             >
                                 Ending Inventory
@@ -577,10 +577,10 @@
 
                                 <td
                                     class="border-b border-slate-200
-                                           bg-[#DF979B]/10
+                                           bg-[#7DD3FC]/10
                                            px-5 py-4 text-center
                                            text-lg font-bold
-                                           text-[#641D21]"
+                                           text-[#075985]"
                                 >
                                     @if(
                                         $movement
@@ -601,7 +601,7 @@
                                     class="border-b border-slate-200
                                            px-5 py-4 text-center
                                            text-lg font-bold
-                                           text-[#C51017]"
+                                           text-[#0EA5E9]"
                                 >
                                     {{
                                         number_format(
@@ -659,7 +659,7 @@
                             <td
                                 class="px-5 py-4 text-center
                                        text-xl font-bold
-                                       text-[#970C13]"
+                                       text-[#0284C7]"
                             >
                                 {{ number_format($totalPpe) }}
                             </td>

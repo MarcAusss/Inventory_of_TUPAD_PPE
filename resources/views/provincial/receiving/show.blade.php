@@ -94,8 +94,8 @@
         >
             <div
                 class="absolute inset-y-0 left-0 w-2
-                       bg-gradient-to-b from-[#641D21]
-                       via-[#970C13] to-[#ED1B24]"
+                       bg-gradient-to-b from-[#075985]
+                       via-[#0284C7] to-[#38BDF8]"
             ></div>
 
             <div
@@ -107,11 +107,11 @@
                     <div class="flex flex-wrap items-center gap-3">
 
                         <span
-                            class="rounded-full bg-[#DF979B]/20
+                            class="rounded-full bg-[#7DD3FC]/20
                                    px-3 py-1 text-xs font-bold
                                    uppercase tracking-wider
-                                   text-[#970C13]
-                                   ring-1 ring-[#DF979B]"
+                                   text-[#0284C7]
+                                   ring-1 ring-[#7DD3FC]"
                         >
                             Provincial Receiving
                         </span>
@@ -165,9 +165,9 @@
                                 $provinceDistribution
                             ) }}"
                             class="inline-flex items-center justify-center
-                                   rounded-xl bg-[#970C13] px-5 py-3
+                                   rounded-xl bg-[#0284C7] px-5 py-3
                                    text-sm font-bold text-white
-                                   transition hover:bg-[#641D21]"
+                                   transition hover:bg-[#075985]"
                         >
                             Receive Another Delivery
                         </a>
@@ -217,7 +217,7 @@
                 </p>
 
                 <p
-                    class="mt-3 text-xl font-bold text-[#641D21]"
+                    class="mt-3 text-xl font-bold text-[#075985]"
                 >
                     {{ $callOff?->call_off_number ?? 'Not available' }}
                 </p>
@@ -336,7 +336,7 @@
                 <div>
                     <p
                         class="text-xs font-bold uppercase
-                               tracking-[0.16em] text-[#970C13]"
+                               tracking-[0.16em] text-[#0284C7]"
                     >
                         Receiving progress
                     </p>
@@ -356,7 +356,7 @@
                 </div>
 
                 <p
-                    class="text-3xl font-bold text-[#970C13]"
+                    class="text-3xl font-bold text-[#0284C7]"
                 >
                     {{ $receivingPercentage }}%
                 </p>
@@ -368,7 +368,7 @@
             >
                 <div
                     class="h-full rounded-full bg-gradient-to-r
-                           from-[#ED1B24] to-[#641D21]
+                           from-[#38BDF8] to-[#075985]
                            transition-all duration-500"
                     style="width: {{ $receivingPercentage }}%"
                 ></div>
@@ -388,7 +388,7 @@
             >
                 <p
                     class="text-xs font-bold uppercase
-                           tracking-[0.16em] text-[#970C13]"
+                           tracking-[0.16em] text-[#0284C7]"
                 >
                     Call-Off quantity summary
                 </p>
@@ -528,7 +528,7 @@
                                         >
                                             <div
                                                 class="h-full rounded-full
-                                                       bg-[#970C13]"
+                                                       bg-[#0284C7]"
                                                 style="width: {{ $itemPercentage }}%"
                                             ></div>
                                         </div>
@@ -566,7 +566,7 @@
                 <div>
                     <p
                         class="text-xs font-bold uppercase
-                               tracking-[0.16em] text-[#970C13]"
+                               tracking-[0.16em] text-[#0284C7]"
                     >
                         Delivery audit
                     </p>
@@ -591,9 +591,9 @@
                             $provinceDistribution
                         ) }}"
                         class="inline-flex items-center justify-center
-                               rounded-xl bg-[#970C13] px-5 py-3
+                               rounded-xl bg-[#0284C7] px-5 py-3
                                text-sm font-bold text-white
-                               transition hover:bg-[#641D21]"
+                               transition hover:bg-[#075985]"
                     >
                         Add Delivery Receipt
                     </a>
@@ -676,7 +676,7 @@
                                 <td class="px-6 py-4">
                                     <p
                                         class="font-semibold
-                                               text-[#641D21]"
+                                               text-[#075985]"
                                     >
                                         {{ $receipt->dr_number }}
                                     </p>
@@ -786,7 +786,7 @@
                         <p
                             class="text-xs font-bold uppercase
                                    tracking-[0.16em]
-                                   text-[#970C13]"
+                                   text-[#0284C7]"
                         >
                             Allocation versus actual
                         </p>

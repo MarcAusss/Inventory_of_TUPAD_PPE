@@ -56,8 +56,8 @@
         >
             <div
                 class="absolute inset-y-0 left-0 w-2
-                       bg-gradient-to-b from-[#641D21]
-                       via-[#970C13] to-[#ED1B24]"
+                       bg-gradient-to-b from-[#075985]
+                       via-[#0284C7] to-[#38BDF8]"
             ></div>
 
             <div
@@ -67,11 +67,11 @@
             >
                 <div>
                     <span
-                        class="rounded-full bg-[#DF979B]/20
+                        class="rounded-full bg-[#7DD3FC]/20
                                px-3 py-1 text-xs font-bold
                                uppercase tracking-[0.16em]
-                               text-[#970C13]
-                               ring-1 ring-[#DF979B]"
+                               text-[#0284C7]
+                               ring-1 ring-[#7DD3FC]"
                     >
                         Provincial Office
                     </span>
@@ -134,12 +134,12 @@
             class="overflow-hidden rounded-3xl
                    border border-slate-200 bg-white shadow-sm"
         >
-            <div class="bg-[#970C13] px-6 py-5 sm:px-7">
+            <div class="bg-[#0284C7] px-6 py-5 sm:px-7">
                 <h2 class="text-xl font-bold text-white">
                     Select Source Delivery Receipt
                 </h2>
 
-                <p class="mt-1 text-sm text-red-100">
+                <p class="mt-1 text-sm text-sky-100">
                     Every Delivery Receipt is treated as a separate
                     project inventory source.
                 </p>
@@ -170,8 +170,8 @@
                             name="delivery_receipt_id"
                             required
                             class="w-full rounded-xl border-slate-300
-                                   focus:border-[#970C13]
-                                   focus:ring-[#970C13]"
+                                   focus:border-[#0284C7]
+                                   focus:ring-[#0284C7]"
                         >
                             <option value="">
                                 Select a Delivery Receipt
@@ -326,7 +326,7 @@
 
                         <p
                             class="mt-3 text-lg font-bold
-                                   text-[#641D21]"
+                                   text-[#075985]"
                         >
                             {{ $card['value'] }}
                         </p>
@@ -357,7 +357,7 @@
                            border border-slate-200
                            bg-white shadow-sm"
                 >
-                    <div class="bg-[#970C13] px-6 py-5 sm:px-7">
+                    <div class="bg-[#0284C7] px-6 py-5 sm:px-7">
                         <h2 class="text-xl font-bold text-white">
                             Project Information
                         </h2>
@@ -385,8 +385,8 @@
                                 maxlength="255"
                                 class="w-full rounded-xl
                                        border-slate-300 uppercase
-                                       focus:border-[#970C13]
-                                       focus:ring-[#970C13]"
+                                       focus:border-[#0284C7]
+                                       focus:ring-[#0284C7]"
                             >
                         </div>
 
@@ -410,8 +410,8 @@
                                 required
                                 class="w-full rounded-xl
                                        border-slate-300
-                                       focus:border-[#970C13]
-                                       focus:ring-[#970C13]"
+                                       focus:border-[#0284C7]
+                                       focus:ring-[#0284C7]"
                             >
                         </div>
 
@@ -433,8 +433,8 @@
                                 maxlength="255"
                                 class="w-full rounded-xl
                                        border-slate-300
-                                       focus:border-[#970C13]
-                                       focus:ring-[#970C13]"
+                                       focus:border-[#0284C7]
+                                       focus:ring-[#0284C7]"
                             >
                         </div>
 
@@ -456,8 +456,8 @@
                                 maxlength="255"
                                 class="w-full rounded-xl
                                        border-slate-300
-                                       focus:border-[#970C13]
-                                       focus:ring-[#970C13]"
+                                       focus:border-[#0284C7]
+                                       focus:ring-[#0284C7]"
                             >
                         </div>
 
@@ -479,8 +479,8 @@
                                 min="1"
                                 class="w-full rounded-xl
                                        border-slate-300
-                                       focus:border-[#970C13]
-                                       focus:ring-[#970C13]"
+                                       focus:border-[#0284C7]
+                                       focus:ring-[#0284C7]"
                             >
                         </div>
 
@@ -505,8 +505,8 @@
                                 min="1"
                                 class="w-full rounded-xl
                                        border-slate-300
-                                       focus:border-[#970C13]
-                                       focus:ring-[#970C13]"
+                                       focus:border-[#0284C7]
+                                       focus:ring-[#0284C7]"
                             >
                         </div>
                     </div>
@@ -519,7 +519,7 @@
                            bg-white shadow-sm"
                 >
                     <div
-                        class="flex flex-col gap-3 bg-[#970C13]
+                        class="flex flex-col gap-3 bg-[#0284C7]
                                px-6 py-5 sm:flex-row
                                sm:items-center
                                sm:justify-between sm:px-7"
@@ -529,7 +529,7 @@
                                 PPE to Distribute
                             </h2>
 
-                            <p class="mt-1 text-sm text-red-100">
+                            <p class="mt-1 text-sm text-sky-100">
                                 Quantities are limited to the selected
                                 Delivery Receipt only.
                             </p>
@@ -677,8 +677,8 @@
                                                 class="w-28 rounded-xl
                                                        border-slate-300
                                                        text-center
-                                                       focus:border-[#970C13]
-                                                       focus:ring-[#970C13]"
+                                                       focus:border-[#0284C7]
+                                                       focus:ring-[#0284C7]"
                                             >
 
                                             @error("items.{$itemId}")
@@ -695,7 +695,7 @@
                                         <td
                                             id="remaining-{{ $itemId }}"
                                             class="px-5 py-4 text-center
-                                                   font-bold text-[#641D21]"
+                                                   font-bold text-[#075985]"
                                         >
                                             {{
                                                 number_format(
@@ -758,8 +758,8 @@
                                 maxlength="2000"
                                 class="w-full rounded-xl
                                        border-slate-300
-                                       focus:border-[#970C13]
-                                       focus:ring-[#970C13]"
+                                       focus:border-[#0284C7]
+                                       focus:ring-[#0284C7]"
                             >{{ old('remarks') }}</textarea>
                         </div>
                     </div>
@@ -779,9 +779,9 @@
 
                     <button
                         type="submit"
-                        class="rounded-xl bg-[#970C13]
+                        class="rounded-xl bg-[#0284C7]
                                px-6 py-3 font-bold text-white
-                               transition hover:bg-[#641D21]"
+                               transition hover:bg-[#075985]"
                     >
                         Save Project Designation
                     </button>

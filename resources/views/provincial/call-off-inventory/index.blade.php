@@ -56,8 +56,8 @@
         >
             <div
                 class="absolute inset-y-0 left-0 w-2
-                       bg-gradient-to-b from-[#641D21]
-                       via-[#970C13] to-[#ED1B24]"
+                       bg-gradient-to-b from-[#075985]
+                       via-[#0284C7] to-[#38BDF8]"
             ></div>
 
             <div
@@ -68,11 +68,11 @@
                 <div>
                     <div class="flex flex-wrap items-center gap-3">
                         <span
-                            class="rounded-full bg-[#DF979B]/20
+                            class="rounded-full bg-[#7DD3FC]/20
                                    px-3 py-1 text-xs font-bold
                                    uppercase tracking-[0.16em]
-                                   text-[#970C13]
-                                   ring-1 ring-[#DF979B]"
+                                   text-[#0284C7]
+                                   ring-1 ring-[#7DD3FC]"
                         >
                             Provincial Office
                         </span>
@@ -124,9 +124,9 @@
                             'provincial.inventory-ledger.index'
                         ) }}"
                         class="inline-flex items-center justify-center
-                               rounded-xl bg-[#970C13] px-5 py-3
+                               rounded-xl bg-[#0284C7] px-5 py-3
                                text-sm font-bold text-white
-                               transition hover:bg-[#641D21]"
+                               transition hover:bg-[#075985]"
                     >
                         Movement History
                     </a>
@@ -143,7 +143,7 @@
                     [
                         'label' => 'Call-Offs',
                         'value' => $summary['call_off_count'],
-                        'class' => 'text-[#641D21]',
+                        'class' => 'text-[#075985]',
                     ],
 
                     [
@@ -155,7 +155,7 @@
                     [
                         'label' => 'Project Distributed',
                         'value' => $summary['distributed_total'],
-                        'class' => 'text-[#C51017]',
+                        'class' => 'text-[#0EA5E9]',
                     ],
 
                     [
@@ -181,7 +181,7 @@
                 >
                     <div
                         class="mb-4 h-1 w-10 rounded-full
-                               bg-[#970C13] transition-all
+                               bg-[#0284C7] transition-all
                                group-hover:w-16"
                     ></div>
 
@@ -231,8 +231,8 @@
                         value="{{ $search }}"
                         placeholder="Search Call-Off, Purchase Order, or supplier..."
                         class="w-full rounded-xl border-slate-300
-                               focus:border-[#970C13]
-                               focus:ring-[#970C13]"
+                               focus:border-[#0284C7]
+                               focus:ring-[#0284C7]"
                     >
                 </div>
 
@@ -250,8 +250,8 @@
                         id="status"
                         name="status"
                         class="w-full rounded-xl border-slate-300
-                               focus:border-[#970C13]
-                               focus:ring-[#970C13]"
+                               focus:border-[#0284C7]
+                               focus:ring-[#0284C7]"
                     >
                         <option value="">
                             All Statuses
@@ -275,9 +275,9 @@
                     <button
                         type="submit"
                         class="flex-1 rounded-xl
-                               bg-[#970C13] px-5 py-2.5
+                               bg-[#0284C7] px-5 py-2.5
                                text-sm font-bold text-white
-                               transition hover:bg-[#641D21]"
+                               transition hover:bg-[#075985]"
                     >
                         Apply
                     </button>
@@ -307,7 +307,7 @@
             >
                 <p
                     class="text-xs font-bold uppercase
-                           tracking-[0.16em] text-[#970C13]"
+                           tracking-[0.16em] text-[#0284C7]"
                 >
                     Remaining stock by source
                 </p>
@@ -386,7 +386,7 @@
                                 colspan="7"
                                 class="border-b border-r
                                        border-slate-700
-                                       bg-[#970C13]
+                                       bg-[#0284C7]
                                        px-4 py-4 text-center"
                             >
                                 Remaining PPE per Call-Off
@@ -395,7 +395,7 @@
                             <th
                                 colspan="7"
                                 class="border-b border-slate-700
-                                       bg-[#641D21]
+                                       bg-[#075985]
                                        px-4 py-4 text-center"
                             >
                                 Safe Available Now
@@ -425,8 +425,8 @@
                                 <th
                                     colspan="{{ $span }}"
                                     class="border-b border-r
-                                           border-[#DF979B]/40
-                                           bg-[#C51017]
+                                           border-[#7DD3FC]/40
+                                           bg-[#0EA5E9]
                                            px-3 py-3 text-center"
                                 >
                                     {{ $group }}
@@ -443,8 +443,8 @@
                                 <th
                                     colspan="{{ $span }}"
                                     class="border-b border-r
-                                           border-[#DF979B]/30
-                                           bg-[#641D21]
+                                           border-[#7DD3FC]/30
+                                           bg-[#075985]
                                            px-3 py-3 text-center"
                                 >
                                     {{ $group }}
@@ -466,8 +466,8 @@
                             ] as $label)
                                 <th
                                     class="min-w-20 border-b border-r
-                                           border-[#DF979B]/40
-                                           bg-[#ED1B24]
+                                           border-[#7DD3FC]/40
+                                           bg-[#38BDF8]
                                            px-3 py-3 text-center"
                                 >
                                     {{ $label }}
@@ -485,8 +485,8 @@
                             ] as $label)
                                 <th
                                     class="min-w-20 border-b border-r
-                                           border-[#DF979B]/30
-                                           bg-[#970C13]
+                                           border-[#7DD3FC]/30
+                                           bg-[#0284C7]
                                            px-3 py-3 text-center"
                                 >
                                     {{ $label }}
@@ -559,7 +559,7 @@
                                            border-b border-r
                                            border-slate-200 bg-white
                                            px-4 py-4 font-bold
-                                           text-[#641D21]
+                                           text-[#075985]
                                            group-hover:bg-slate-50"
                                 >
                                     {{
@@ -613,10 +613,10 @@
                                     <td
                                         class="border-b border-r
                                                border-slate-200
-                                               bg-[#DF979B]/10
+                                               bg-[#7DD3FC]/10
                                                px-3 py-4 text-center
                                                text-lg font-bold
-                                               text-[#970C13]"
+                                               text-[#0284C7]"
                                     >
                                         {{
                                             number_format(
@@ -657,7 +657,7 @@
                                     class="border-b border-slate-200
                                            px-4 py-4 text-center
                                            text-lg font-bold
-                                           text-[#641D21]"
+                                           text-[#075985]"
                                 >
                                     {{
                                         number_format(
@@ -703,7 +703,7 @@
             >
                 <p
                     class="text-xs font-bold uppercase
-                           tracking-wider text-[#970C13]"
+                           tracking-wider text-[#0284C7]"
                 >
                     Remaining PPE per Call-Off
                 </p>

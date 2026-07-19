@@ -69,7 +69,7 @@
         </a>
 
         <button type="button" onclick="window.print()"
-            class="inline-flex items-center justify-center rounded-md bg-[#970C13] px-4 py-2 text-[13px] font-bold text-white transition hover:bg-[#641D21]">
+            class="inline-flex items-center justify-center rounded-md bg-[#0284C7] px-4 py-2 text-[13px] font-bold text-white transition hover:bg-[#075985]">
             Print Report
         </button>
     </div>
@@ -140,134 +140,134 @@
         <thead>
             <tr>
                 <th rowspan="3"
-                    class="print-color-exact w-[24px] border border-[#333] bg-[#641D21] px-0.5 py-[3px] text-center align-middle font-bold text-white">
+                    class="print-color-exact w-[24px] border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center align-middle font-bold text-white">
                     No.
                 </th>
 
                 <th rowspan="3"
-                    class="print-color-exact w-[67px] border border-[#333] bg-[#641D21] px-0.5 py-[3px] text-center align-middle font-bold text-white">
+                    class="print-color-exact w-[67px] border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center align-middle font-bold text-white">
                     Call-Off Number
                 </th>
 
                 <th rowspan="3"
-                    class="print-color-exact w-[73px] border border-[#333] bg-[#641D21] px-0.5 py-[3px] text-center align-middle font-bold text-white">
+                    class="print-color-exact w-[73px] border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center align-middle font-bold text-white">
                     Name of Supplier
                 </th>
 
                 <th rowspan="3"
-                    class="print-color-exact w-[62px] border border-[#333] bg-[#641D21] px-0.5 py-[3px] text-center align-middle font-bold text-white">
+                    class="print-color-exact w-[62px] border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center align-middle font-bold text-white">
                     Delivery Receipt
                 </th>
 
                 <th rowspan="3"
-                    class="print-color-exact w-[52px] border border-[#333] bg-[#641D21] px-0.5 py-[3px] text-center align-middle font-bold text-white">
+                    class="print-color-exact w-[52px] border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center align-middle font-bold text-white">
                     Date of Delivery
                 </th>
 
                 <th rowspan="3"
-                    class="print-color-exact w-[65px] border border-[#333] bg-[#641D21] px-0.5 py-[3px] text-center align-middle font-bold text-white">
+                    class="print-color-exact w-[65px] border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center align-middle font-bold text-white">
                     Project Code
                 </th>
 
                 <th rowspan="3"
-                    class="print-color-exact w-[67px] border border-[#333] bg-[#641D21] px-0.5 py-[3px] text-center align-middle font-bold text-white">
+                    class="print-color-exact w-[67px] border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center align-middle font-bold text-white">
                     Location
                 </th>
 
                 <th rowspan="3"
-                    class="print-color-exact w-[44px] border border-[#333] bg-[#641D21] px-0.5 py-[3px] text-center align-middle font-bold text-white">
+                    class="print-color-exact w-[44px] border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center align-middle font-bold text-white">
                     No. of Beneficiaries
                 </th>
 
                 <th rowspan="3"
-                    class="print-color-exact w-[35px] border border-[#333] bg-[#641D21] px-0.5 py-[3px] text-center align-middle font-bold text-white">
+                    class="print-color-exact w-[35px] border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center align-middle font-bold text-white">
                     No. of Days
                 </th>
 
                 <th colspan="7"
-                    class="print-color-exact border border-[#333] bg-[#970C13] px-0.5 py-[3px] text-center align-middle font-bold text-white">
+                    class="print-color-exact border border-[#333] bg-[#0284C7] px-0.5 py-[3px] text-center align-middle font-bold text-white">
                     Beginning Inventory
                 </th>
 
                 <th colspan="7"
-                    class="print-color-exact border border-[#333] bg-[#C51017] px-0.5 py-[3px] text-center align-middle font-bold text-white">
+                    class="print-color-exact border border-[#333] bg-[#0EA5E9] px-0.5 py-[3px] text-center align-middle font-bold text-white">
                     Actual Distribution
                 </th>
 
                 <th colspan="7"
-                    class="print-color-exact border border-[#333] bg-[#641D21] px-0.5 py-[3px] text-center align-middle font-bold text-white">
+                    class="print-color-exact border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center align-middle font-bold text-white">
                     Ending Inventory
                 </th>
             </tr>
 
             <tr>
                 <th colspan="2"
-                    class="print-color-exact border border-[#333] bg-[#970C13] px-0.5 py-[3px] text-center font-bold text-white">
+                    class="print-color-exact border border-[#333] bg-[#0284C7] px-0.5 py-[3px] text-center font-bold text-white">
                     Long Sleeve</th>
                 <th rowspan="2"
-                    class="print-color-exact border border-[#333] bg-[#970C13] px-0.5 py-[3px] text-center font-bold text-white">
+                    class="print-color-exact border border-[#333] bg-[#0284C7] px-0.5 py-[3px] text-center font-bold text-white">
                     Bucket Hat</th>
                 <th colspan="2"
-                    class="print-color-exact border border-[#333] bg-[#970C13] px-0.5 py-[3px] text-center font-bold text-white">
+                    class="print-color-exact border border-[#333] bg-[#0284C7] px-0.5 py-[3px] text-center font-bold text-white">
                     Rubber Boots</th>
                 <th rowspan="2"
-                    class="print-color-exact border border-[#333] bg-[#970C13] px-0.5 py-[3px] text-center font-bold text-white">
+                    class="print-color-exact border border-[#333] bg-[#0284C7] px-0.5 py-[3px] text-center font-bold text-white">
                     Gloves</th>
                 <th rowspan="2"
-                    class="print-color-exact border border-[#333] bg-[#970C13] px-0.5 py-[3px] text-center font-bold text-white">
+                    class="print-color-exact border border-[#333] bg-[#0284C7] px-0.5 py-[3px] text-center font-bold text-white">
                     Mask</th>
 
                 <th colspan="2"
-                    class="print-color-exact border border-[#333] bg-[#C51017] px-0.5 py-[3px] text-center font-bold text-white">
+                    class="print-color-exact border border-[#333] bg-[#0EA5E9] px-0.5 py-[3px] text-center font-bold text-white">
                     Long Sleeve</th>
                 <th rowspan="2"
-                    class="print-color-exact border border-[#333] bg-[#C51017] px-0.5 py-[3px] text-center font-bold text-white">
+                    class="print-color-exact border border-[#333] bg-[#0EA5E9] px-0.5 py-[3px] text-center font-bold text-white">
                     Bucket Hat</th>
                 <th colspan="2"
-                    class="print-color-exact border border-[#333] bg-[#C51017] px-0.5 py-[3px] text-center font-bold text-white">
+                    class="print-color-exact border border-[#333] bg-[#0EA5E9] px-0.5 py-[3px] text-center font-bold text-white">
                     Rubber Boots</th>
                 <th rowspan="2"
-                    class="print-color-exact border border-[#333] bg-[#C51017] px-0.5 py-[3px] text-center font-bold text-white">
+                    class="print-color-exact border border-[#333] bg-[#0EA5E9] px-0.5 py-[3px] text-center font-bold text-white">
                     Gloves</th>
                 <th rowspan="2"
-                    class="print-color-exact border border-[#333] bg-[#C51017] px-0.5 py-[3px] text-center font-bold text-white">
+                    class="print-color-exact border border-[#333] bg-[#0EA5E9] px-0.5 py-[3px] text-center font-bold text-white">
                     Mask</th>
 
                 <th colspan="2"
-                    class="print-color-exact border border-[#333] bg-[#641D21] px-0.5 py-[3px] text-center font-bold text-white">
+                    class="print-color-exact border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center font-bold text-white">
                     Long Sleeve</th>
                 <th rowspan="2"
-                    class="print-color-exact border border-[#333] bg-[#641D21] px-0.5 py-[3px] text-center font-bold text-white">
+                    class="print-color-exact border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center font-bold text-white">
                     Bucket Hat</th>
                 <th colspan="2"
-                    class="print-color-exact border border-[#333] bg-[#641D21] px-0.5 py-[3px] text-center font-bold text-white">
+                    class="print-color-exact border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center font-bold text-white">
                     Rubber Boots</th>
                 <th rowspan="2"
-                    class="print-color-exact border border-[#333] bg-[#641D21] px-0.5 py-[3px] text-center font-bold text-white">
+                    class="print-color-exact border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center font-bold text-white">
                     Gloves</th>
                 <th rowspan="2"
-                    class="print-color-exact border border-[#333] bg-[#641D21] px-0.5 py-[3px] text-center font-bold text-white">
+                    class="print-color-exact border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center font-bold text-white">
                     Mask</th>
             </tr>
 
             <tr>
                 @foreach (['Medium', 'Large', 'US9', 'US10'] as $label)
                     <th
-                        class="print-color-exact border border-[#333] bg-[#DF979B] px-0.5 py-[3px] text-center font-bold text-[#641D21]">
+                        class="print-color-exact border border-[#333] bg-[#7DD3FC] px-0.5 py-[3px] text-center font-bold text-[#075985]">
                         {{ $label }}
                     </th>
                 @endforeach
 
                 @foreach (['Medium', 'Large', 'US9', 'US10'] as $label)
                     <th
-                        class="print-color-exact border border-[#333] bg-[#DF979B] px-0.5 py-[3px] text-center font-bold text-[#641D21]">
+                        class="print-color-exact border border-[#333] bg-[#7DD3FC] px-0.5 py-[3px] text-center font-bold text-[#075985]">
                         {{ $label }}
                     </th>
                 @endforeach
 
                 @foreach (['Medium', 'Large', 'US9', 'US10'] as $label)
                     <th
-                        class="print-color-exact border border-[#333] bg-[#DF979B] px-0.5 py-[3px] text-center font-bold text-[#641D21]">
+                        class="print-color-exact border border-[#333] bg-[#7DD3FC] px-0.5 py-[3px] text-center font-bold text-[#075985]">
                         {{ $label }}
                     </th>
                 @endforeach

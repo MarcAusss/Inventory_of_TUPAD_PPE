@@ -188,9 +188,9 @@
 
         <button type="button" onclick="window.print()"
             class="inline-flex cursor-pointer items-center justify-center
-                rounded-md border-0 bg-[#339DCB] px-4 py-[9px]
+                rounded-md border-0 bg-[#0284C7] px-4 py-[9px]
                 text-[13px] font-bold text-white transition
-                hover:bg-[#C4ECFE] hover:text-black">
+                hover:bg-[#BAE6FD] hover:text-black">
             Print Report
         </button>
     </div>
@@ -269,89 +269,89 @@
         <thead>
 
             <tr>
-                <th rowspan="2" class="w-[3%] bg-[#339DCB] text-white">
+                <th rowspan="2" class="w-[3%] bg-[#0284C7] text-white">
                     No.
                 </th>
 
-                <th rowspan="2" class="w-[7%] bg-[#339DCB] text-white">
+                <th rowspan="2" class="w-[7%] bg-[#0284C7] text-white">
                     Project Code
                 </th>
 
-                <th rowspan="2" class="w-[11%] bg-[#339DCB] text-white">
+                <th rowspan="2" class="w-[11%] bg-[#0284C7] text-white">
                     Project Title
                 </th>
 
-                <th rowspan="2" class="w-[9%] bg-[#339DCB] text-white">
+                <th rowspan="2" class="w-[9%] bg-[#0284C7] text-white">
                     Location
                 </th>
 
-                <th rowspan="2" class="w-[5%] bg-[#339DCB] text-white">
+                <th rowspan="2" class="w-[5%] bg-[#0284C7] text-white">
                     Ben.
                 </th>
 
-                <th rowspan="2" class="w-[4%] bg-[#339DCB] text-white">
+                <th rowspan="2" class="w-[4%] bg-[#0284C7] text-white">
                     W.D.
                 </th>
 
-                <th rowspan="2" class="w-[8%] bg-[#339DCB] text-white">
+                <th rowspan="2" class="w-[8%] bg-[#0284C7] text-white">
                     Supplier
                 </th>
 
-                <th rowspan="2" class="w-[7%] bg-[#339DCB] text-white">
+                <th rowspan="2" class="w-[7%] bg-[#0284C7] text-white">
                     Delivery Receipt
                 </th>
 
-                <th rowspan="2" class="w-[7%] bg-[#339DCB] text-white">
+                <th rowspan="2" class="w-[7%] bg-[#0284C7] text-white">
                     Call-Off Number
                 </th>
 
-                <th colspan="3" class="bg-[#339DCB] text-white">
+                <th colspan="3" class="bg-[#0284C7] text-white">
                     Long Sleeves
                 </th>
 
-                <th rowspan="2" class="bg-[#339DCB] text-white">
+                <th rowspan="2" class="bg-[#0284C7] text-white">
                     Bucket Hat
                 </th>
 
-                <th colspan="3" class="bg-[#339DCB] text-white">
+                <th colspan="3" class="bg-[#0284C7] text-white">
                     Rubber Boots
                 </th>
 
-                <th rowspan="2" class="bg-[#339DCB] text-white">
+                <th rowspan="2" class="bg-[#0284C7] text-white">
                     Gloves
                 </th>
 
-                <th rowspan="2" class="bg-[#339DCB] text-white">
+                <th rowspan="2" class="bg-[#0284C7] text-white">
                     Mask
                 </th>
 
-                <th rowspan="2" class="w-[10%] bg-[#339DCB] text-white">
+                <th rowspan="2" class="w-[10%] bg-[#0284C7] text-white">
                     Remarks
                 </th>
             </tr>
 
             <tr>
-                <th class="bg-[#E9FFFF] text-black">
+                <th class="bg-[#F0F9FF] text-black">
                     M
                 </th>
 
-                <th class="bg-[#E9FFFF] text-black">
+                <th class="bg-[#F0F9FF] text-black">
                     L
                 </th>
 
-                <th class="bg-[#E9FFFF] text-black">
+                <th class="bg-[#F0F9FF] text-black">
                     Total
                 </th>
 
-                <th class="bg-[#E9FFFF] text-black">
+                <th class="bg-[#F0F9FF] text-black">
                     US9
                 </th>
 
-                <th class="bg-[#E9FFFF] text-black">
+                <th class="bg-[#F0F9FF] text-black">
                     US10
                 </th>
 
-                <th class="bg-[#E9FFFF] text-black">
+                <th class="bg-[#F0F9FF] text-black">
                     Total
                 </th>
             </tr>
@@ -405,7 +405,7 @@
                         {{ $index + 1 }}
                     </td>
 
-                    <td class="text-left font-bold text-[#143A52]">
+                    <td class="text-left font-bold text-[#075985]">
                         {{ $designation->project_code }}
                     </td>
 
@@ -433,7 +433,7 @@
                         {{ $deliveryReceipt?->dr_number ?? '—' }}
                     </td>
 
-                    <td class="font-bold text-[#143A52]">
+                    <td class="font-bold text-[#075985]">
                         {{ $callOff?->call_off_number ?? '—' }}
                     </td>
 
@@ -445,8 +445,8 @@
                         {{ number_format($ppe['long_sleeve_large']) }}
                     </td>
 
-                    <td class="bg-[#E9FFFF] font-extrabold
-                            text-[#143A52] print-exact">
+                    <td class="bg-[#F0F9FF] font-extrabold
+                            text-[#075985] print-exact">
                         {{ number_format($ppe['total_long_sleeve']) }}
                     </td>
 
@@ -462,8 +462,8 @@
                         {{ number_format($ppe['rubber_boots_us10']) }}
                     </td>
 
-                    <td class="bg-[#E9FFFF] font-extrabold
-                            text-[#143A52] print-exact">
+                    <td class="bg-[#F0F9FF] font-extrabold
+                            text-[#075985] print-exact">
                         {{ number_format($ppe['total_rubber_boots']) }}
                     </td>
 
