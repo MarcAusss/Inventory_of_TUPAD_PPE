@@ -61,7 +61,7 @@
     ========================================================== --}}
     <div class="mb-4 flex justify-end gap-2 rounded-lg border border-slate-300 bg-slate-50 p-3 print:hidden">
         <a href="{{ route('provincial.inventory-ledger.index', [
-            'delivery_receipt_id' => $selectedDeliveryReceipt->id,
+            'province_distribution_id' => $callOffId,
             'year' => $year,
         ]) }}"
             class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-[13px] font-bold text-slate-700 no-underline transition hover:bg-slate-100">

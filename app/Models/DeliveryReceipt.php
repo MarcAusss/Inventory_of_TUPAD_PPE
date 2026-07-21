@@ -73,6 +73,11 @@ class DeliveryReceipt extends Model
         );
     }
 
+    public function documents(): HasMany
+    {
+        return $this->hasMany(DeliveryReceiptDocument::class);
+    }
+
     public function supplyDesignations(): HasMany
     {
         return $this->hasMany(

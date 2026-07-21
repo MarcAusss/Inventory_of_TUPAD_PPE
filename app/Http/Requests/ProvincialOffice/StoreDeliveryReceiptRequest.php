@@ -39,11 +39,12 @@ class StoreDeliveryReceiptRequest extends FormRequest
                 'max:255',
             ],
 
-            'document' => [
+            'documents' => ['required', 'array', 'min:1', 'max:10'],
+
+            'documents.*' => [
                 'required',
                 'file',
-                'mimes:pdf',
-                'mimetypes:application/pdf',
+                'mimes:pdf,jpg,jpeg,png',
                 'max:10240',
             ],
 
@@ -362,15 +363,12 @@ class StoreDeliveryReceiptRequest extends FormRequest
 
             'physical_receiver_name.required' => 'Enter the name of the physical receiver.',
 
-            'document.required' => 'Upload the Delivery Receipt PDF.',
-
-            'document.file' => 'The Delivery Receipt document must be a valid file.',
-
-            'document.mimes' => 'The Delivery Receipt document must be a PDF file.',
-
-            'document.mimetypes' => 'The uploaded document must contain valid PDF data.',
-
-            'document.max' => 'The Delivery Receipt PDF must not exceed 10 MB.',
+            'documents.required' => 'Upload at least one receiving document.',
+            'documents.array' => 'The receiving documents are invalid.',
+            'documents.max' => 'You may upload up to 10 documents.',
+            'documents.*.file' => 'Every attachment must be a valid file.',
+            'documents.*.mimes' => 'Attachments must be PDF, JPG, JPEG, or PNG files.',
+            'documents.*.max' => 'Each attachment must not exceed 10 MB.',
 
             'items.required' => 'Enter the received PPE quantities.',
 

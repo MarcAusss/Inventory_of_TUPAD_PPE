@@ -201,20 +201,14 @@ class ReceivingController extends Controller
             $provinceDistribution
         );
 
-        $document = $request->file(
-            'document'
-        );
+        $documents = $request->file('documents', []);
 
-        abort_unless(
-            $document,
-            422,
-            'The Delivery Receipt PDF is required.'
-        );
+        abort_unless(count($documents) > 0, 422, 'At least one receiving document is required.');
 
         $receipt = $receivingService->receive(
             $provinceDistribution,
             $request->validated(),
-            $document
+            $documents
         );
 
         return redirect()

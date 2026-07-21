@@ -3,494 +3,356 @@
 namespace App\Services;
 
 use App\Models\DeliveryReceipt;
+use App\Models\ProvinceDistribution;
 use App\Models\SupplyDesignation;
 use Illuminate\Support\Collection;
 
 class InventoryMovementReportService
 {
     /**
-     * Build the project-distribution inventory ledger for one exact
-     * Delivery Receipt.
+     * Build the full inventory history for one Provincial Call-Off allocation.
      *
-     * Delivery Receipts under the same Call-Off are never combined.
-     *
-     * Beginning Inventory:
-     * Available PPE from this receipt before the current project.
-     *
-     * Actual Distribution:
-     * PPE distributed to the current project.
-     *
-     * Ending Inventory:
-     * Beginning Inventory minus Actual Distribution.
-     *
-     * The current ending becomes the next row's beginning.
+     * Every received Delivery Receipt remains visible in chronological order.
+     * Project distributions linked to each receipt are shown beneath that
+     * receipt. The ending balance of one project/receipt becomes the running
+     * balance used by the next row. When a new receipt is encountered, its
+     * received quantities are added to the previous ending balance to create
+     * that receipt's beginning inventory.
      *
      * @return Collection<int, array<string, mixed>>
      */
-    public function buildForDeliveryReceipt(
+    public function buildForCallOff(
         int $provinceId,
-        int $deliveryReceiptId
+        int $provinceDistributionId
     ): Collection {
-        $receipt = DeliveryReceipt::query()
+        $allocation = ProvinceDistribution::query()
             ->with([
                 'items.item',
-                'receivedByUser',
-
-                'provinceDistribution.items.item',
-
-                'provinceDistribution.distributionBatch.callOff',
-
-                'provinceDistribution.distributionBatch.purchaseOrder.supplier',
-
-                'supplyDesignations' => function ($query): void {
-                    $query
-                        ->where(
-                            'status',
-                            'Completed'
-                        )
-                        ->orderBy(
-                            'designation_date'
-                        )
-                        ->orderBy('id');
-                },
-
+                'distributionBatch.callOff',
+                'distributionBatch.purchaseOrder.supplier',
+                'deliveryReceipts.items.item',
+                'deliveryReceipts.receivedByUser',
                 'supplyDesignations.items.item',
             ])
-            ->where(
-                'province_id',
-                $provinceId
-            )
-            ->where(
-                'status',
-                'Received'
-            )
-            ->whereNotNull(
-                'province_distribution_id'
-            )
-            ->whereKey(
-                $deliveryReceiptId
-            )
+            ->where('province_id', $provinceId)
+            ->whereKey($provinceDistributionId)
             ->firstOrFail();
 
-        return $this->buildRows(
-            $receipt
-        );
-    }
-
-    /**
-     * Build rows for the selected receipt.
-     *
-     * @return Collection<int, array<string, mixed>>
-     */
-    private function buildRows(
-        DeliveryReceipt $receipt
-    ): Collection {
-        $receipt->loadMissing([
-            'items.item',
-            'receivedByUser',
-
-            'provinceDistribution.items.item',
-
-            'provinceDistribution.distributionBatch.callOff',
-
-            'provinceDistribution.distributionBatch.purchaseOrder.supplier',
-
-            'supplyDesignations.items.item',
-        ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Initial receipt inventory
-        |--------------------------------------------------------------------------
-        |
-        | The running balance begins with the PPE physically received
-        | through this exact Delivery Receipt.
-        |
-        */
-
-        $runningBalance = $this->receivedQuantities(
-            $receipt
-        );
-
-        $designations = $receipt
-            ->supplyDesignations
-            ->where(
-                'status',
-                'Completed'
-            )
-            ->sortBy(
-                function (
-                    SupplyDesignation $designation
-                ): string {
-                    $date = $designation
-                        ->designation_date
-                        ?->format('Y-m-d')
-                        ?? '0000-00-00';
-
-                    return $date
-                        .'|'
-                        .str_pad(
-                            (string) $designation->id,
-                            20,
-                            '0',
-                            STR_PAD_LEFT
-                        );
-                }
-            )
+        $receipts = $allocation->deliveryReceipts
+            ->where('status', 'Received')
+            ->sortBy(fn (DeliveryReceipt $receipt): string => $this->receiptKey($receipt))
             ->values();
 
-        /*
-        |--------------------------------------------------------------------------
-        | No project distribution yet
-        |--------------------------------------------------------------------------
-        |
-        | Show one opening row so the selected receipt inventory can
-        | still be inspected.
-        |
-        */
-
-        if ($designations->isEmpty()) {
-            $zeroDistribution =
-                $this->emptyQuantities();
-
-            return collect([
-                $this->makeRow(
-                    receipt: $receipt,
-                    designation: null,
-                    beginning: $runningBalance,
-                    actualDistribution:
-                        $zeroDistribution,
-                    ending: $runningBalance
-                ),
-            ]);
+        if ($receipts->isEmpty()) {
+            return collect();
         }
 
+        $completedDesignations = $allocation->supplyDesignations
+            ->where('status', 'Completed')
+            ->sortBy(fn (SupplyDesignation $designation): string => $this->designationKey($designation))
+            ->values();
+
+        $designationsByReceipt = $this->groupDesignationsByReceipt(
+            $receipts,
+            $completedDesignations
+        );
+
         $rows = collect();
+        $runningBalance = $this->emptyQuantities($allocation);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Completed projects
-        |--------------------------------------------------------------------------
-        */
-
-        foreach ($designations as $designation) {
-            $beginning = $runningBalance;
-
-            $actualDistribution =
-                $this->designationQuantities(
-                    $designation
-                );
-
-            $ending = $this->calculateEnding(
-                beginning: $beginning,
-                actualDistribution:
-                    $actualDistribution
+        foreach ($receipts as $receipt) {
+            /*
+             * Previous ending + quantities received in this DR = beginning
+             * inventory for this receipt cycle.
+             */
+            $runningBalance = $this->add(
+                $runningBalance,
+                $this->receiptQuantities($receipt)
             );
 
-            $rows->push(
-                $this->makeRow(
-                    receipt: $receipt,
-                    designation: $designation,
-                    beginning: $beginning,
-                    actualDistribution:
-                        $actualDistribution,
-                    ending: $ending
-                )
+            /** @var Collection<int, SupplyDesignation> $receiptDesignations */
+            $receiptDesignations = $designationsByReceipt->get(
+                (int) $receipt->id,
+                collect()
             );
 
             /*
-             * The current ending inventory becomes the next project's
-             * beginning inventory.
+             * Keep the receipt visible even when it has no project yet.
              */
-            $runningBalance = $ending;
+            if ($receiptDesignations->isEmpty()) {
+                $rows->push(
+                    $this->row(
+                        $allocation,
+                        $receipt,
+                        null,
+                        $runningBalance,
+                        $this->zeros($runningBalance),
+                        $runningBalance
+                    )
+                );
+
+                continue;
+            }
+
+            foreach ($receiptDesignations as $designation) {
+                $beginning = $runningBalance;
+                $actual = $this->designationQuantities($designation);
+                $ending = $this->subtract($beginning, $actual);
+
+                $rows->push(
+                    $this->row(
+                        $allocation,
+                        $receipt,
+                        $designation,
+                        $beginning,
+                        $actual,
+                        $ending
+                    )
+                );
+
+                $runningBalance = $ending;
+            }
         }
 
         return $rows->values();
     }
 
     /**
-     * Build one report row.
+     * Group completed project distributions under the Delivery Receipt they
+     * belong to. New records use delivery_receipt_id directly. Legacy records
+     * with no receipt ID are assigned to the latest receipt whose delivery date
+     * is not later than the project's designation date.
      *
-     * @param array<int, int> $beginning
-     * @param array<int, int> $actualDistribution
-     * @param array<int, int> $ending
-     *
+     * @param  Collection<int, DeliveryReceipt>  $receipts
+     * @param  Collection<int, SupplyDesignation>  $designations
+     * @return Collection<int, Collection<int, SupplyDesignation>>
+     */
+    private function groupDesignationsByReceipt(
+        Collection $receipts,
+        Collection $designations
+    ): Collection {
+        $receiptIds = $receipts
+            ->pluck('id')
+            ->map(fn ($id): int => (int) $id)
+            ->all();
+
+        $groups = collect();
+
+        foreach ($receipts as $receipt) {
+            $groups->put((int) $receipt->id, collect());
+        }
+
+        foreach ($designations as $designation) {
+            $receiptId = $designation->delivery_receipt_id !== null
+                ? (int) $designation->delivery_receipt_id
+                : null;
+
+            if ($receiptId !== null && in_array($receiptId, $receiptIds, true)) {
+                $groups->get($receiptId)->push($designation);
+                continue;
+            }
+
+            /*
+             * Compatibility for old project records that do not contain a
+             * delivery_receipt_id. Match them to the most recent DR on or
+             * before the project distribution date.
+             */
+            $matchedReceipt = $receipts
+                ->filter(
+                    fn (DeliveryReceipt $receipt): bool =>
+                        $this->receiptDate($receipt)
+                        <= $this->designationDate($designation)
+                )
+                ->last();
+
+            /*
+             * If the legacy project predates every receipt, attach it to the
+             * first receipt rather than losing it from the report.
+             */
+            $matchedReceipt ??= $receipts->first();
+
+            if ($matchedReceipt) {
+                $groups
+                    ->get((int) $matchedReceipt->id)
+                    ->push($designation);
+            }
+        }
+
+        return $groups->map(
+            fn (Collection $group): Collection => $group
+                ->sortBy(fn (SupplyDesignation $designation): string => $this->designationKey($designation))
+                ->values()
+        );
+    }
+
+    /**
+     * @param  array<int, int>  $beginning
+     * @param  array<int, int>  $actual
+     * @param  array<int, int>  $ending
      * @return array<string, mixed>
      */
-    private function makeRow(
+    private function row(
+        ProvinceDistribution $allocation,
         DeliveryReceipt $receipt,
         ?SupplyDesignation $designation,
         array $beginning,
-        array $actualDistribution,
+        array $actual,
         array $ending
     ): array {
-        $allocation = $receipt
-            ->provinceDistribution;
-
-        $batch = $allocation
-            ?->distributionBatch;
-
-        $callOff = $batch
-            ?->callOff;
-
-        $purchaseOrder = $batch
-            ?->purchaseOrder;
-
-        $supplier = $purchaseOrder
-            ?->supplier;
+        $callOff = $allocation->distributionBatch?->callOff;
+        $purchaseOrder = $allocation->distributionBatch?->purchaseOrder;
 
         return [
-            /*
-            |--------------------------------------------------------------------------
-            | Delivery Receipt source
-            |--------------------------------------------------------------------------
-            */
-
-            'delivery_receipt_id' =>
-                (int) $receipt->id,
-
-            'delivery_receipt_number' =>
-                $receipt->dr_number
-                ?? '—',
-
-            'delivery_date' =>
-                $receipt->delivery_date,
-
-            'receiver_name' =>
-                $receipt->physical_receiver_name
-                ?? $receipt->receivedByUser?->name
-                ?? $receipt->received_by
-                ?? '—',
-
-            /*
-            |--------------------------------------------------------------------------
-            | Parent Call-Off references
-            |--------------------------------------------------------------------------
-            */
-
-            'province_distribution_id' =>
-                (int) (
-                    $receipt
-                        ->province_distribution_id
-                    ?? 0
-                ),
-
-            'call_off_number' =>
-                $callOff?->call_off_number
-                ?? '—',
-
-            'purchase_order_number' =>
-                $purchaseOrder?->po_number
-                ?? '—',
-
-            'supplier_name' =>
-                $supplier?->supplier_name
-                ?? '—',
-
-            /*
-            |--------------------------------------------------------------------------
-            | Project details
-            |--------------------------------------------------------------------------
-            */
-
-            'supply_designation_id' =>
-                $designation?->id,
-
-            'project_code' =>
-                $designation?->project_code
-                ?? '—',
-
-            'project_title' =>
-                $designation?->project_title
+            'province_distribution_id' => (int) $allocation->id,
+            'delivery_receipt_id' => (int) $receipt->id,
+            'delivery_receipt_number' => $receipt->dr_number ?? '—',
+            'delivery_date' => $receipt->delivery_date,
+            'call_off_number' => $callOff?->call_off_number ?? '—',
+            'purchase_order_number' => $purchaseOrder?->po_number ?? '—',
+            'supplier_name' => $purchaseOrder?->supplier?->supplier_name ?? '—',
+            'supply_designation_id' => $designation?->id,
+            'project_code' => $designation?->project_code ?? '—',
+            'project_title' => $designation?->project_title
                 ?? $designation?->project_name
                 ?? 'No Project Distribution Yet',
-
-            'location' =>
-                $designation?->location
-                ?? '—',
-
-            'number_of_beneficiaries' =>
-                (int) (
-                    $designation
-                        ?->number_of_beneficiaries
-                    ?? 0
-                ),
-
-            'number_of_days' =>
-                (int) (
-                    $designation
-                        ?->number_of_days
-                    ?? 0
-                ),
-
-            'movement_date' =>
-                $designation?->designation_date
+            'location' => $designation?->location ?? '—',
+            'number_of_beneficiaries' => (int) (
+                $designation?->number_of_beneficiaries ?? 0
+            ),
+            'number_of_days' => (int) (
+                $designation?->number_of_days ?? 0
+            ),
+            'movement_date' => $designation?->designation_date
                 ?? $receipt->delivery_date,
-
-            /*
-            |--------------------------------------------------------------------------
-            | Inventory values
-            |--------------------------------------------------------------------------
-            */
-
-            'beginning' =>
-                $beginning,
-
-            /*
-             * Keep the array key `actual` for Blade compatibility.
-             * Its meaning is now Actual Distribution.
-             */
-            'actual' =>
-                $actualDistribution,
-
-            'ending' =>
-                $ending,
-
-            'beginning_total' =>
-                array_sum($beginning),
-
-            'actual_total' =>
-                array_sum($actualDistribution),
-
-            'ending_total' =>
-                array_sum($ending),
-
-            /*
-            |--------------------------------------------------------------------------
-            | Source models
-            |--------------------------------------------------------------------------
-            */
-
-            'receipt' =>
-                $receipt,
-
-            'designation' =>
-                $designation,
-
-            'allocation' =>
-                $allocation,
+            'beginning' => $beginning,
+            'actual' => $actual,
+            'ending' => $ending,
+            'beginning_total' => array_sum($beginning),
+            'actual_total' => array_sum($actual),
+            'ending_total' => array_sum($ending),
+            'receipt' => $receipt,
+            'designation' => $designation,
+            'allocation' => $allocation,
         ];
     }
 
-    /**
-     * Get PPE physically received in this exact receipt.
-     *
-     * @return array<int, int>
-     */
-    private function receivedQuantities(
-        DeliveryReceipt $receipt
+    /** @return array<int, int> */
+    private function emptyQuantities(
+        ProvinceDistribution $allocation
     ): array {
-        $quantities = $this->emptyQuantities();
+        $values = [];
 
-        foreach ($receipt->items as $receiptItem) {
-            $itemId = (int) $receiptItem->item_id;
-
-            if (! array_key_exists(
-                $itemId,
-                $quantities
-            )) {
-                continue;
-            }
-
-            $quantity = (int) (
-                $receiptItem->received_quantity
-                ?? $receiptItem->quantity
-                ?? 0
-            );
-
-            if ($quantity <= 0) {
-                continue;
-            }
-
-            $quantities[$itemId] +=
-                $quantity;
+        foreach ($allocation->items as $item) {
+            $values[(int) $item->item_id] = 0;
         }
 
-        return $quantities;
+        return $values;
     }
 
     /**
-     * Get PPE distributed through one project designation.
-     *
+     * @param  array<int, int>  $values
      * @return array<int, int>
      */
+    private function zeros(array $values): array
+    {
+        return array_fill_keys(array_keys($values), 0);
+    }
+
+    /** @return array<int, int> */
+    private function receiptQuantities(
+        DeliveryReceipt $receipt
+    ): array {
+        $values = [];
+
+        foreach ($receipt->items as $item) {
+            $itemId = (int) $item->item_id;
+
+            $values[$itemId] = ($values[$itemId] ?? 0)
+                + (int) (
+                    $item->received_quantity
+                    ?? $item->quantity
+                    ?? 0
+                );
+        }
+
+        return $values;
+    }
+
+    /** @return array<int, int> */
     private function designationQuantities(
         SupplyDesignation $designation
     ): array {
-        $quantities = $this->emptyQuantities();
+        $values = [];
 
         foreach ($designation->items as $item) {
             $itemId = (int) $item->item_id;
 
-            if (! array_key_exists(
-                $itemId,
-                $quantities
-            )) {
-                continue;
-            }
-
-            $quantity = (int) $item->quantity;
-
-            if ($quantity <= 0) {
-                continue;
-            }
-
-            $quantities[$itemId] +=
-                $quantity;
+            $values[$itemId] = ($values[$itemId] ?? 0)
+                + (int) $item->quantity;
         }
 
-        return $quantities;
+        return $values;
     }
 
     /**
-     * Ending = Beginning - Actual Distribution.
-     *
-     * @param array<int, int> $beginning
-     * @param array<int, int> $actualDistribution
-     *
+     * @param  array<int, int>  $left
+     * @param  array<int, int>  $right
      * @return array<int, int>
      */
-    private function calculateEnding(
-        array $beginning,
-        array $actualDistribution
-    ): array {
-        $ending = $this->emptyQuantities();
+    private function add(array $left, array $right): array
+    {
+        foreach ($right as $itemId => $quantity) {
+            $left[(int) $itemId] = ($left[(int) $itemId] ?? 0)
+                + (int) $quantity;
+        }
 
-        foreach (
-            array_keys($ending)
-            as $itemId
-        ) {
-            $ending[$itemId] = max(
+        return $left;
+    }
+
+    /**
+     * @param  array<int, int>  $left
+     * @param  array<int, int>  $right
+     * @return array<int, int>
+     */
+    private function subtract(array $left, array $right): array
+    {
+        foreach ($right as $itemId => $quantity) {
+            $left[(int) $itemId] = max(
                 0,
-                (int) (
-                    $beginning[$itemId]
-                    ?? 0
-                )
-                - (int) (
-                    $actualDistribution[$itemId]
-                    ?? 0
-                )
+                ($left[(int) $itemId] ?? 0) - (int) $quantity
             );
         }
 
-        return $ending;
+        return $left;
     }
 
-    /**
-     * The seven fixed PPE variants.
-     *
-     * @return array<int, int>
-     */
-    private function emptyQuantities(): array
+    private function receiptKey(DeliveryReceipt $receipt): string
     {
-        return [
-            1 => 0,
-            2 => 0,
-            3 => 0,
-            4 => 0,
-            5 => 0,
-            6 => 0,
-            7 => 0,
-        ];
+        return $this->receiptDate($receipt)
+            .'|'
+            .str_pad((string) $receipt->id, 20, '0', STR_PAD_LEFT);
+    }
+
+    private function designationKey(
+        SupplyDesignation $designation
+    ): string {
+        return $this->designationDate($designation)
+            .'|'
+            .str_pad((string) $designation->id, 20, '0', STR_PAD_LEFT);
+    }
+
+    private function receiptDate(DeliveryReceipt $receipt): string
+    {
+        return $receipt->delivery_date?->format('Y-m-d')
+            ?? $receipt->created_at?->format('Y-m-d')
+            ?? '0000-00-00';
+    }
+
+    private function designationDate(
+        SupplyDesignation $designation
+    ): string {
+        return $designation->designation_date?->format('Y-m-d')
+            ?? $designation->created_at?->format('Y-m-d')
+            ?? '0000-00-00';
     }
 }

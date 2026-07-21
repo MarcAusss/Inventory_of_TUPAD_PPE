@@ -6,7 +6,6 @@ use App\Models\DeliveryReceipt;
 use App\Models\DeliveryReceiptItem;
 use App\Models\ProvinceDistribution;
 use App\Models\ProvincialInventory;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -30,19 +29,19 @@ class ReceivingService extends BaseService
     public function receive(
         ProvinceDistribution $provinceDistribution,
         array $data,
-        UploadedFile $document
+        array $documents
     ): DeliveryReceipt {
         $this->requireProvincial();
 
-        $documentPath = null;
+        $storedDocumentPaths = [];
 
         try {
             return DB::transaction(
                 function () use (
                     $provinceDistribution,
                     $data,
-                    $document,
-                    &$documentPath
+                    $documents,
+                    &$storedDocumentPaths
                 ): DeliveryReceipt {
                     /*
                      * Lock the provincial allocation to prevent two receiving
@@ -100,15 +99,21 @@ class ReceivingService extends BaseService
                         $previouslyReceived
                     );
 
-                    $documentPath = $document->store(
-                        'delivery-receipts',
-                        'public'
-                    );
+                    foreach ($documents as $document) {
+                        $path = $document->store('delivery-receipts', 'public');
 
-                    if (! $documentPath) {
-                        throw ValidationException::withMessages([
-                            'document' => 'The Delivery Receipt PDF could not be uploaded.',
-                        ]);
+                        if (! $path) {
+                            throw ValidationException::withMessages([
+                                'documents' => 'One of the receiving documents could not be uploaded.',
+                            ]);
+                        }
+
+                        $storedDocumentPaths[] = [
+                            'original_name' => $document->getClientOriginalName(),
+                            'file_path' => $path,
+                            'mime_type' => $document->getClientMimeType(),
+                            'file_size' => $document->getSize(),
+                        ];
                     }
 
                     $purchaseOrder =
@@ -119,6 +124,16 @@ class ReceivingService extends BaseService
                     if (! $purchaseOrder) {
                         throw ValidationException::withMessages([
                             'province_distribution' => 'The source Purchase Order could not be found.',
+                        ]);
+                    }
+
+                    $deliveryDate =
+                        $data['delivery_date']
+                        ?? $provinceDistribution->scheduled_delivery_date;
+
+                    if (! $deliveryDate) {
+                        throw ValidationException::withMessages([
+                            'delivery_date' => 'The delivery date is required. Ask TSSD to set the scheduled delivery date for this provincial allocation.',
                         ]);
                     }
 
@@ -136,7 +151,15 @@ class ReceivingService extends BaseService
 
                             'dr_number' => $data['dr_number'],
 
-                            'document' => $documentPath,
+                            /*
+                             * Use the per-province delivery schedule created
+                             * by TSSD. A submitted delivery_date may override
+                             * it when the receiving form intentionally allows
+                             * the Provincial Office to record the actual date.
+                             */
+                            'delivery_date' => $deliveryDate,
+
+                            'document' => $storedDocumentPaths[0]['file_path'] ?? null,
 
                             /*
                              * Legacy compatibility field.
@@ -149,6 +172,10 @@ class ReceivingService extends BaseService
 
                             'submitted_at' => now(),
                         ]);
+
+                    foreach ($storedDocumentPaths as $documentData) {
+                        $receipt->documents()->create($documentData);
+                    }
 
                     foreach (
                         $allocationItems as $allocationItem
@@ -285,13 +312,12 @@ class ReceivingService extends BaseService
             /*
              * A database rollback does not remove an uploaded file.
              */
-            if (
-                $documentPath
-                && Storage::disk('public')
-                    ->exists($documentPath)
-            ) {
-                Storage::disk('public')
-                    ->delete($documentPath);
+            foreach ($storedDocumentPaths as $documentData) {
+                $path = $documentData['file_path'] ?? null;
+
+                if ($path && Storage::disk('public')->exists($path)) {
+                    Storage::disk('public')->delete($path);
+                }
             }
 
             throw $exception;

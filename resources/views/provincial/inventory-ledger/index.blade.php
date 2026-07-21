@@ -295,54 +295,55 @@
         </section>
 
         {{-- =========================================================
-            DELIVERY RECEIPT FILTER
+            CALL-OFF FILTER
         ========================================================== --}}
         <section class="rounded-3xl border border-slate-200
                 bg-white p-5 shadow-sm sm:p-6">
             <form method="GET" action="{{ route('provincial.inventory-ledger.index') }}"
                 class="grid grid-cols-1 gap-4
                     md:grid-cols-2 xl:grid-cols-12">
-                {{-- Delivery Receipt --}}
-                <div class="xl:col-span-7">
-                    <label for="delivery_receipt_id"
+                {{-- Call-Off --}}
+                <div class="xl:col-span-4">
+                    <label for="province_distribution_id"
                         class="mb-2 block text-xs font-bold
                             uppercase tracking-wider
                             text-slate-500">
-                        Delivery Receipt
+                        Call-Off Number
                     </label>
 
-                    <select id="delivery_receipt_id" name="delivery_receipt_id" required
+                    <select id="province_distribution_id" name="province_distribution_id" required
                         class="w-full rounded-xl border-slate-300
                             focus:border-[#0284C7]
                             focus:ring-[#0284C7]">
                         <option value="">
-                            Select a Delivery Receipt
+                            Select a Call-Off Number
                         </option>
 
-                        @foreach ($deliveryReceipts as $receipt)
+                        @foreach ($callOffAllocations as $allocation)
                             @php
-                                $filterAllocation = $receipt->provinceDistribution;
-
-                                $filterBatch = $filterAllocation?->distributionBatch;
-
+                                $filterBatch = $allocation->distributionBatch;
                                 $filterCallOff = $filterBatch?->callOff;
-
                                 $filterPurchaseOrder = $filterBatch?->purchaseOrder;
-
                                 $filterSupplier = $filterPurchaseOrder?->supplier;
+                                $latestReceipt = $allocation->deliveryReceipts
+                                    ->where('status', 'Received')
+                                    ->sortByDesc('delivery_date')
+                                    ->first();
                             @endphp
 
-                            <option value="{{ $receipt->id }}" @selected($deliveryReceiptId === (int) $receipt->id)>
-                                {{ $receipt->dr_number }}
-                                —
+                            <option value="{{ $allocation->id }}" @selected($callOffId === (int) $allocation->id)>
                                 {{ $filterCallOff?->call_off_number ?? 'No Call-Off' }}
-                                —
-                                {{ $filterSupplier?->supplier_name ?? 'Supplier unavailable' }}
-                                —
-                                {{ $receipt->delivery_date?->format('M d, Y') ?? 'No date' }}
+                                — {{ $filterSupplier?->supplier_name ?? 'Supplier unavailable' }}
+                                — Latest DR: {{ $latestReceipt?->dr_number ?? 'None' }}
                             </option>
                         @endforeach
                     </select>
+                </div>
+
+                <div class="xl:col-span-3">
+                    <label for="search" class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Search Call-Off Number</label>
+                    <input id="search" name="search" value="{{ $search }}" placeholder="Enter Call-Off number"
+                        class="w-full rounded-xl border-slate-300 focus:border-[#0284C7] focus:ring-[#0284C7]">
                 </div>
 
                 {{-- Year --}}
@@ -377,9 +378,9 @@
                         Load Ledger
                     </button>
 
-                    @if ($deliveryReceiptId > 0)
+                    @if ($callOffId > 0)
                         <a href="{{ route('provincial.inventory-ledger.print', [
-                            'delivery_receipt_id' => $deliveryReceiptId,
+                            'province_distribution_id' => $callOffId,
                         
                             'year' => $year,
                         ]) }}"
@@ -406,7 +407,7 @@
         {{-- =========================================================
             REPORT INFORMATION
         ========================================================== --}}
-        @if ($deliveryReceiptId > 0)
+        @if ($callOffId > 0)
             <section class="grid grid-cols-1 gap-4 lg:grid-cols-3">
                 <article class="rounded-2xl border border-slate-200
                        bg-slate-50 p-5">
@@ -881,7 +882,7 @@
                                         </td>
 
                                         {{-- Delivery Receipts --}}
-                                        {{-- Delivery Receipt --}}
+                                        {{-- Call-Off --}}
                                         {{-- Delivery Receipts --}}
                                         <td
                                             class="border-r border-slate-100
@@ -1076,7 +1077,7 @@
                 </div>
 
                 <h2 class="mt-5 text-xl font-bold text-slate-900">
-                    Select a Delivery Receipt
+                    Select a Call-Off Number
                 </h2>
 
                 <p class="mx-auto mt-2 max-w-xl

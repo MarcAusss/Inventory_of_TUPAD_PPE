@@ -401,7 +401,7 @@
 
                     <div>
                         <label
-                            for="document"
+                            for="documents"
                             class="mb-2 block text-sm
                                    font-bold text-slate-700"
                         >
@@ -414,9 +414,10 @@
 
                         <input
                             type="file"
-                            id="document"
-                            name="document"
-                            accept="application/pdf,.pdf"
+                            id="documents"
+                            name="documents[]"
+                            multiple
+                            accept="application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png"
                             required
                             class="w-full rounded-xl border
                                    border-slate-300 bg-white
@@ -424,10 +425,10 @@
                         >
 
                         <p class="mt-2 text-xs text-slate-500">
-                            PDF only. Maximum file size: 10 MB.
+                            Select multiple PDF or image files. Maximum 10 MB per file.
                         </p>
 
-                        @error('document')
+                        @error('documents')
                             <p
                                 class="mt-2 text-sm
                                        font-semibold text-red-600"
@@ -435,6 +436,7 @@
                                 {{ $message }}
                             </p>
                         @enderror
+                        @error('documents.*')<p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>@enderror
                     </div>
 
                     <div class="lg:col-span-2">
