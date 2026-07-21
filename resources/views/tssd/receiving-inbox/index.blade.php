@@ -30,7 +30,7 @@
 
         <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow">
 
-            <div class="bg-red-900 px-6 py-5">
+            <div class="bg-[#339DCB] px-6 py-5">
 
                 <h2 class="text-xl font-semibold text-white">
                     Receiving Notifications

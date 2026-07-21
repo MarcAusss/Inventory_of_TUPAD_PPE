@@ -5,10 +5,12 @@
 
             <div class="px-6 py-7 sm:px-8">
                 <div class="flex flex-wrap items-center gap-3">
-                    <span class="rounded-full bg-[#B7D6E6]/35 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#143A52] ring-1 ring-[#90C4DD]">
+                    <span
+                        class="rounded-full bg-[#B7D6E6]/35 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#143A52] ring-1 ring-[#90C4DD]">
                         Supply Unit
                     </span>
-                    <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">
+                    <span
+                        class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">
                         Call-Off Assignment
                     </span>
                 </div>
@@ -24,8 +26,9 @@
             </div>
         </section>
 
-        @if(session('success'))
-            <div class="rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-sm font-semibold text-green-800 shadow-sm">
+        @if (session('success'))
+            <div
+                class="rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-sm font-semibold text-green-800 shadow-sm">
                 {{ session('success') }}
             </div>
         @endif
@@ -74,7 +77,8 @@
                                     {{ $batch->purchaseOrder?->supplier?->supplier_name ?? '—' }}
                                 </td>
                                 <td class="px-6 py-5 text-center">
-                                    <span class="inline-flex min-w-9 justify-center rounded-full bg-[#B7D6E6]/35 px-3 py-1 text-xs font-bold text-[#143A52] ring-1 ring-[#90C4DD]">
+                                    <span
+                                        class="inline-flex min-w-9 justify-center rounded-full bg-[#B7D6E6]/35 px-3 py-1 text-xs font-bold text-[#143A52] ring-1 ring-[#90C4DD]">
                                         {{ $batch->provinceDistributions->count() }}
                                     </span>
                                 </td>
@@ -86,7 +90,7 @@
                                 </td>
                                 <td class="px-6 py-5 text-center">
                                     <a href="{{ route('supply.call-offs.show', $batch) }}"
-                                       class="inline-flex rounded-lg bg-[#339DCB] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#2D94BE]">
+                                        class="inline-flex rounded-lg bg-[#339DCB] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#2D94BE]">
                                         Assign Call-Off
                                     </a>
                                 </td>
@@ -148,8 +152,18 @@
                                 <td class="px-6 py-5 text-sm text-[#36566E]">
                                     {{ $callOff->assignedBy?->name ?? '—' }}
                                 </td>
+                                @php
+                                    $statusClasses = match ($callOff->status) {
+                                        'Pending' => 'bg-red-100 text-red-800 ring-red-200',
+                                        'Approved' => 'bg-green-100 text-green-800 ring-green-200',
+                                        'Rejected' => 'bg-gray-100 text-gray-800 ring-gray-200',
+                                        default => 'bg-blue-100 text-blue-800 ring-blue-200',
+                                    };
+                                @endphp
+
                                 <td class="px-6 py-5 text-center">
-                                    <span class="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-800 ring-1 ring-green-200">
+                                    <span
+                                        class="inline-flex rounded-full px-3 py-1 text-xs font-bold ring-1 {{ $statusClasses }}">
                                         {{ $callOff->status }}
                                     </span>
                                 </td>
@@ -165,7 +179,7 @@
                 </table>
             </div>
 
-            @if($callOffs->hasPages())
+            @if ($callOffs->hasPages())
                 <div class="border-t border-slate-200 px-6 py-4">
                     {{ $callOffs->links() }}
                 </div>

@@ -27,7 +27,7 @@
 
                         <a href="{{ route('provincial.dashboard') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
             {{ request()->routeIs('provincial.dashboard')
-    ? 'bg-red-900 text-white'
+    ? 'bg-[#339DCB] text-white'
     : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
                             Dashboard
                         </a>
@@ -37,35 +37,35 @@
     || request()->routeIs('provincial.receiving.create')
     || request()->routeIs('provincial.receiving.show')
     || request()->routeIs('provincial.receiving.store')
-    ? 'bg-red-900 text-white'
+    ? 'bg-[#339DCB] text-white'
     : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
                             Approved Call-Offs
                         </a>
 
                         <a href="{{ route('provincial.receiving.history') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
             {{ request()->routeIs('provincial.receiving.history')
-    ? 'bg-red-900 text-white'
+    ? 'bg-[#339DCB] text-white'
     : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
                             Receiving History
                         </a>
 
                         <a href="{{ route('provincial.current-inventory.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
             {{ request()->routeIs('provincial.current-inventory.*')
-    ? 'bg-red-900 text-white'
+    ? 'bg-[#339DCB] text-white'
     : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
                             Current Inventory
                         </a>
 
                         <a href="{{ route('provincial.inventory-ledger.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
             {{ request()->routeIs('provincial.inventory-ledger.*')
-    ? 'bg-red-900 text-white'
+    ? 'bg-[#339DCB] text-white'
     : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
                             Inventory Ledger
                         </a>
 
                         <a href="{{ route('provincial.project-designations.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
             {{ request()->routeIs('provincial.project-designations.*')
-    ? 'bg-red-900 text-white'
+    ? 'bg-[#339DCB] text-white'
     : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
                             Project PPE Designations
                         </a>

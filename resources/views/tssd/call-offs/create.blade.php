@@ -60,7 +60,7 @@
                 </p>
 
                 <a href="{{ route('tssd.distributions.create') }}"
-                    class="mt-5 inline-flex rounded-xl bg-red-900 px-5 py-3 font-semibold text-white transition hover:bg-red-800">
+                    class="mt-5 inline-flex rounded-xl bg-[#339DCB] px-5 py-3 font-semibold text-white transition hover:bg-red-800">
                     Create Distribution
                 </a>
 
@@ -73,7 +73,7 @@
                 {{-- Call-Off Information --}}
                 <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow">
 
-                    <div class="bg-red-900 px-7 py-5">
+                    <div class="bg-[#339DCB] px-7 py-5">
 
                         <h2 class="text-xl font-semibold text-white">
                             Call-Off Information
@@ -257,7 +257,7 @@
                     </a>
 
                     <button type="submit"
-                        class="inline-flex items-center justify-center rounded-xl bg-red-900 px-7 py-3 font-semibold text-white transition hover:bg-red-800">
+                        class="inline-flex items-center justify-center rounded-xl bg-[#339DCB] px-7 py-3 font-semibold text-white transition hover:bg-red-800">
                         Assign Call-Off Number
                     </button>
 

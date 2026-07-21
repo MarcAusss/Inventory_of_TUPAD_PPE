@@ -27,14 +27,14 @@
 
                         <a href="{{ route('accounting.dashboard') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
             {{ request()->routeIs('accounting.dashboard')
-    ? 'bg-red-900 text-white'
+    ? 'bg-[#339DCB] text-white'
     : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
                             Dashboard
                         </a>
 
                         <a href="{{ route('accounting.inventory-ledger.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
             {{ request()->routeIs('accounting.inventory-ledger.*')
-    ? 'bg-red-900 text-white'
+    ? 'bg-[#339DCB] text-white'
     : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
                             Provincial Inventory
                         </a>

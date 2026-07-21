@@ -51,7 +51,7 @@
             @csrf
             @method('PUT')
 
-            <div class="bg-red-900 px-7 py-5">
+            <div class="bg-[#339DCB] px-7 py-5">
 
                 <h2 class="text-xl font-semibold text-white">
                     Template Information
@@ -201,7 +201,7 @@
 
                     <button
                         type="submit"
-                        class="rounded-xl bg-red-900 px-7 py-3 font-semibold text-white"
+                        class="rounded-xl bg-[#339DCB] px-7 py-3 font-semibold text-white"
                     >
                         Update PDF Template
                     </button>

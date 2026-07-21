@@ -405,7 +405,11 @@
                             class="mb-2 block text-sm
                                    font-bold text-slate-700"
                         >
-                            Delivery Receipt PDF
+                            Attach Document (PDF)
+                            <span class="ml-1 text-xs font-normal text-slate-500">
+                                Optional scanned copy of the
+                                Delivery Receipt and Image of damaged items.
+                            </span>
                         </label>
 
                         <input

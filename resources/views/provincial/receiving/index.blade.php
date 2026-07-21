@@ -150,7 +150,7 @@
                                         'bg-slate-200 text-slate-700 ring-slate-300',
 
                                     default =>
-                                        'bg-slate-100 text-slate-700 ring-slate-200',
+                                        'bg-red-100 text-red-700 ring-red-200'
                                 };
 
                                 $percentage = $allocatedTotal > 0

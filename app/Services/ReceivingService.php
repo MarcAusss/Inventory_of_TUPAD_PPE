@@ -136,8 +136,6 @@ class ReceivingService extends BaseService
 
                             'dr_number' => $data['dr_number'],
 
-                            'delivery_date' => $data['delivery_date'],
-
                             'document' => $documentPath,
 
                             /*

@@ -61,7 +61,7 @@
                                 $statusClasses = match ($callOff->status) {
                                     'Approved' => 'bg-green-100 text-green-800 ring-green-200',
                                     'Completed' => 'bg-[#B7D6E6]/35 text-[#143A52] ring-[#90C4DD]',
-                                    default => 'bg-slate-100 text-slate-700 ring-slate-200',
+                                    default => 'bg-red-100 text-red-700 ring-red-200',
                                 };
                             @endphp
 

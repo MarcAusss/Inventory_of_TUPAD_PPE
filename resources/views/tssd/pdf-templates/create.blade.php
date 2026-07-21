@@ -54,7 +54,7 @@
 
             @csrf
 
-            <div class="bg-red-900 px-7 py-5">
+            <div class="bg-[#339DCB] px-7 py-5">
 
                 <h2 class="text-xl font-semibold text-white">
                     PDF Template Information
@@ -215,7 +215,7 @@
 
                     <button
                         type="submit"
-                        class="rounded-xl bg-red-900 px-7 py-3 font-semibold text-white hover:bg-red-800"
+                        class="rounded-xl bg-[#339DCB] px-7 py-3 font-semibold text-white hover:bg-red-800"
                     >
                         Upload PDF Template
                     </button>

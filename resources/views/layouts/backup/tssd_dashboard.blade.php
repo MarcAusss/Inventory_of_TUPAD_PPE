@@ -26,28 +26,28 @@
 
                         <a href="{{ route('tssd.dashboard') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
             {{ request()->routeIs('tssd.dashboard')
-    ? 'bg-red-900 text-white'
+    ? 'bg-[#339DCB] text-white'
     : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
                             Dashboard
                         </a>
 
                         <a href="{{ route('tssd.distributions.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
             {{ request()->routeIs('tssd.distributions.*')
-    ? 'bg-red-900 text-white'
+    ? 'bg-[#339DCB] text-white'
     : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
                             Provincial Distributions
                         </a>
 
                         <a href="{{ route('tssd.call-offs.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
             {{ request()->routeIs('tssd.call-offs.*')
-    ? 'bg-red-900 text-white'
+    ? 'bg-[#339DCB] text-white'
     : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
                             Call-Off Management
                         </a>
 
                         <a href="{{ route('tssd.pdf-templates.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
             {{ request()->routeIs('tssd.pdf-templates.*')
-    ? 'bg-red-900 text-white'
+    ? 'bg-[#339DCB] text-white'
     : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
                             PDF Print Templates
                         </a>

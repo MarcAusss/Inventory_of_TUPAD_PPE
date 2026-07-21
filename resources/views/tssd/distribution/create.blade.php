@@ -156,10 +156,12 @@
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="min-w-[1100px] w-full divide-y divide-slate-200">
+                    <table class="min-w-[1500px] w-full divide-y divide-slate-200">
                         <thead class="bg-[#B7D6E6]/35">
                             <tr class="text-xs font-bold uppercase tracking-wide text-[#36566E]">
                                 <th class="px-5 py-4 text-left">Province</th>
+                                <th class="px-5 py-4 text-left">Delivery Date</th>
+                                <th class="px-5 py-4 text-left">Place of Delivery</th>
                                 <th class="px-4 py-4 text-center">LS-M</th>
                                 <th class="px-4 py-4 text-center">LS-L</th>
                                 <th class="px-4 py-4 text-center">Bucket Hat</th>
@@ -223,6 +225,8 @@
 
                                 <tr class="transition hover:bg-[#F3FAFD]">
                                     <td class="px-5 py-4 font-bold text-[#143A52]">{{ $province->name }}</td>
+                                    <td class="px-5 py-4 text-sm text-slate-700">—</td>
+                                    <td class="px-5 py-4 text-sm text-slate-700">{{ $province->deliveryLocation() }}</td>
                                     <td class="px-4 py-4 text-center text-sm text-slate-700">{{ $lsm }}</td>
                                     <td class="px-4 py-4 text-center text-sm text-slate-700">{{ $lsl }}</td>
                                     <td class="px-4 py-4 text-center text-sm text-slate-700">{{ $bucket }}</td>
@@ -234,7 +238,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="9" class="px-6 py-14 text-center text-sm text-slate-500">
+                                    <td colspan="11" class="px-6 py-14 text-center text-sm text-slate-500">
                                         No province assigned yet.
                                     </td>
                                 </tr>
@@ -247,36 +251,25 @@
             <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                 <div class="border-b border-slate-200 px-6 py-5 sm:px-7">
                     <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#2D94BE]">
-                        Delivery
+                        Notes
                     </p>
 
                     <h2 class="mt-1 text-lg font-bold text-slate-950">
-                        Delivery Information
+                        Distribution Remarks
                     </h2>
 
                     <p class="mt-1 text-sm text-slate-500">
-                        Record the planned delivery date and any distribution remarks.
+                        Delivery dates and delivery locations are recorded separately for every provincial office.
                     </p>
                 </div>
 
-                <div class="grid grid-cols-1 gap-6 p-6 sm:p-7 lg:grid-cols-2">
-                    <div>
-                        <label for="delivery_date" class="mb-2 block text-sm font-bold text-slate-700">
-                            Delivery Date
-                        </label>
+                <div class="p-6 sm:p-7">
+                    <label for="remarks" class="mb-2 block text-sm font-bold text-slate-700">
+                        Remarks
+                    </label>
 
-                        <input type="date" id="delivery_date" name="delivery_date"
-                            class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#339DCB] focus:ring-[#339DCB]">
-                    </div>
-
-                    <div>
-                        <label for="remarks" class="mb-2 block text-sm font-bold text-slate-700">
-                            Remarks
-                        </label>
-
-                        <textarea id="remarks" name="remarks" rows="3"
-                            class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#339DCB] focus:ring-[#339DCB]"></textarea>
-                    </div>
+                    <textarea id="remarks" name="remarks" rows="3"
+                        class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#339DCB] focus:ring-[#339DCB]"></textarea>
                 </div>
             </section>
 
@@ -331,11 +324,32 @@
                     <option value="">Select Province</option>
 
                     @foreach ($provinces as $province)
-                        <option value="{{ $province->id }}" data-name="{{ $province->name }}">
+                        <option value="{{ $province->id }}" data-name="{{ $province->name }}"
+                            data-office-name="{{ $province->office_name }}"
+                            data-address="{{ $province->deliveryLocation() }}">
                             {{ $province->name }}
                         </option>
                     @endforeach
                 </select>
+            </div>
+
+            <div class="mb-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
+                <div>
+                    <label for="scheduledDeliveryDate" class="mb-2 block text-sm font-bold text-slate-700">
+                        Delivery Date
+                    </label>
+                    <input type="date" id="scheduledDeliveryDate"
+                        class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#339DCB] focus:ring-[#339DCB]">
+                </div>
+
+                <div>
+                    <label for="placeOfDelivery" class="mb-2 block text-sm font-bold text-slate-700">
+                        Place of Delivery
+                    </label>
+                    <textarea id="placeOfDelivery" rows="2" readonly
+                        class="w-full resize-none rounded-xl border-slate-200 bg-slate-100 text-slate-700 shadow-sm"
+                        placeholder="Select a province to load its office address."></textarea>
+                </div>
             </div>
 
             @php
@@ -481,9 +495,14 @@
                     'provinceSelect'
                 );
 
-            const deliveryDateInput =
+            const scheduledDeliveryDateInput =
                 document.getElementById(
-                    'delivery_date'
+                    'scheduledDeliveryDate'
+                );
+
+            const placeOfDeliveryInput =
+                document.getElementById(
+                    'placeOfDelivery'
                 );
 
             const distributionsInput =
@@ -839,6 +858,9 @@
                 provinceSelect.selectedIndex =
                     0;
 
+                scheduledDeliveryDateInput.value = '';
+                placeOfDeliveryInput.value = '';
+
                 validateAssignmentForm();
             }
 
@@ -900,7 +922,7 @@
                 distributionSummary.innerHTML = `
                     <tr id="emptyDistributionRow">
                         <td
-                            colspan="9"
+                            colspan="11"
                             class="py-8 text-center text-gray-500"
                         >
                             No province assigned yet.
@@ -985,6 +1007,42 @@
                     });
             }
 
+            function escapeHtml(value) {
+                return String(value ?? '')
+                    .replaceAll('&', '&amp;')
+                    .replaceAll('<', '&lt;')
+                    .replaceAll('>', '&gt;')
+                    .replaceAll('"', '&quot;')
+                    .replaceAll("'", '&#039;');
+            }
+
+            function formatDate(value) {
+                if (!value) {
+                    return '—';
+                }
+
+                const date = new Date(`${value}T00:00:00`);
+
+                if (Number.isNaN(date.getTime())) {
+                    return escapeHtml(value);
+                }
+
+                return date.toLocaleDateString('en-PH', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: '2-digit',
+                });
+            }
+
+            function selectedProvinceOption() {
+                return provinceSelect.options[provinceSelect.selectedIndex] || null;
+            }
+
+            function updateAutomaticDeliveryAddress() {
+                const option = selectedProvinceOption();
+                placeOfDeliveryInput.value = option?.dataset.address || '';
+            }
+
             function renderDistributionSummary() {
                 if (
                     distributions.length ===
@@ -1035,6 +1093,14 @@
                                     >
                                         <td class="px-4 py-3 font-semibold">
                                             ${provinceName}
+                                        </td>
+
+                                        <td class="px-4 py-3 text-sm text-slate-700">
+                                            ${formatDate(distribution.scheduled_delivery_date)}
+                                        </td>
+
+                                        <td class="max-w-xs px-4 py-3 text-sm text-slate-700">
+                                            ${escapeHtml(distribution.place_of_delivery || '—')}
                                         </td>
 
                                         <td class="text-center">
@@ -1191,6 +1257,10 @@
                     valid = false;
                 }
 
+                if (!scheduledDeliveryDateInput.value) {
+                    valid = false;
+                }
+
                 saveAssignButton.disabled = !valid;
 
                 saveAssignButton.className =
@@ -1211,15 +1281,15 @@
                 const validCombinedTotals =
                     combinedAllocationIsValid();
 
-                const hasDeliveryDate =
-                    Boolean(
-                        deliveryDateInput.value
+                const everyProvinceHasDeliveryDate =
+                    distributions.every(
+                        distribution => Boolean(distribution.scheduled_delivery_date)
                     );
 
                 submitButton.disabled = !hasSelectedPO ||
                     !hasDistributions ||
                     !validCombinedTotals ||
-                    !hasDeliveryDate;
+                    !everyProvinceHasDeliveryDate;
             }
 
             async function loadRemaining(
@@ -1573,6 +1643,15 @@
             provinceSelect
                 .addEventListener(
                     'change',
+                    function() {
+                        updateAutomaticDeliveryAddress();
+                        validateAssignmentForm();
+                    }
+                );
+
+            scheduledDeliveryDateInput
+                .addEventListener(
+                    'change',
                     validateAssignmentForm
                 );
 
@@ -1584,7 +1663,7 @@
                             !validateAssignmentForm()
                         ) {
                             alert(
-                                'Select a province and enter valid PPE quantities.'
+                                'Select a province, provide its delivery date, and enter valid PPE quantities.'
                             );
 
                             return;
@@ -1599,8 +1678,14 @@
                         const values =
                             readModalValues();
 
+                        const provinceOption = selectedProvinceOption();
+
                         const newDistribution = {
                             province_id: provinceId,
+
+                            scheduled_delivery_date: scheduledDeliveryDateInput.value,
+
+                            place_of_delivery: provinceOption?.dataset.address || '',
 
                             long_sleeve_medium: values.lsm,
 
@@ -1679,6 +1764,13 @@
                              */
                             provinceSelect.disabled =
                                 true;
+
+                            scheduledDeliveryDateInput.value =
+                                distribution.scheduled_delivery_date || '';
+
+                            placeOfDeliveryInput.value =
+                                distribution.place_of_delivery ||
+                                selectedProvinceOption()?.dataset.address || '';
 
                             fields.forEach(
                                 field => {
@@ -1759,12 +1851,6 @@
                     }
                 );
 
-            deliveryDateInput
-                .addEventListener(
-                    'change',
-                    updateSubmitState
-                );
-
             form.addEventListener(
                 'submit',
                 async function(
@@ -1803,17 +1889,12 @@
                         return;
                     }
 
-                    if (
-                        !deliveryDateInput
-                        .value
-                    ) {
-                        alert(
-                            'Please provide the delivery date.'
-                        );
+                    const missingDeliveryDate = distributions.find(
+                        distribution => !distribution.scheduled_delivery_date
+                    );
 
-                        deliveryDateInput
-                            .focus();
-
+                    if (missingDeliveryDate) {
+                        alert('Every provincial allocation must have its own delivery date.');
                         return;
                     }
 

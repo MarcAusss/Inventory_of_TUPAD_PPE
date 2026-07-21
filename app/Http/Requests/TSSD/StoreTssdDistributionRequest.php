@@ -33,9 +33,9 @@ class StoreTssdDistributionRequest extends FormRequest
 
             $distributions =
                 json_last_error()
-                    === JSON_ERROR_NONE
-                    ? $decoded
-                    : null;
+                === JSON_ERROR_NONE
+                ? $decoded
+                : null;
         }
 
         $this->merge([
@@ -56,7 +56,7 @@ class StoreTssdDistributionRequest extends FormRequest
                 'exists:purchase_orders,id',
             ],
 
-            'delivery_date' => [
+            'distributions.*.scheduled_delivery_date' => [
                 'required',
                 'date',
             ],
@@ -131,16 +131,14 @@ class StoreTssdDistributionRequest extends FormRequest
         Validator $validator
     ): void {
         $validator->after(
-            function (
-                Validator $validator
-            ): void {
+            function (Validator $validator): void {
                 $distributions =
                     $this->input(
                         'distributions',
                         []
                     );
 
-                if (! is_array($distributions)) {
+                if (!is_array($distributions)) {
                     return;
                 }
 
@@ -150,7 +148,7 @@ class StoreTssdDistributionRequest extends FormRequest
                     $distributions
                     as $index => $distribution
                 ) {
-                    if (! is_array($distribution)) {
+                    if (!is_array($distribution)) {
                         continue;
                     }
 
@@ -184,8 +182,8 @@ class StoreTssdDistributionRequest extends FormRequest
                         ] ?? 0,
                     ])
                         ->map(
-                            fn ($value): int =>
-                                (int) $value
+                            fn($value): int =>
+                            (int) $value
                         )
                         ->sum();
 
@@ -196,6 +194,16 @@ class StoreTssdDistributionRequest extends FormRequest
                         $validator->errors()->add(
                             "distributions.{$index}",
                             'At least one PPE quantity must be greater than zero for each selected province.'
+                        );
+                    }
+                    if (
+                        empty(
+                        $distribution['scheduled_delivery_date']
+                    )
+                    ) {
+                        $validator->errors()->add(
+                            "distributions.{$index}.scheduled_delivery_date",
+                            'Please provide the scheduled delivery date.'
                         );
                     }
                 }
@@ -222,11 +230,11 @@ class StoreTssdDistributionRequest extends FormRequest
             'purchase_order_id.exists' =>
                 'The selected Purchase Order does not exist.',
 
-            'delivery_date.required' =>
-                'Please provide the scheduled delivery date.',
+            'distributions.*.scheduled_delivery_date.required' =>
+                'Please provide a delivery date for every provincial office.',
 
-            'delivery_date.date' =>
-                'Please provide a valid scheduled delivery date.',
+            'distributions.*.scheduled_delivery_date.date' =>
+                'Please provide a valid delivery date for every provincial office.',
 
             'distributions.required' =>
                 'Please assign PPE to at least one province.',

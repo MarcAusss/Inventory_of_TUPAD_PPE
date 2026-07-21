@@ -352,65 +352,7 @@
         @endif
     </table>
 
-    @php
-        $approvedCallOffs = $purchaseOrder->distributionBatches->pluck('callOff')->filter()->values();
-    @endphp
-
-    @if ($approvedCallOffs->isNotEmpty())
-        <section class="mt-6 [page-break-inside:avoid]">
-            <div class="mb-2 text-[10px] font-extrabold uppercase tracking-wide text-[#641D21]">
-                Call-Off Information
-            </div>
-
-            <table class="w-full border-collapse text-[9px]">
-                <thead>
-                    <tr>
-                        <th
-                            class="border border-[#222] bg-[#641D21] px-3 py-2 text-left font-bold text-white print-exact">
-                            Call-Off Number
-                        </th>
-
-                        <th
-                            class="border border-[#222] bg-[#641D21] px-3 py-2 text-left font-bold text-white print-exact">
-                            Call-Off Date
-                        </th>
-
-                        <th
-                            class="border border-[#222] bg-[#641D21] px-3 py-2 text-left font-bold text-white print-exact">
-                            Status
-                        </th>
-
-                        <th
-                            class="border border-[#222] bg-[#641D21] px-3 py-2 text-left font-bold text-white print-exact">
-                            Remarks
-                        </th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    @foreach ($approvedCallOffs as $callOff)
-                        <tr>
-                            <td class="border border-[#222] px-3 py-2 font-extrabold text-[#641D21]">
-                                {{ $callOff->call_off_number }}
-                            </td>
-
-                            <td class="border border-[#222] px-3 py-2">
-                                {{ $callOff->call_off_date?->format('F d, Y') ?? '—' }}
-                            </td>
-
-                            <td class="border border-[#222] px-3 py-2">
-                                {{ $callOff->status }}
-                            </td>
-
-                            <td class="border border-[#222] px-3 py-2">
-                                {{ $callOff->remarks ?: '—' }}
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </section>
-    @endif
+    
     <div class="my-9 overflow-hidden rounded-lg  print-exact">
         <div class=" px-4 py-3">
             <p class="m-0 text-[8px] font-bold uppercase tracking-wide text-black">

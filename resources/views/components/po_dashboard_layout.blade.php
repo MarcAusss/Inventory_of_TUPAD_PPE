@@ -253,7 +253,7 @@
                             @endif
                             <a href="{{ route('provincial.call-off-inventory.index') }}"
                                 class="{{ request()->routeIs('provincial.call-off-inventory.*')
-                                    ? 'bg-red-900 text-white'
+                                    ? 'bg-[#339DCB] text-white'
                                     : 'text-slate-700 hover:bg-slate-100' }} flex items-center rounded-xl px-4 py-3
        text-sm font-semibold transition">
                                 Per Call-Off Inventory

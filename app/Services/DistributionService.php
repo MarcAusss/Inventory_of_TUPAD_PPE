@@ -79,10 +79,7 @@ class DistributionService
         );
 
         return DB::transaction(
-            function () use (
-                $data,
-                $user
-            ): TssdDistributionBatch {
+            function () use ($data, $user): TssdDistributionBatch {
                 /*
                  * Lock the Purchase Order itself so another TSSD request
                  * cannot allocate from the same PO simultaneously.
@@ -97,7 +94,7 @@ class DistributionService
                     );
 
                 if (
-                    ! in_array(
+                    !in_array(
                         $purchaseOrder->status,
                         [
                             'Pending Distribution',
@@ -187,15 +184,26 @@ class DistributionService
                             ->create([
                                 'province_id' => $province->id,
 
-                                'scheduled_delivery_date' => $data['delivery_date'],
+                                /*
+                                |--------------------------------------------------------------------------
+                                | Every province has its own delivery schedule
+                                |--------------------------------------------------------------------------
+                                */
+                                'scheduled_delivery_date' =>
+                                    $distribution['scheduled_delivery_date'],
 
-                                'place_of_delivery' => $province->delivery_address
-                                    ?? $province->office_name
-                                    ?? $province->name,
+                                /*
+                                |--------------------------------------------------------------------------
+                                | Snapshot the Provincial Office address.
+                                |--------------------------------------------------------------------------
+                                */
+                                'place_of_delivery' =>
+                                    $province->deliveryLocation(),
 
                                 'status' => 'Pending',
 
-                                'remarks' => $distribution['remarks']
+                                'remarks' =>
+                                    $distribution['remarks']
                                     ?? null,
                             ]);
 
@@ -226,7 +234,7 @@ class DistributionService
                             ]);
                     }
 
-                    if (! $hasPositiveItem) {
+                    if (!$hasPositiveItem) {
                         throw ValidationException::withMessages([
                             "distributions.{$distributionIndex}" => "Enter at least one PPE quantity for {$province->name}.",
                         ]);
@@ -260,7 +268,7 @@ class DistributionService
     private function normalizeDistributions(
         mixed $distributions
     ): array {
-        if (! is_array($distributions)) {
+        if (!is_array($distributions)) {
             throw ValidationException::withMessages([
                 'distributions' => 'The submitted distribution data is invalid.',
             ]);
@@ -271,7 +279,7 @@ class DistributionService
         foreach (
             $distributions as $index => $distribution
         ) {
-            if (! is_array($distribution)) {
+            if (!is_array($distribution)) {
                 throw ValidationException::withMessages([
                     "distributions.{$index}" => 'This province distribution entry is invalid.',
                 ]);
@@ -279,7 +287,7 @@ class DistributionService
 
             $provinceId = filter_var(
                 $distribution['province_id']
-                    ?? null,
+                ?? null,
                 FILTER_VALIDATE_INT
             );
 
@@ -289,16 +297,33 @@ class DistributionService
                 ]);
             }
 
+            $scheduledDeliveryDate = trim(
+                (string) (
+                    $distribution[
+                        'scheduled_delivery_date'
+                    ] ?? ''
+                )
+            );
+
+            if ($scheduledDeliveryDate === '') {
+                throw ValidationException::withMessages([
+                    "distributions.{$index}.scheduled_delivery_date" =>
+                        'Every province must have its own delivery date.',
+                ]);
+            }
+
             $entry = [
                 'province_id' => (int) $provinceId,
 
-                'remarks' => isset($distribution['remarks'])
-                        ? trim(
-                            (string) $distribution[
-                                'remarks'
-                            ]
-                        )
-                        : null,
+                'scheduled_delivery_date' =>
+                    $scheduledDeliveryDate,
+
+                'remarks' =>
+                    isset($distribution['remarks'])
+                    ? trim(
+                        (string) $distribution['remarks']
+                    )
+                    : null,
             ];
 
             foreach (
@@ -384,11 +409,11 @@ class DistributionService
 
             $item = $query->first();
 
-            if (! $item) {
+            if (!$item) {
                 $displayName =
                     $definition['label']
-                        ? "{$definition['name']} ({$definition['label']})"
-                        : $definition['name'];
+                    ? "{$definition['name']} ({$definition['label']})"
+                    : $definition['name'];
 
                 throw ValidationException::withMessages([
                     'distributions' => "{$displayName} is missing from the PPE items table.",
@@ -484,9 +509,7 @@ class DistributionService
             ProvinceDistributionItem::query()
                 ->whereHas(
                     'provinceDistribution.distributionBatch',
-                    function ($query) use (
-                        $purchaseOrder
-                    ): void {
+                    function ($query) use ($purchaseOrder): void {
                         $query
                             ->where(
                                 'purchase_order_id',
@@ -563,16 +586,16 @@ class DistributionService
 
             $displayName =
                 $item->label
-                    ? "{$item->item_name} ({$item->label})"
-                    : $item->item_name;
+                ? "{$item->item_name} ({$item->label})"
+                : $item->item_name;
 
             $errors[
                 "totals.{$field}"
             ] = "{$displayName} has "
-                .number_format($remaining)
-                .' remaining in this Purchase Order, but '
-                .number_format($requested)
-                .' was allocated across all provinces.';
+                . number_format($remaining)
+                . ' remaining in this Purchase Order, but '
+                . number_format($requested)
+                . ' was allocated across all provinces.';
         }
 
         if ($errors !== []) {

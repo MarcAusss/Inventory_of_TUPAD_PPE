@@ -26,35 +26,35 @@
 
                         <a href="{{ route('supply.dashboard') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
             {{ request()->routeIs('supply.dashboard')
-    ? 'bg-red-900 text-white'
+    ? 'bg-[#339DCB] text-white'
     : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
                             Dashboard
                         </a>
 
                         <a href="{{ route('supply.purchase-orders.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
             {{ request()->routeIs('supply.purchase-orders.*')
-    ? 'bg-red-900 text-white'
+    ? 'bg-[#339DCB] text-white'
     : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
                             Purchase Orders
                         </a>
 
                         <a href="{{ route('supply.suppliers.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
             {{ request()->routeIs('supply.suppliers.*')
-    ? 'bg-red-900 text-white'
+    ? 'bg-[#339DCB] text-white'
     : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
                             Suppliers
                         </a>
 
                         <a href="{{ route('supply.items.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
             {{ request()->routeIs('supply.items.*')
-    ? 'bg-red-900 text-white'
+    ? 'bg-[#339DCB] text-white'
     : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
                             PPE Items
                         </a>
 
                         <a href="{{ route('supply.call-offs.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
             {{ request()->routeIs('supply.call-offs.*')
-    ? 'bg-red-900 text-white'
+    ? 'bg-[#339DCB] text-white'
     : 'text-gray-300 hover:bg-white/10 hover:text-white' }}">
                             Call-Off Approvals
                         </a>
