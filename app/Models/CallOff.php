@@ -17,6 +17,7 @@ class CallOff extends Model
         'call_off_date',
         'assigned_by',
         'assigned_at',
+        'nefa_title',
         'approved_by',
         'approved_at',
         'approval_document',

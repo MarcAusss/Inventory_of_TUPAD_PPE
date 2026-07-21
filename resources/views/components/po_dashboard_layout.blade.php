@@ -184,6 +184,29 @@
                                     PPE Inventory & Transactions
                                 </a>
                             @endif
+                            <a href="{{ route('tssd.call-off-letters.index') }}"
+                                class="group flex items-center gap-3 rounded-xl px-4 py-3
+           text-sm font-semibold transition
+           {{ request()->routeIs('tssd.call-off-letters.*')
+               ? 'bg-[#339DCB] text-white shadow-sm'
+               : 'text-slate-700 hover:bg-[#F7FBFD] hover:text-[#247BA0]' }}">
+
+                                {{-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M6 2.75h8.5L19 7.25v14H6z" />
+
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M14 2.75v4.5h5M9 12h6M9 16h6" />
+
+                                </svg> --}}
+
+                                <span>
+                                    Call-Off Letters
+                                </span>
+
+                            </a>
 
                             @if (Route::has('tssd.users.index'))
                                 <a href="{{ route('tssd.users.index') }}"

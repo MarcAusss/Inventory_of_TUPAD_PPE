@@ -7,6 +7,7 @@ use App\Http\Controllers\TSSD\PdfTemplateController;
 use App\Http\Controllers\TSSD\TssdDistributionController;
 use App\Http\Controllers\TSSD\UserManagementController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TSSD\CallOffLetterController;
 
 Route::middleware([
     'auth',
@@ -195,4 +196,31 @@ Route::middleware([
                     'store',
                     'show',
                 ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Letter to IMSD automated
+        |--------------------------------------------------------------------------
+        */
+
+
+        Route::get(
+            '/call-off-letters',
+            [CallOffLetterController::class, 'index']
+        )->name('call-off-letters.index');
+
+        Route::get(
+            '/call-off-letters/{callOff}/edit',
+            [CallOffLetterController::class, 'edit']
+        )->name('call-off-letters.edit');
+
+        Route::put(
+            '/call-off-letters/{callOff}',
+            [CallOffLetterController::class, 'update']
+        )->name('call-off-letters.update');
+
+        Route::get(
+            '/call-off-letters/{callOff}/print',
+            [CallOffLetterController::class, 'print']
+        )->name('call-off-letters.print');
     });
