@@ -1,4 +1,4 @@
-<x-po_dashboard_layout title="Accounting Inventory Ledger">
+<x-po_dashboard_layout :title="$viewerLabel . ' PPE Monitoring'">
 
     @php
         /*
@@ -72,6 +72,53 @@
                 ?->distributionBatch
                 ?->purchaseOrder
                 ?->supplier;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | CONSOLIDATED PROVINCIAL INVENTORY
+        |--------------------------------------------------------------------------
+        */
+        $provincialInventoryByProvince = collect($provinces)
+            ->mapWithKeys(function ($province) use ($provincialInventories, $ppeColumns) {
+                $records = $provincialInventories->where(
+                    'province_id',
+                    $province->id
+                );
+
+                $quantities = [];
+
+                foreach (array_keys($ppeColumns) as $itemId) {
+                    $quantities[$itemId] = (int) $records
+                        ->where('item_id', $itemId)
+                        ->sum('quantity');
+                }
+
+                $longSleeveTotal =
+                    ($quantities[1] ?? 0)
+                    + ($quantities[2] ?? 0);
+
+                $rubberBootsTotal =
+                    ($quantities[4] ?? 0)
+                    + ($quantities[5] ?? 0);
+
+                $totalPpe =
+                    $longSleeveTotal
+                    + ($quantities[3] ?? 0)
+                    + $rubberBootsTotal
+                    + ($quantities[6] ?? 0)
+                    + ($quantities[7] ?? 0);
+
+                return [
+                    $province->id => [
+                        'province' => $province,
+                        'quantities' => $quantities,
+                        'long_sleeve_total' => $longSleeveTotal,
+                        'rubber_boots_total' => $rubberBootsTotal,
+                        'total_ppe' => $totalPpe,
+                    ],
+                ];
+            });
     @endphp
 
     <div class="mx-auto max-w-[2200px] space-y-6">
@@ -85,8 +132,8 @@
         >
             <div
                 class="absolute inset-y-0 left-0 w-2
-                       bg-gradient-to-b from-[#641D21]
-                       via-[#970C13] to-[#ED1B24]"
+                       bg-gradient-to-b from-[#244E70]
+                       via-[#2E628D] to-[#4FA3D9]"
             ></div>
 
             <div
@@ -97,13 +144,13 @@
                 <div>
                     <div class="flex flex-wrap items-center gap-3">
                         <span
-                            class="rounded-full bg-[#DF979B]/20
+                            class="rounded-full bg-[#B8D9EE]/20
                                    px-3 py-1 text-xs font-bold
                                    uppercase tracking-[0.16em]
-                                   text-[#970C13]
-                                   ring-1 ring-[#DF979B]"
+                                   text-[#2E628D]
+                                   ring-1 ring-[#B8D9EE]"
                         >
-                            Accounting Unit
+                            {{ $viewerLabel }}
                         </span>
 
                         <span
@@ -128,11 +175,7 @@
                         class="mt-2 max-w-4xl text-sm
                                leading-6 text-slate-600"
                     >
-                        View the Supply Unit’s current central PPE
-                        inventory and monitor provincial Call-Off,
-                        Delivery Receipt, and project distribution
-                        movements. Accounting access is strictly
-                        view-only.
+                        {{ $viewerDescription }}
                     </p>
                 </div>
 
@@ -153,7 +196,7 @@
 
                         <p
                             class="mt-1 text-2xl font-bold
-                                   text-[#641D21]"
+                                   text-[#244E70]"
                         >
                             {{ $year }}
                         </p>
@@ -183,20 +226,20 @@
 
                     <article
                         class="col-span-2 rounded-2xl
-                               border border-[#DF979B]
-                               bg-[#DF979B]/10 px-5 py-4
+                               border border-[#B8D9EE]
+                               bg-[#B8D9EE]/10 px-5 py-4
                                sm:col-span-1"
                     >
                         <p
                             class="text-xs font-bold uppercase
-                                   tracking-wider text-[#970C13]"
+                                   tracking-wider text-[#2E628D]"
                         >
                             Permission
                         </p>
 
                         <p
                             class="mt-1 text-sm font-bold
-                                   text-[#641D21]"
+                                   text-[#244E70]"
                         >
                             View Only
                         </p>
@@ -221,7 +264,7 @@
                 <div>
                     <p
                         class="text-xs font-bold uppercase
-                               tracking-[0.16em] text-[#970C13]"
+                               tracking-[0.16em] text-[#2E628D]"
                     >
                         Supply Unit Inventory
                     </p>
@@ -241,19 +284,19 @@
                 </div>
 
                 <div
-                    class="rounded-2xl border border-[#DF979B]
-                           bg-[#DF979B]/10 px-6 py-4"
+                    class="rounded-2xl border border-[#B8D9EE]
+                           bg-[#B8D9EE]/10 px-6 py-4"
                 >
                     <p
                         class="text-xs font-bold uppercase
-                               tracking-wider text-[#970C13]"
+                               tracking-wider text-[#2E628D]"
                     >
                         Total Available PPE
                     </p>
 
                     <p
                         class="mt-1 text-3xl font-bold
-                               text-[#641D21]"
+                               text-[#244E70]"
                     >
                         {{
                             number_format(
@@ -269,41 +312,41 @@
                     class="w-full min-w-[900px]
                            border-collapse"
                 >
-                    <thead class="bg-[#641D21] text-white">
+                    <thead class="bg-[#244E70] text-white">
                         <tr
                             class="text-xs font-bold uppercase
                                    tracking-wide"
                         >
                             <th
-                                class="w-20 border border-[#7f3539]
+                                class="w-20 border border-[#4F8DB8]
                                        px-5 py-4 text-center"
                             >
                                 No.
                             </th>
 
                             <th
-                                class="border border-[#7f3539]
+                                class="border border-[#4F8DB8]
                                        px-5 py-4 text-left"
                             >
                                 PPE Item
                             </th>
 
                             <th
-                                class="border border-[#7f3539]
+                                class="border border-[#4F8DB8]
                                        px-5 py-4 text-left"
                             >
                                 Size / Label
                             </th>
 
                             <th
-                                class="border border-[#7f3539]
+                                class="border border-[#4F8DB8]
                                        px-5 py-4 text-left"
                             >
                                 Unit
                             </th>
 
                             <th
-                                class="border border-[#7f3539]
+                                class="border border-[#4F8DB8]
                                        px-5 py-4 text-center"
                             >
                                 Available Quantity
@@ -361,10 +404,10 @@
 
                                 <td
                                     class="border border-slate-200
-                                           bg-[#DF979B]/10
+                                           bg-[#B8D9EE]/10
                                            px-5 py-4 text-center
                                            text-lg font-bold
-                                           text-[#641D21]"
+                                           text-[#244E70]"
                                 >
                                     {{
                                         number_format(
@@ -407,7 +450,7 @@
                                     class="border border-slate-200
                                            px-5 py-4 text-center
                                            text-lg font-bold
-                                           text-[#641D21]"
+                                           text-[#244E70]"
                                 >
                                     {{
                                         number_format(
@@ -418,6 +461,220 @@
                             </tr>
                         </tfoot>
                     @endif
+                </table>
+            </div>
+        </section>
+
+        {{-- =========================================================
+            CURRENT PROVINCIAL OFFICE INVENTORIES
+        ========================================================== --}}
+        <section
+            id="provincial-inventory-summary"
+            class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
+        >
+            <div
+                class="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:px-7 lg:flex-row lg:items-center lg:justify-between"
+            >
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#2E628D]">
+                        Provincial Office Inventory
+                    </p>
+
+                    <h2 class="mt-1 text-xl font-bold text-slate-950">
+                        Provincial Distribution Summary
+                    </h2>
+
+                    <p class="mt-1 text-sm text-slate-500">
+                        Consolidated current PPE balances of every Provincial Office.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3 print:hidden">
+                    <div class="rounded-2xl border border-[#B8D9EE] bg-[#B8D9EE]/10 px-6 py-4">
+                        <p class="text-xs font-bold uppercase tracking-wider text-[#2E628D]">
+                            Total Provincial PPE
+                        </p>
+
+                        <p class="mt-1 text-3xl font-bold text-[#244E70]">
+                            {{ number_format($provincialInventoryTotal) }}
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        onclick="window.print()"
+                        class="inline-flex items-center justify-center rounded-xl bg-[#2E628D] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#244E70]"
+                    >
+                        Print Inventory
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[1250px] border-collapse text-sm">
+                    <thead class="text-white">
+                        <tr class="bg-[#244E70]">
+                            <th
+                                rowspan="2"
+                                class="min-w-[210px] border border-[#4F8DB8] px-5 py-4 text-left font-bold"
+                            >
+                                Province
+                            </th>
+
+                            <th
+                                colspan="3"
+                                class="border border-[#4F8DB8] bg-[#2E628D] px-4 py-4 text-center font-bold"
+                            >
+                                Long Sleeves
+                            </th>
+
+                            <th
+                                rowspan="2"
+                                class="min-w-[120px] border border-[#4F8DB8] px-4 py-4 text-center font-bold"
+                            >
+                                Bucket Hat
+                            </th>
+
+                            <th
+                                colspan="3"
+                                class="border border-[#4F8DB8] bg-[#2E628D] px-4 py-4 text-center font-bold"
+                            >
+                                Rubber Boots
+                            </th>
+
+                            <th
+                                rowspan="2"
+                                class="min-w-[105px] border border-[#4F8DB8] px-4 py-4 text-center font-bold"
+                            >
+                                Gloves
+                            </th>
+
+                            <th
+                                rowspan="2"
+                                class="min-w-[105px] border border-[#4F8DB8] px-4 py-4 text-center font-bold"
+                            >
+                                Mask
+                            </th>
+
+                            <th
+                                rowspan="2"
+                                class="min-w-[130px] border border-[#4F8DB8] bg-[#2E628D] px-4 py-4 text-center font-bold"
+                            >
+                                Total PPE
+                            </th>
+                        </tr>
+
+                        <tr class="bg-[#B8D9EE] text-[#244E70]">
+                            <th class="border border-[#8ECDF2] px-4 py-3 text-center font-bold">M</th>
+                            <th class="border border-[#8ECDF2] px-4 py-3 text-center font-bold">L</th>
+                            <th class="border border-[#8ECDF2] px-4 py-3 text-center font-bold">Total</th>
+                            <th class="border border-[#8ECDF2] px-4 py-3 text-center font-bold">US9</th>
+                            <th class="border border-[#8ECDF2] px-4 py-3 text-center font-bold">US10</th>
+                            <th class="border border-[#8ECDF2] px-4 py-3 text-center font-bold">Total</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach($provincialInventoryByProvince as $provinceInventory)
+                            @php
+                                $quantities = $provinceInventory['quantities'];
+                            @endphp
+
+                            <tr class="transition odd:bg-white even:bg-slate-50 hover:bg-[#B8D9EE]/10">
+                                <td class="border border-slate-200 px-5 py-4 font-bold text-slate-900">
+                                    {{ $provinceInventory['province']->name }}
+                                </td>
+
+                                <td class="border border-slate-200 px-4 py-4 text-center font-semibold text-slate-700">
+                                    {{ number_format($quantities[1] ?? 0) }}
+                                </td>
+
+                                <td class="border border-slate-200 px-4 py-4 text-center font-semibold text-slate-700">
+                                    {{ number_format($quantities[2] ?? 0) }}
+                                </td>
+
+                                <td class="border border-slate-200 bg-slate-100 px-4 py-4 text-center font-bold text-[#244E70]">
+                                    {{ number_format($provinceInventory['long_sleeve_total']) }}
+                                </td>
+
+                                <td class="border border-slate-200 px-4 py-4 text-center font-semibold text-slate-700">
+                                    {{ number_format($quantities[3] ?? 0) }}
+                                </td>
+
+                                <td class="border border-slate-200 px-4 py-4 text-center font-semibold text-slate-700">
+                                    {{ number_format($quantities[4] ?? 0) }}
+                                </td>
+
+                                <td class="border border-slate-200 px-4 py-4 text-center font-semibold text-slate-700">
+                                    {{ number_format($quantities[5] ?? 0) }}
+                                </td>
+
+                                <td class="border border-slate-200 bg-slate-100 px-4 py-4 text-center font-bold text-[#244E70]">
+                                    {{ number_format($provinceInventory['rubber_boots_total']) }}
+                                </td>
+
+                                <td class="border border-slate-200 px-4 py-4 text-center font-semibold text-slate-700">
+                                    {{ number_format($quantities[6] ?? 0) }}
+                                </td>
+
+                                <td class="border border-slate-200 px-4 py-4 text-center font-semibold text-slate-700">
+                                    {{ number_format($quantities[7] ?? 0) }}
+                                </td>
+
+                                <td class="border border-slate-200 bg-[#B8D9EE]/10 px-4 py-4 text-center text-base font-bold text-[#2E628D]">
+                                    {{ number_format($provinceInventory['total_ppe']) }}
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+
+                    <tfoot>
+                        <tr class="bg-[#244E70] text-white">
+                            <td class="border border-[#4F8DB8] px-5 py-4 text-right font-bold uppercase tracking-wide">
+                                Consolidated Total
+                            </td>
+
+                            <td class="border border-[#4F8DB8] px-4 py-4 text-center font-bold">
+                                {{ number_format($provincialInventoryByProvince->sum(fn ($row) => $row['quantities'][1] ?? 0)) }}
+                            </td>
+
+                            <td class="border border-[#4F8DB8] px-4 py-4 text-center font-bold">
+                                {{ number_format($provincialInventoryByProvince->sum(fn ($row) => $row['quantities'][2] ?? 0)) }}
+                            </td>
+
+                            <td class="border border-[#4F8DB8] bg-[#2E628D] px-4 py-4 text-center font-bold">
+                                {{ number_format($provincialInventoryByProvince->sum('long_sleeve_total')) }}
+                            </td>
+
+                            <td class="border border-[#4F8DB8] px-4 py-4 text-center font-bold">
+                                {{ number_format($provincialInventoryByProvince->sum(fn ($row) => $row['quantities'][3] ?? 0)) }}
+                            </td>
+
+                            <td class="border border-[#4F8DB8] px-4 py-4 text-center font-bold">
+                                {{ number_format($provincialInventoryByProvince->sum(fn ($row) => $row['quantities'][4] ?? 0)) }}
+                            </td>
+
+                            <td class="border border-[#4F8DB8] px-4 py-4 text-center font-bold">
+                                {{ number_format($provincialInventoryByProvince->sum(fn ($row) => $row['quantities'][5] ?? 0)) }}
+                            </td>
+
+                            <td class="border border-[#4F8DB8] bg-[#2E628D] px-4 py-4 text-center font-bold">
+                                {{ number_format($provincialInventoryByProvince->sum('rubber_boots_total')) }}
+                            </td>
+
+                            <td class="border border-[#4F8DB8] px-4 py-4 text-center font-bold">
+                                {{ number_format($provincialInventoryByProvince->sum(fn ($row) => $row['quantities'][6] ?? 0)) }}
+                            </td>
+
+                            <td class="border border-[#4F8DB8] px-4 py-4 text-center font-bold">
+                                {{ number_format($provincialInventoryByProvince->sum(fn ($row) => $row['quantities'][7] ?? 0)) }}
+                            </td>
+
+                            <td class="border border-[#4F8DB8] bg-[#2E628D] px-4 py-4 text-center text-base font-bold">
+                                {{ number_format($provincialInventoryByProvince->sum('total_ppe')) }}
+                            </td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </section>
@@ -437,7 +694,7 @@
                             $summary['province_count'] ?? 0,
                         'description' =>
                             'Offices represented',
-                        'color' => '#641D21',
+                        'color' => '#244E70',
                     ],
 
                     [
@@ -446,7 +703,7 @@
                             $summary['call_off_count'] ?? 0,
                         'description' =>
                             'Call-Off allocations',
-                        'color' => '#970C13',
+                        'color' => '#2E628D',
                     ],
 
                     [
@@ -455,7 +712,7 @@
                             $summary['project_count'] ?? 0,
                         'description' =>
                             'Projects supplied',
-                        'color' => '#C51017',
+                        'color' => '#3B82C4',
                     ],
 
                     [
@@ -464,7 +721,7 @@
                             $summary['beginning_total'] ?? 0,
                         'description' =>
                             'Opening balances',
-                        'color' => '#DF979B',
+                        'color' => '#B8D9EE',
                     ],
 
                     [
@@ -473,7 +730,7 @@
                             $summary['actual_total'] ?? 0,
                         'description' =>
                             'PPE issued to projects',
-                        'color' => '#ED1B24',
+                        'color' => '#4FA3D9',
                     ],
 
                     [
@@ -482,7 +739,7 @@
                             $summary['ending_total'] ?? 0,
                         'description' =>
                             'Remaining PPE balances',
-                        'color' => '#641D21',
+                        'color' => '#244E70',
                     ],
                 ];
             @endphp
@@ -536,9 +793,7 @@
         >
             <form
                 method="GET"
-                action="{{ route(
-                    'accounting.inventory-ledger.index'
-                ) }}"
+                action="{{ url()->current() }}"
                 class="grid grid-cols-1 gap-4
                        md:grid-cols-2 xl:grid-cols-12"
             >
@@ -561,8 +816,8 @@
                         placeholder="Province, Call-Off, supplier, DR, project..."
                         class="w-full rounded-xl
                                border-slate-300
-                               focus:border-[#970C13]
-                               focus:ring-[#970C13]"
+                               focus:border-[#2E628D]
+                               focus:ring-[#2E628D]"
                     >
                 </div>
 
@@ -582,8 +837,8 @@
                         name="province_id"
                         class="w-full rounded-xl
                                border-slate-300
-                               focus:border-[#970C13]
-                               focus:ring-[#970C13]"
+                               focus:border-[#2E628D]
+                               focus:ring-[#2E628D]"
                     >
                         <option value="">
                             All Provincial Offices
@@ -619,8 +874,8 @@
                         name="province_distribution_id"
                         class="w-full rounded-xl
                                border-slate-300
-                               focus:border-[#970C13]
-                               focus:ring-[#970C13]"
+                               focus:border-[#2E628D]
+                               focus:ring-[#2E628D]"
                     >
                         <option value="">
                             All Call-Offs
@@ -693,8 +948,8 @@
                         name="year"
                         class="w-full rounded-xl
                                border-slate-300
-                               focus:border-[#970C13]
-                               focus:ring-[#970C13]"
+                               focus:border-[#2E628D]
+                               focus:ring-[#2E628D]"
                     >
                         @foreach(
                             $availableYears as $availableYear
@@ -720,17 +975,15 @@
                     <button
                         type="submit"
                         class="flex-1 rounded-xl
-                               bg-[#970C13] px-5 py-2.5
+                               bg-[#2E628D] px-5 py-2.5
                                text-sm font-bold text-white
-                               transition hover:bg-[#641D21]"
+                               transition hover:bg-[#244E70]"
                     >
                         Apply
                     </button>
 
                     <a
-                        href="{{ route(
-                            'accounting.inventory-ledger.index'
-                        ) }}"
+                        href="{{ url()->current() }}"
                         class="rounded-xl border
                                border-slate-300 bg-white
                                px-5 py-2.5 text-sm
@@ -752,13 +1005,13 @@
             || $search !== ''
         )
             <section
-                class="rounded-2xl border border-[#DF979B]
-                       bg-[#DF979B]/10 px-5 py-4"
+                class="rounded-2xl border border-[#B8D9EE]
+                       bg-[#B8D9EE]/10 px-5 py-4"
             >
                 <div class="flex flex-wrap items-center gap-3">
                     <span
                         class="text-xs font-bold uppercase
-                               tracking-wider text-[#970C13]"
+                               tracking-wider text-[#2E628D]"
                     >
                         Active Filters:
                     </span>
@@ -843,12 +1096,12 @@
             </article>
 
             <article
-                class="rounded-2xl border border-[#DF979B]
-                       bg-[#DF979B]/10 p-5"
+                class="rounded-2xl border border-[#B8D9EE]
+                       bg-[#B8D9EE]/10 p-5"
             >
                 <p
                     class="text-xs font-bold uppercase
-                           tracking-wider text-[#970C13]"
+                           tracking-wider text-[#2E628D]"
                 >
                     Actual Distribution
                 </p>
@@ -897,9 +1150,9 @@
                     <p
                         class="text-xs font-bold uppercase
                                tracking-[0.16em]
-                               text-[#970C13]"
+                               text-[#2E628D]"
                     >
-                        Accounting Read-Only Report
+                        {{ $viewerLabel }} Read-Only Report
                     </p>
 
                     <h2
@@ -953,7 +1206,7 @@
                                text-slate-500"
                     >
                         No provincial inventory records match the
-                        currently selected Accounting report filters.
+                        currently selected report filters.
                     </p>
                 </div>
             @else
@@ -965,15 +1218,15 @@
                         <thead>
                             {{-- Main header --}}
                             <tr
-                                class="border-b border-[#641D21]
-                                       bg-[#641D21] text-white"
+                                class="border-b border-[#244E70]
+                                       bg-[#244E70] text-white"
                             >
                                 <th
                                     rowspan="3"
                                     class="sticky left-0 z-30
                                            min-w-[70px]
                                            border-r border-white/20
-                                           bg-[#641D21]
+                                           bg-[#244E70]
                                            px-3 py-4 text-center"
                                 >
                                     No.
@@ -984,7 +1237,7 @@
                                     class="sticky left-[70px] z-30
                                            min-w-[180px]
                                            border-r border-white/20
-                                           bg-[#641D21]
+                                           bg-[#244E70]
                                            px-4 py-4 text-left"
                                 >
                                     Provincial Office
@@ -1065,7 +1318,7 @@
                                 <th
                                     colspan="7"
                                     class="border-r border-white/20
-                                           bg-[#970C13]
+                                           bg-[#2E628D]
                                            px-4 py-4 text-center
                                            font-bold uppercase
                                            tracking-wider"
@@ -1076,7 +1329,7 @@
                                 <th
                                     colspan="7"
                                     class="border-r border-white/20
-                                           bg-[#C51017]
+                                           bg-[#3B82C4]
                                            px-4 py-4 text-center
                                            font-bold uppercase
                                            tracking-wider"
@@ -1086,7 +1339,7 @@
 
                                 <th
                                     colspan="7"
-                                    class="bg-[#641D21]
+                                    class="bg-[#244E70]
                                            px-4 py-4 text-center
                                            font-bold uppercase
                                            tracking-wider"
@@ -1096,11 +1349,11 @@
                             </tr>
 
                             {{-- PPE group header --}}
-                            <tr class="bg-[#970C13] text-white">
+                            <tr class="bg-[#2E628D] text-white">
                                 @foreach([
-                                    '#970C13',
-                                    '#C51017',
-                                    '#641D21',
+                                    '#2E628D',
+                                    '#3B82C4',
+                                    '#244E70',
                                 ] as $sectionColor)
                                     <th
                                         colspan="2"
@@ -1164,8 +1417,8 @@
 
                             {{-- Size header --}}
                             <tr
-                                class="bg-[#DF979B]
-                                       text-[#641D21]"
+                                class="bg-[#B8D9EE]
+                                       text-[#244E70]"
                             >
                                 @for(
                                     $section = 0;
@@ -1181,7 +1434,7 @@
 
                                     <th
                                         class="border-r
-                                               border-[#970C13]/20
+                                               border-[#2E628D]/20
                                                px-3 py-2
                                                text-center"
                                     >
@@ -1197,7 +1450,7 @@
 
                                     <th
                                         class="border-r
-                                               border-[#970C13]/20
+                                               border-[#2E628D]/20
                                                px-3 py-2
                                                text-center"
                                     >
@@ -1279,10 +1532,10 @@
 
                                 <tr
                                     class="transition
-                                           hover:bg-[#DF979B]/10
+                                           hover:bg-[#B8D9EE]/10
                                            {{
                                                $isNewCallOff
-                                                   ? 'border-t-4 border-t-[#970C13]'
+                                                   ? 'border-t-4 border-t-[#2E628D]'
                                                    : ''
                                            }}"
                                 >
@@ -1330,11 +1583,11 @@
                                     >
                                         <span
                                             class="inline-flex rounded-lg
-                                                   bg-[#970C13]/10
+                                                   bg-[#2E628D]/10
                                                    px-3 py-1.5
-                                                   font-bold text-[#970C13]
+                                                   font-bold text-[#2E628D]
                                                    ring-1
-                                                   ring-[#970C13]/20"
+                                                   ring-[#2E628D]/20"
                                         >
                                             {{
                                                 $row[
@@ -1398,11 +1651,9 @@
                                                 && $row[
                                                     'delivery_date'
                                                 ]
-                                                    ? $row[
-                                                        'delivery_date'
-                                                    ]->format(
-                                                        'M d, Y'
-                                                    )
+                                                    ? \Illuminate\Support\Carbon::parse(
+                                                        $row['delivery_date']
+                                                    )->format('M d, Y')
                                                     : '—'
                                             }}
                                         </span>
@@ -1544,13 +1795,13 @@
 
                                         <td
                                             class="border-r
-                                                   border-[#DF979B]/30
-                                                   bg-[#DF979B]/10
+                                                   border-[#B8D9EE]/30
+                                                   bg-[#B8D9EE]/10
                                                    px-3 py-4
                                                    text-center font-bold
                                                    {{
                                                        $actualQuantity > 0
-                                                           ? 'text-[#C51017]'
+                                                           ? 'text-[#3B82C4]'
                                                            : 'text-slate-400'
                                                    }}"
                                         >
@@ -1586,7 +1837,7 @@
                                                    {{
                                                        $endingQuantity <= 0
                                                            ? 'text-red-700'
-                                                           : 'text-[#641D21]'
+                                                           : 'text-[#244E70]'
                                                    }}"
                                         >
                                             {{
@@ -1629,7 +1880,7 @@
                     </div>
 
                     <p class="font-semibold">
-                        Accounting access is strictly read-only.
+                        {{ $viewerLabel }} access is strictly read-only.
                     </p>
                 </div>
             @endif

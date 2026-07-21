@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Accounting;
+namespace App\Http\Controllers\TSSD;
 
 use App\Http\Controllers\Controller;
 use App\Models\Item;
@@ -316,8 +316,8 @@ class InventoryLedgerController extends Controller
 
         $provincialInventoryTotal = (int) $provincialInventories->sum('quantity');
 
-        $viewerLabel = 'Accounting Unit';
-        $viewerDescription = 'Complete read-only access to Supply inventory, TSSD allocation and receiving transactions, Provincial Office balances, and project PPE distributions.';
+        $viewerLabel = 'TSSD Unit';
+        $viewerDescription = 'Read-only monitoring of Supply inventory, all Provincial Office balances, TSSD allocation and receiving transactions, and project PPE distributions.';
 
         /*
         |--------------------------------------------------------------------------

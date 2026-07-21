@@ -6,9 +6,48 @@ use App\Models\DeliveryReceipt;
 use App\Models\ProvinceDistribution;
 use App\Models\SupplyDesignation;
 use Illuminate\Support\Collection;
+use Carbon\Carbon;
 
 class InventoryMovementReportService
 {
+    /**
+     * Build inventory movement rows for every Call-Off allocation belonging
+     * to one province. This is used by the read-only Accounting and TSSD
+     * monitoring pages.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    public function buildForProvince(int $provinceId): Collection
+    {
+        $allocationIds = ProvinceDistribution::query()
+            ->where('province_id', $provinceId)
+            ->whereHas('deliveryReceipts', function ($query): void {
+                $query->where('status', 'Received');
+            })
+            ->whereHas('distributionBatch.callOff', function ($query): void {
+                $query->whereIn('status', [
+                    'Approved',
+                    'Completed',
+                ]);
+            })
+            ->orderBy('scheduled_delivery_date')
+            ->orderBy('id')
+            ->pluck('id');
+
+        $rows = collect();
+
+        foreach ($allocationIds as $allocationId) {
+            $rows = $rows->concat(
+                $this->buildForCallOff(
+                    $provinceId,
+                    (int) $allocationId
+                )
+            );
+        }
+
+        return $rows->values();
+    }
+
     /**
      * Build the full inventory history for one Provincial Call-Off allocation.
      *
@@ -27,6 +66,7 @@ class InventoryMovementReportService
     ): Collection {
         $allocation = ProvinceDistribution::query()
             ->with([
+                'province',
                 'items.item',
                 'distributionBatch.callOff',
                 'distributionBatch.purchaseOrder.supplier',
@@ -40,7 +80,7 @@ class InventoryMovementReportService
 
         $receipts = $allocation->deliveryReceipts
             ->where('status', 'Received')
-            ->sortBy(fn (DeliveryReceipt $receipt): string => $this->receiptKey($receipt))
+            ->sortBy(fn(DeliveryReceipt $receipt): string => $this->receiptKey($receipt))
             ->values();
 
         if ($receipts->isEmpty()) {
@@ -49,7 +89,7 @@ class InventoryMovementReportService
 
         $completedDesignations = $allocation->supplyDesignations
             ->where('status', 'Completed')
-            ->sortBy(fn (SupplyDesignation $designation): string => $this->designationKey($designation))
+            ->sortBy(fn(SupplyDesignation $designation): string => $this->designationKey($designation))
             ->values();
 
         $designationsByReceipt = $this->groupDesignationsByReceipt(
@@ -133,7 +173,7 @@ class InventoryMovementReportService
     ): Collection {
         $receiptIds = $receipts
             ->pluck('id')
-            ->map(fn ($id): int => (int) $id)
+            ->map(fn($id): int => (int) $id)
             ->all();
 
         $groups = collect();
@@ -159,9 +199,9 @@ class InventoryMovementReportService
              */
             $matchedReceipt = $receipts
                 ->filter(
-                    fn (DeliveryReceipt $receipt): bool =>
-                        $this->receiptDate($receipt)
-                        <= $this->designationDate($designation)
+                    fn(DeliveryReceipt $receipt): bool =>
+                    $this->receiptDate($receipt)
+                    <= $this->designationDate($designation)
                 )
                 ->last();
 
@@ -179,8 +219,8 @@ class InventoryMovementReportService
         }
 
         return $groups->map(
-            fn (Collection $group): Collection => $group
-                ->sortBy(fn (SupplyDesignation $designation): string => $this->designationKey($designation))
+            fn(Collection $group): Collection => $group
+                ->sortBy(fn(SupplyDesignation $designation): string => $this->designationKey($designation))
                 ->values()
         );
     }
@@ -204,6 +244,8 @@ class InventoryMovementReportService
 
         return [
             'province_distribution_id' => (int) $allocation->id,
+            'province_id' => (int) $allocation->province_id,
+            'province_name' => $allocation->province?->name ?? '—',
             'delivery_receipt_id' => (int) $receipt->id,
             'delivery_receipt_number' => $receipt->dr_number ?? '—',
             'delivery_date' => $receipt->delivery_date,
@@ -329,30 +371,41 @@ class InventoryMovementReportService
     private function receiptKey(DeliveryReceipt $receipt): string
     {
         return $this->receiptDate($receipt)
-            .'|'
-            .str_pad((string) $receipt->id, 20, '0', STR_PAD_LEFT);
+            . '|'
+            . str_pad((string) $receipt->id, 20, '0', STR_PAD_LEFT);
     }
 
     private function designationKey(
         SupplyDesignation $designation
     ): string {
         return $this->designationDate($designation)
-            .'|'
-            .str_pad((string) $designation->id, 20, '0', STR_PAD_LEFT);
+            . '|'
+            . str_pad((string) $designation->id, 20, '0', STR_PAD_LEFT);
     }
+
 
     private function receiptDate(DeliveryReceipt $receipt): string
     {
-        return $receipt->delivery_date?->format('Y-m-d')
-            ?? $receipt->created_at?->format('Y-m-d')
-            ?? '0000-00-00';
+        if ($receipt->delivery_date) {
+            return Carbon::parse($receipt->delivery_date)
+                ->format('Y-m-d');
+        }
+
+        return $receipt->created_at
+            ? $receipt->created_at->format('Y-m-d')
+            : '0000-00-00';
     }
 
     private function designationDate(
         SupplyDesignation $designation
     ): string {
-        return $designation->designation_date?->format('Y-m-d')
-            ?? $designation->created_at?->format('Y-m-d')
-            ?? '0000-00-00';
+        if ($designation->designation_date) {
+            return Carbon::parse($designation->designation_date)
+                ->format('Y-m-d');
+        }
+
+        return $designation->created_at
+            ? $designation->created_at->format('Y-m-d')
+            : '0000-00-00';
     }
 }

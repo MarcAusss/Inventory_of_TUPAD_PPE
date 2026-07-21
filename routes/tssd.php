@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\TSSD\CallOffController;
 use App\Http\Controllers\TSSD\DashboardController;
+use App\Http\Controllers\TSSD\InventoryLedgerController;
 use App\Http\Controllers\TSSD\PdfTemplateController;
 use App\Http\Controllers\TSSD\TssdDistributionController;
 use App\Http\Controllers\TSSD\UserManagementController;
@@ -19,6 +20,12 @@ Route::middleware([
             '/dashboard',
             DashboardController::class
         )->name('dashboard');
+
+
+        Route::get(
+            '/inventory-monitoring',
+            [InventoryLedgerController::class, 'index']
+        )->name('inventory-monitoring.index');
 
         Route::resource(
             'distributions',

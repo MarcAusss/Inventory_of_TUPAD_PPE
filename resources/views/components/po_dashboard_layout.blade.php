@@ -53,13 +53,13 @@
 
         {{-- Sidebar --}}
         <aside
-            class="fixed inset-y-0 left-0 z-50 flex w-72 transform flex-col bg-[#F7F7F7] shadow-xl transition-transform duration-300 lg:translate-x-0"
+            class="fixed inset-y-0 left-0 z-50 flex w-72 transform flex-col bg-[#F7FBFD] shadow-xl transition-transform duration-300 lg:translate-x-0"
             :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
 
             <div class="flex h-full flex-col">
 
                 {{-- Logos --}}
-                <div class="border-b border-gray-200 px-7 py-6">
+                <div class="border-b border-[#D8EAF3] px-7 py-6">
 
                     <a href="{{ route($dashboardRoute) }}" class="flex items-center justify-center gap-3">
 
@@ -73,11 +73,11 @@
 
                     <div class="mt-4 text-center">
 
-                        <p class="font-bold text-gray-900">
+                        <p class="font-bold text-[#143A52]">
                             TUPAD PPE Inventory
                         </p>
 
-                        <p class="mt-1 text-sm text-gray-500">
+                        <p class="mt-1 text-sm text-[#5F7D91]">
                             {{ $roleName }}
                         </p>
 
@@ -94,7 +94,7 @@
                 {{-- Navigation --}}
                 <nav class="flex-1 overflow-y-auto px-4 py-6">
 
-                    <p class="mb-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <p class="mb-3 px-4 text-xs font-semibold uppercase tracking-wider text-[#5F7D91]">
                         Menu
                     </p>
 
@@ -174,6 +174,16 @@
                                         : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
                                 Call-Off Management
                             </a>
+
+                            @if (Route::has('tssd.inventory-monitoring.index'))
+                                <a href="{{ route('tssd.inventory-monitoring.index') }}"
+                                    class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                        {{ request()->routeIs('tssd.inventory-monitoring.*')
+                                            ? 'bg-[#339DCB] text-white shadow'
+                                            : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
+                                    PPE Inventory & Transactions
+                                </a>
+                            @endif
 
                             @if (Route::has('tssd.users.index'))
                                 <a href="{{ route('tssd.users.index') }}"
@@ -277,7 +287,7 @@
                                         {{ request()->routeIs('accounting.inventory-ledger.*')
                                             ? 'bg-[#339DCB] text-white shadow'
                                             : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
-                                    Provincial Inventory
+                                    PPE Inventory & Transactions
                                 </a>
                             @endif
 
@@ -293,7 +303,7 @@
                 </nav>
 
                 {{-- Logout --}}
-                <div class="border-t border-gray-200 p-5">
+                <div class="border-t border-[#D8EAF3] p-5">
 
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
@@ -315,25 +325,25 @@
         <div class="min-h-screen lg:pl-72">
 
             {{-- Top header --}}
-            <header class="sticky top-0 z-30 border-b border-gray-200 bg-white/95 shadow-sm backdrop-blur">
+            <header class="sticky top-0 z-30 border-b border-[#D8EAF3] bg-white/95 shadow-sm backdrop-blur">
 
                 <div class="flex min-h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
 
                     <div class="flex items-center gap-4">
 
                         <button type="button"
-                            class="rounded-lg border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 shadow-sm lg:hidden"
+                            class="rounded-lg border border-[#B7D6E6] bg-white px-4 py-2 font-medium text-[#36566E] shadow-sm lg:hidden"
                             @click="sidebarOpen = true">
                             Menu
                         </button>
 
                         <div>
 
-                            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-[#5F7D91]">
                                 {{ $roleName }}
                             </p>
 
-                            <h1 class="text-lg font-bold text-gray-900">
+                            <h1 class="text-lg font-bold text-[#143A52]">
                                 {{ $title }}
                             </h1>
 
@@ -343,15 +353,15 @@
 
                     <div class="hidden text-right sm:block">
 
-                        <p class="text-sm font-semibold text-gray-900">
+                        <p class="text-sm font-semibold text-[#143A52]">
                             {{ $user?->name }}
                         </p>
 
-                        <p id="live-clock" class="text-xs text-gray-500">
+                        <p id="live-clock" class="text-xs text-[#5F7D91]">
                             --:--:--
                         </p>
 
-                        <p id="live-date" class="text-xs text-gray-500">
+                        <p id="live-date" class="text-xs text-[#5F7D91]">
                             --/--/----
                         </p>
 

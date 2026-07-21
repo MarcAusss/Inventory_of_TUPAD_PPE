@@ -2,17 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable([
-    'name',
-    'office_name',
-    'delivery_address',
-])]
 class Province extends Model
 {
+    protected $fillable = [
+        'name',
+        'office_name',
+        'delivery_address',
+    ];
+
     /*
     |--------------------------------------------------------------------------
     | Relationships

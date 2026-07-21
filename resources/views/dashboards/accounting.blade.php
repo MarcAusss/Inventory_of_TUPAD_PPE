@@ -58,7 +58,7 @@
             class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
         >
             <div
-                class="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-[#641D21] via-[#970C13] to-[#ED1B24]"
+                class="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-[#143A52] via-[#339DCB] to-[#55B7D9]"
             ></div>
 
             <div
@@ -67,7 +67,7 @@
                 <div>
                     <div class="flex flex-wrap items-center gap-3">
                         <span
-                            class="inline-flex rounded-full bg-[#DF979B]/20 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-[#970C13] ring-1 ring-[#DF979B]"
+                            class="inline-flex rounded-full bg-[#B7D6E6]/20 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-[#339DCB] ring-1 ring-[#B7D6E6]"
                         >
                             Accounting Unit
                         </span>
@@ -116,7 +116,7 @@
 
                     <a
                         href="{{ route('accounting.inventory-ledger.index') }}"
-                        class="inline-flex items-center justify-center rounded-2xl bg-[#970C13] px-5 py-4 text-sm font-bold text-white transition hover:bg-[#641D21]"
+                        class="inline-flex items-center justify-center rounded-2xl bg-[#339DCB] px-5 py-4 text-sm font-bold text-white transition hover:bg-[#143A52]"
                     >
                         View Inventory Ledger
                     </a>
@@ -157,7 +157,7 @@
                     </div>
 
                     <div
-                        class="rounded-xl bg-[#DF979B]/20 p-3 text-[#970C13]"
+                        class="rounded-xl bg-[#B7D6E6]/20 p-3 text-[#339DCB]"
                     >
                         <svg
                             viewBox="0 0 24 24"
@@ -176,7 +176,7 @@
                 </div>
 
                 <div
-                    class="mt-5 h-1 w-10 rounded-full bg-[#DF979B] transition-all group-hover:w-16"
+                    class="mt-5 h-1 w-10 rounded-full bg-[#B7D6E6] transition-all group-hover:w-16"
                 ></div>
             </article>
 
@@ -208,7 +208,7 @@
                     </div>
 
                     <div
-                        class="rounded-xl bg-[#ED1B24]/10 p-3 text-[#ED1B24]"
+                        class="rounded-xl bg-[#55B7D9]/10 p-3 text-[#55B7D9]"
                     >
                         <svg
                             viewBox="0 0 24 24"
@@ -227,7 +227,7 @@
                 </div>
 
                 <div
-                    class="mt-5 h-1 w-10 rounded-full bg-[#ED1B24] transition-all group-hover:w-16"
+                    class="mt-5 h-1 w-10 rounded-full bg-[#55B7D9] transition-all group-hover:w-16"
                 ></div>
             </article>
 
@@ -256,7 +256,7 @@
                     </div>
 
                     <div
-                        class="rounded-xl bg-[#C51017]/10 p-3 text-[#C51017]"
+                        class="rounded-xl bg-[#247BA0]/10 p-3 text-[#247BA0]"
                     >
                         <svg
                             viewBox="0 0 24 24"
@@ -275,7 +275,7 @@
                 </div>
 
                 <div
-                    class="mt-5 h-1 w-10 rounded-full bg-[#C51017] transition-all group-hover:w-16"
+                    class="mt-5 h-1 w-10 rounded-full bg-[#247BA0] transition-all group-hover:w-16"
                 ></div>
             </article>
 
@@ -304,7 +304,7 @@
                     </div>
 
                     <div
-                        class="rounded-xl bg-[#970C13]/10 p-3 text-[#970C13]"
+                        class="rounded-xl bg-[#339DCB]/10 p-3 text-[#339DCB]"
                     >
                         <svg
                             viewBox="0 0 24 24"
@@ -323,7 +323,7 @@
                 </div>
 
                 <div
-                    class="mt-5 h-1 w-10 rounded-full bg-[#970C13] transition-all group-hover:w-16"
+                    class="mt-5 h-1 w-10 rounded-full bg-[#339DCB] transition-all group-hover:w-16"
                 ></div>
             </article>
 
@@ -354,7 +354,7 @@
                     </div>
 
                     <div
-                        class="rounded-xl bg-[#641D21]/10 p-3 text-[#641D21]"
+                        class="rounded-xl bg-[#143A52]/10 p-3 text-[#143A52]"
                     >
                         <svg
                             viewBox="0 0 24 24"
@@ -373,7 +373,7 @@
                 </div>
 
                 <div
-                    class="mt-5 h-1 w-10 rounded-full bg-[#641D21] transition-all group-hover:w-16"
+                    class="mt-5 h-1 w-10 rounded-full bg-[#143A52] transition-all group-hover:w-16"
                 ></div>
             </article>
 
@@ -442,7 +442,7 @@
                 >
                     <div>
                         <p
-                            class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]"
+                            class="text-xs font-bold uppercase tracking-[0.16em] text-[#339DCB]"
                         >
                             Procurement value
                         </p>
@@ -468,7 +468,7 @@
                         </p>
 
                         <p
-                            class="mt-1 font-bold text-[#970C13]"
+                            class="mt-1 font-bold text-[#339DCB]"
                         >
                             ₱{{ number_format(
                                 $statistics['po_value'] ?? 0,
@@ -488,7 +488,7 @@
             >
                 <div class="border-b border-slate-200 px-6 py-5">
                     <p
-                        class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]"
+                        class="text-xs font-bold uppercase tracking-[0.16em] text-[#339DCB]"
                     >
                         Workflow status
                     </p>
@@ -523,7 +523,7 @@
             >
                 <div class="border-b border-slate-200 px-6 py-5">
                     <p
-                        class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]"
+                        class="text-xs font-bold uppercase tracking-[0.16em] text-[#339DCB]"
                     >
                         Provincial monitoring
                     </p>
@@ -551,7 +551,7 @@
             >
                 <div class="border-b border-slate-200 px-6 py-5">
                     <p
-                        class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]"
+                        class="text-xs font-bold uppercase tracking-[0.16em] text-[#339DCB]"
                     >
                         Inventory utilization
                     </p>
@@ -578,14 +578,14 @@
                                 </p>
 
                                 <p
-                                    class="mt-2 text-3xl font-bold text-[#970C13]"
+                                    class="mt-2 text-3xl font-bold text-[#339DCB]"
                                 >
                                     {{ $distributionRate }}%
                                 </p>
                             </div>
 
                             <div
-                                class="flex h-16 w-16 items-center justify-center rounded-full bg-[#DF979B]/30 text-lg font-bold text-[#641D21]"
+                                class="flex h-16 w-16 items-center justify-center rounded-full bg-[#B7D6E6]/30 text-lg font-bold text-[#143A52]"
                             >
                                 {{ $distributionRate }}%
                             </div>
@@ -595,7 +595,7 @@
                             class="mt-5 h-3 overflow-hidden rounded-full bg-slate-200"
                         >
                             <div
-                                class="h-full rounded-full bg-gradient-to-r from-[#ED1B24] to-[#641D21]"
+                                class="h-full rounded-full bg-gradient-to-r from-[#55B7D9] to-[#143A52]"
                                 style="width: {{ $distributionRate }}%"
                             ></div>
                         </div>
@@ -626,7 +626,7 @@
                             </p>
 
                             <p
-                                class="mt-1 text-xl font-bold text-[#C51017]"
+                                class="mt-1 text-xl font-bold text-[#247BA0]"
                             >
                                 {{ number_format($totalDistributed) }}
                             </p>
@@ -640,7 +640,7 @@
                             </p>
 
                             <p
-                                class="mt-1 text-xl font-bold text-[#641D21]"
+                                class="mt-1 text-xl font-bold text-[#143A52]"
                             >
                                 {{ number_format($remainingQuantity) }}
                             </p>
@@ -664,7 +664,7 @@
                 >
                     <div>
                         <p
-                            class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]"
+                            class="text-xs font-bold uppercase tracking-[0.16em] text-[#339DCB]"
                         >
                             Supplier monitoring
                         </p>
@@ -703,14 +703,14 @@
                                 </div>
 
                                 <span
-                                    class="shrink-0 rounded-full bg-[#DF979B]/20 px-3 py-1 text-xs font-bold text-[#970C13] ring-1 ring-[#DF979B]"
+                                    class="shrink-0 rounded-full bg-[#B7D6E6]/20 px-3 py-1 text-xs font-bold text-[#339DCB] ring-1 ring-[#B7D6E6]"
                                 >
                                     Active
                                 </span>
                             </div>
 
                             <p
-                                class="mt-3 text-lg font-bold text-[#641D21]"
+                                class="mt-3 text-lg font-bold text-[#143A52]"
                             >
                                 ₱{{ number_format(
                                     $supplier->purchase_orders_sum_total_amount ?? 0,
@@ -736,7 +736,7 @@
                 >
                     <div>
                         <p
-                            class="text-xs font-bold uppercase tracking-[0.16em] text-[#970C13]"
+                            class="text-xs font-bold uppercase tracking-[0.16em] text-[#339DCB]"
                         >
                             Recent procurement
                         </p>
@@ -793,7 +793,7 @@
                                             'bg-emerald-50 text-emerald-700 ring-emerald-200',
 
                                         'Distributed' =>
-                                            'bg-[#DF979B]/20 text-[#970C13] ring-[#DF979B]',
+                                            'bg-[#B7D6E6]/20 text-[#339DCB] ring-[#B7D6E6]',
 
                                         default =>
                                             'bg-amber-50 text-amber-700 ring-amber-200',
@@ -832,7 +832,7 @@
                                     </td>
 
                                     <td
-                                        class="px-6 py-4 text-right font-bold text-[#641D21]"
+                                        class="px-6 py-4 text-right font-bold text-[#143A52]"
                                     >
                                         ₱{{ number_format(
                                             $purchaseOrder->total_amount,
@@ -899,11 +899,12 @@
                     );
 
                 const palette = [
-                    '#DF979B',
-                    '#ED1B24',
-                    '#C51017',
-                    '#970C13',
-                    '#641D21',
+                    '#B7D6E6',
+                    '#7CC4E4',
+                    '#55B7D9',
+                    '#339DCB',
+                    '#247BA0',
+                    '#143A52',
                 ];
 
                 /*
@@ -933,13 +934,13 @@
                                             financialData.data,
 
                                         borderColor:
-                                            '#C51017',
+                                            '#247BA0',
 
                                         backgroundColor:
-                                            'rgba(223, 151, 155, 0.28)',
+                                            'rgba(183, 214, 230, 0.38)',
 
                                         pointBackgroundColor:
-                                            '#970C13',
+                                            '#339DCB',
 
                                         pointBorderColor:
                                             '#ffffff',
@@ -954,7 +955,7 @@
                                             8,
 
                                         pointHoverBackgroundColor:
-                                            '#ED1B24',
+                                            '#55B7D9',
 
                                         pointHoverBorderColor:
                                             '#ffffff',
