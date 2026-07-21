@@ -281,6 +281,74 @@
                                 Dashboard
                             </a>
 
+                            <p class="px-4 pt-4 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                                Inventory Summaries
+                            </p>
+
+                            <a href="{{ route('accounting.supply-inventory.index') }}"
+                                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                    {{ request()->routeIs('accounting.supply-inventory.*')
+                                        ? 'bg-[#339DCB] text-white shadow'
+                                        : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
+                                Supply Inventory
+                            </a>
+
+                            <a href="{{ route('accounting.provincial-inventory.index') }}"
+                                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                    {{ request()->routeIs('accounting.provincial-inventory.*')
+                                        ? 'bg-[#339DCB] text-white shadow'
+                                        : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
+                                Provincial Inventory
+                            </a>
+
+                            <a href="{{ route('accounting.distributions.index') }}"
+                                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                    {{ request()->routeIs('accounting.distributions.*')
+                                        ? 'bg-[#339DCB] text-white shadow'
+                                        : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
+                                TSSD Distributions
+                            </a>
+
+                            <a href="{{ route('accounting.delivery-receipts.index') }}"
+                                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                    {{ request()->routeIs('accounting.delivery-receipts.*')
+                                        ? 'bg-[#339DCB] text-white shadow'
+                                        : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
+                                Delivery Receipts
+                            </a>
+
+                            <a href="{{ route('accounting.project-designations.index') }}"
+                                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                    {{ request()->routeIs('accounting.project-designations.*')
+                                        ? 'bg-[#339DCB] text-white shadow'
+                                        : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
+                                Project Designations
+                            </a>
+
+                            <p class="px-4 pt-4 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                                Detailed Records
+                            </p>
+
+                            <a href="{{ route('accounting.inventory-ledger.index') }}"
+                                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                    {{ request()->routeIs('accounting.inventory-ledger.*')
+                                        ? 'bg-[#339DCB] text-white shadow'
+                                        : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
+                                Inventory Ledger
+                            </a>
+
+                        </div>
+                    @elseif($user?->isAccounting())
+                        <div class="space-y-2">
+
+                            <a href="{{ route('accounting.dashboard') }}"
+                                class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
+                                    {{ request()->routeIs('accounting.dashboard')
+                                        ? 'bg-[#339DCB] text-white shadow'
+                                        : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
+                                Dashboard
+                            </a>
+
                             @if (Route::has('accounting.inventory-ledger.index'))
                                 <a href="{{ route('accounting.inventory-ledger.index') }}"
                                     class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition

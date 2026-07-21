@@ -21,33 +21,27 @@
 
             </div>
 
-            <a
-                href="{{ route('supply.call-offs.index') }}"
-                class="rounded-xl border border-[#B7D6E6] bg-white px-5 py-3 font-semibold text-gray-700 hover:bg-[#F7FBFD]"
-            >
+            <a href="{{ route('supply.call-offs.index') }}"
+                class="rounded-xl border border-[#B7D6E6] bg-white px-5 py-3 font-semibold text-gray-700 hover:bg-[#F7FBFD]">
                 Back to Call-Offs
             </a>
 
         </div>
 
-        @if(session('success'))
-
+        @if (session('success'))
             <div class="rounded-xl border border-green-200 bg-green-50 px-5 py-4 text-green-800">
                 {{ session('success') }}
             </div>
-
         @endif
 
-        @if($errors->any())
+        @if ($errors->any())
 
             <div class="rounded-xl border border-red-200 bg-red-50 px-6 py-5">
 
                 <ul class="list-disc space-y-1 pl-5 text-sm text-red-700">
 
-                    @foreach($errors->all() as $error)
-
+                    @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
-
                     @endforeach
 
                 </ul>
@@ -222,8 +216,7 @@
 
                                 <tbody class="divide-y divide-gray-100">
 
-                                    @foreach($allocation->items as $allocationItem)
-
+                                    @foreach ($allocation->items as $allocationItem)
                                         <tr>
 
                                             <td class="px-5 py-3 font-medium">
@@ -239,7 +232,6 @@
                                             </td>
 
                                         </tr>
-
                                     @endforeach
 
                                 </tbody>
@@ -262,14 +254,10 @@
 
         </div>
 
-        @if($callOff->status === 'Pending')
-
-            <form
-                action="{{ route('supply.call-offs.review', $callOff) }}"
-                method="POST"
+        @if ($callOff->status === 'Pending')
+            <form action="{{ route('supply.call-offs.review', $callOff) }}" method="POST"
                 enctype="multipart/form-data"
-                class="overflow-hidden rounded-2xl border border-[#E4EEF5] bg-white shadow"
-            >
+                class="overflow-hidden rounded-2xl border border-[#E4EEF5] bg-white shadow">
 
                 @csrf
                 @method('PATCH')
@@ -290,27 +278,17 @@
                             Decision
                         </label>
 
-                        <select
-                            name="decision"
-                            required
-                            class="w-full rounded-xl border-[#B7D6E6]"
-                        >
+                        <select name="decision" required class="w-full rounded-xl border-[#B7D6E6]">
 
                             <option value="">
                                 Select decision
                             </option>
 
-                            <option
-                                value="Approved"
-                                @selected(old('decision') === 'Approved')
-                            >
+                            <option value="Approved" @selected(old('decision') === 'Approved')>
                                 Approve
                             </option>
 
-                            <option
-                                value="Rejected"
-                                @selected(old('decision') === 'Rejected')
-                            >
+                            <option value="Rejected" @selected(old('decision') === 'Rejected')>
                                 Reject
                             </option>
 
@@ -324,12 +302,9 @@
                             Official Call-Off Date
                         </label>
 
-                        <input
-                            type="date"
-                            name="call_off_date"
+                        <input type="date" name="call_off_date"
                             value="{{ old('call_off_date', now()->format('Y-m-d')) }}"
-                            class="w-full rounded-xl border-[#B7D6E6]"
-                        >
+                            class="w-full rounded-xl border-[#B7D6E6]">
 
                     </div>
 
@@ -339,12 +314,8 @@
                             Approval Document
                         </label>
 
-                        <input
-                            type="file"
-                            name="approval_document"
-                            accept="application/pdf,.pdf"
-                            class="w-full rounded-xl border border-[#B7D6E6] bg-white px-4 py-3"
-                        >
+                        <input type="file" name="approval_document" accept="application/pdf,.pdf"
+                            class="w-full rounded-xl border border-[#B7D6E6] bg-white px-4 py-3">
 
                         <p class="mt-2 text-xs text-[#70879A]">
                             PDF only, maximum 10 MB.
@@ -358,20 +329,14 @@
                             Supply Remarks
                         </label>
 
-                        <textarea
-                            name="remarks"
-                            rows="4"
-                            class="w-full rounded-xl border-[#B7D6E6]"
-                        >{{ old('remarks') }}</textarea>
+                        <textarea name="remarks" rows="4" class="w-full rounded-xl border-[#B7D6E6]">{{ old('remarks') }}</textarea>
 
                     </div>
 
                     <div class="lg:col-span-2 flex justify-end">
 
-                        <button
-                            type="submit"
-                            class="rounded-xl bg-[#339DCB] px-7 py-3 font-semibold text-white hover:bg-red-800"
-                        >
+                        <button type="submit"
+                            class="rounded-xl bg-[#339DCB] px-7 py-3 font-semibold text-white hover:bg-red-800">
                             Submit Decision
                         </button>
 
@@ -380,9 +345,7 @@
                 </div>
 
             </form>
-
         @else
-
             <div class="rounded-2xl border border-[#E4EEF5] bg-white p-7 shadow">
 
                 <h2 class="text-xl font-semibold text-[#36566E]">
@@ -430,7 +393,6 @@
                 </dl>
 
             </div>
-
         @endif
 
     </div>
