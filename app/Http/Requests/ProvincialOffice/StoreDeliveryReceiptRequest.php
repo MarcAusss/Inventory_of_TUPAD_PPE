@@ -4,6 +4,7 @@ namespace App\Http\Requests\ProvincialOffice;
 
 use App\Models\DeliveryReceiptItem;
 use App\Models\ProvinceDistribution;
+use App\Rules\NoControlCharacters;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -25,18 +26,22 @@ class StoreDeliveryReceiptRequest extends FormRequest
                 'required',
                 'string',
                 'max:100',
+                new NoControlCharacters(),
+                'regex:/^[A-Za-z0-9][A-Za-z0-9 ._\\\/-]*$/',
                 'unique:delivery_receipts,dr_number',
             ],
 
             'delivery_date' => [
                 'required',
-                'date',
+                'date_format:Y-m-d',
+                'before_or_equal:today',
             ],
 
             'physical_receiver_name' => [
                 'required',
                 'string',
                 'max:255',
+                new NoControlCharacters(),
             ],
 
             'documents' => ['required', 'array', 'min:1', 'max:10'],
@@ -45,6 +50,7 @@ class StoreDeliveryReceiptRequest extends FormRequest
                 'required',
                 'file',
                 'mimes:pdf,jpg,jpeg,png',
+                'mimetypes:application/pdf,image/jpeg,image/png',
                 'max:10240',
             ],
 
@@ -52,18 +58,21 @@ class StoreDeliveryReceiptRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:5000',
+                new NoControlCharacters(),
             ],
 
             'items' => [
                 'required',
                 'array',
                 'min:1',
+                'max:100',
             ],
 
             'items.*' => [
                 'required',
                 'integer',
                 'min:0',
+                'max:1000000',
             ],
         ];
     }

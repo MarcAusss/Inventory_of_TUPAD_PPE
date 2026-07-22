@@ -178,7 +178,7 @@
                     <div class="sm:col-span-2 lg:col-span-4">
 
                         <a
-                            href="{{ asset('storage/'.$receipt->document) }}"
+                            href="{{ route('documents.receipt-legacy', $receipt) }}"
                             target="_blank"
                             class="inline-flex rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
                         >

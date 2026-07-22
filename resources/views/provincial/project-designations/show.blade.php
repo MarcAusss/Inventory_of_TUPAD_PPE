@@ -426,10 +426,7 @@
                 @if($supplyDesignation->are_document)
                     <div class="sm:col-span-2 lg:col-span-4">
                         <a
-                            href="{{ asset(
-                                'storage/'
-                                .$supplyDesignation->are_document
-                            ) }}"
+                            href="{{ route('documents.are', $supplyDesignation) }}""
                             target="_blank"
                             class="inline-flex rounded-xl
                                    bg-slate-900 px-5 py-3

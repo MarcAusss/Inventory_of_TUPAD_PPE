@@ -58,7 +58,7 @@ class StoreTssdDistributionRequest extends FormRequest
 
             'distributions.*.scheduled_delivery_date' => [
                 'required',
-                'date',
+                'date_format:Y-m-d',
             ],
 
             'remarks' => [
@@ -71,6 +71,12 @@ class StoreTssdDistributionRequest extends FormRequest
                 'required',
                 'array',
                 'min:1',
+                'max:6',
+            ],
+
+            'distributions.*' => [
+                'required',
+                'array:province_id,scheduled_delivery_date,long_sleeve_medium,long_sleeve_large,bucket_hat,rubber_boots_us9,rubber_boots_us10,hand_gloves,mask',
             ],
 
             'distributions.*.province_id' => [
@@ -84,42 +90,49 @@ class StoreTssdDistributionRequest extends FormRequest
                 'required',
                 'integer',
                 'min:0',
+                'max:1000000',
             ],
 
             'distributions.*.long_sleeve_large' => [
                 'required',
                 'integer',
                 'min:0',
+                'max:1000000',
             ],
 
             'distributions.*.bucket_hat' => [
                 'required',
                 'integer',
                 'min:0',
+                'max:1000000',
             ],
 
             'distributions.*.rubber_boots_us9' => [
                 'required',
                 'integer',
                 'min:0',
+                'max:1000000',
             ],
 
             'distributions.*.rubber_boots_us10' => [
                 'required',
                 'integer',
                 'min:0',
+                'max:1000000',
             ],
 
             'distributions.*.hand_gloves' => [
                 'required',
                 'integer',
                 'min:0',
+                'max:1000000',
             ],
 
             'distributions.*.mask' => [
                 'required',
                 'integer',
                 'min:0',
+                'max:1000000',
             ],
         ];
     }

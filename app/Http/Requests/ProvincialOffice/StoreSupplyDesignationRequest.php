@@ -3,6 +3,7 @@
 namespace App\Http\Requests\ProvincialOffice;
 
 use App\Models\DeliveryReceipt;
+use App\Rules\NoControlCharacters;
 use App\Services\DeliveryReceiptInventoryService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\ValidationException;
@@ -29,35 +30,41 @@ class StoreSupplyDesignationRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
+                new NoControlCharacters(),
             ],
 
             'project_title' => [
                 'required',
                 'string',
                 'max:255',
+                new NoControlCharacters(),
             ],
 
             'location' => [
                 'required',
                 'string',
                 'max:255',
+                new NoControlCharacters(),
             ],
 
             'designation_date' => [
                 'required',
-                'date',
+                'date_format:Y-m-d',
+                'before_or_equal:today',
             ],
 
             'number_of_days' => [
                 'required',
                 'integer',
                 'min:1',
+                'max:3650',
             ],
 
             'number_of_beneficiaries' => [
                 'required',
                 'integer',
                 'min:1',
+                'max:1000000',
             ],
 
             'are_document' => [
@@ -72,17 +79,21 @@ class StoreSupplyDesignationRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:2000',
+                new NoControlCharacters(),
             ],
 
             'items' => [
                 'required',
                 'array',
+                'min:1',
+                'max:100',
             ],
 
             'items.*' => [
                 'nullable',
                 'integer',
                 'min:0',
+                'max:1000000',
             ],
         ];
     }

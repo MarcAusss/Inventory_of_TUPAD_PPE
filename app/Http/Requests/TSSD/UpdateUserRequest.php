@@ -70,6 +70,7 @@ class UpdateUserRequest extends FormRequest
                 'nullable',
                 'string',
                 'min:8',
+                'max:128',
                 'confirmed',
             ],
         ];

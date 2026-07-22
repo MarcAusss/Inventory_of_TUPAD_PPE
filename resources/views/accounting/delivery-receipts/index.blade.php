@@ -303,9 +303,7 @@
 
                                             'url' =>
                                                 $document->file_path
-                                                ? \Illuminate\Support\Facades\Storage::url(
-                                                    $document->file_path
-                                                )
+                                                ? route('documents.receipt-documents', $document)
                                                 : null,
                                         ]
                                     )
@@ -320,10 +318,10 @@
                                         'name' => basename(
                                             $receipt->document
                                         ),
-                                        'url' =>
-                                            \Illuminate\Support\Facades\Storage::url(
-                                                $receipt->document
-                                            ),
+                                        'url' => route(
+                                            'documents.receipt-legacy',
+                                            $receipt
+                                        ),
                                     ];
                                 }
 

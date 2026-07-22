@@ -168,7 +168,7 @@ class SupplyDesignationService extends BaseService
 
                     $documentPath = $areDocument->store(
                         'are-documents',
-                        'public'
+                        'local'
                     );
 
                     if (! $documentPath) {
@@ -289,10 +289,8 @@ class SupplyDesignationService extends BaseService
             return $designation;
         } catch (Throwable $exception) {
             if ($documentPath) {
-                Storage::disk('public')
-                    ->delete(
-                        $documentPath
-                    );
+                Storage::disk(Storage::disk('local')->exists($documentPath) ? 'local' : 'public')
+                    ->delete($documentPath);
             }
 
             throw $exception;

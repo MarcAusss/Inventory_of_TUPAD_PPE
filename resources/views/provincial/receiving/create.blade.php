@@ -868,11 +868,7 @@
                                         <td class="px-6 py-4 text-center">
                                             @if($previousReceipt->document)
                                                 <a
-                                                    href="{{ asset(
-                                                        'storage/'
-                                                        .$previousReceipt
-                                                            ->document
-                                                    ) }}"
+                                                    href="{{ route('documents.receipt-legacy', $previousReceipt) }}"
                                                     target="_blank"
                                                     rel="noopener"
                                                     class="inline-flex

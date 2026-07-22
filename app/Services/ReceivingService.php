@@ -100,7 +100,7 @@ class ReceivingService extends BaseService
                     );
 
                     foreach ($documents as $document) {
-                        $path = $document->store('delivery-receipts', 'public');
+                        $path = $document->store('delivery-receipts', 'local');
 
                         if (! $path) {
                             throw ValidationException::withMessages([
@@ -315,8 +315,8 @@ class ReceivingService extends BaseService
             foreach ($storedDocumentPaths as $documentData) {
                 $path = $documentData['file_path'] ?? null;
 
-                if ($path && Storage::disk('public')->exists($path)) {
-                    Storage::disk('public')->delete($path);
+                if ($path && Storage::disk('local')->exists($path) || Storage::disk('public')->exists($path)) {
+                    Storage::disk(Storage::disk('local')->exists($path) ? 'local' : 'public')->delete($path);
                 }
             }
 

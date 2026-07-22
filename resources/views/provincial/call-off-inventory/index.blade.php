@@ -159,7 +159,7 @@
                     ],
 
                     [
-                        'label' => 'Call-Off Remaining',
+                        'label' => 'Remaining Call-Off',
                         'value' => $summary['remaining_total'],
                         'class' => 'text-green-700',
                     ],
@@ -389,7 +389,7 @@
                                        bg-[#0284C7]
                                        px-4 py-4 text-center"
                             >
-                                Remaining PPE per Call-Off
+                                Delivery Receipts with Available PPEs
                             </th>
 
                             <th

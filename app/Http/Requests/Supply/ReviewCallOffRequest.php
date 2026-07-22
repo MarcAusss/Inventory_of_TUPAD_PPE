@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Supply;
 
+use App\Rules\NoControlCharacters;
 use App\Models\CallOff;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -23,12 +24,14 @@ class ReviewCallOffRequest extends FormRequest
                 'required',
                 'string',
                 'max:100',
+                new NoControlCharacters(),
+                'regex:/^[A-Za-z0-9][A-Za-z0-9 ._\\\/-]*$/',
                 Rule::unique(CallOff::class, 'call_off_number'),
             ],
 
             'call_off_date' => [
                 'required',
-                'date',
+                'date_format:Y-m-d',
             ],
 
             'approval_document' => [
@@ -42,6 +45,7 @@ class ReviewCallOffRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:5000',
+                new NoControlCharacters(),
             ],
         ];
     }

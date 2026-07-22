@@ -721,10 +721,7 @@
                                 <td class="px-6 py-4 text-center">
                                     @if($receipt->document)
                                         <a
-                                            href="{{ asset(
-                                                'storage/'
-                                                .$receipt->document
-                                            ) }}"
+                                            href="{{ route('documents.receipt-legacy', $receipt) }}"
                                             target="_blank"
                                             rel="noopener"
                                             class="inline-flex rounded-lg

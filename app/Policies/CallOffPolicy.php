@@ -9,18 +9,12 @@ class CallOffPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->isTssd()
-            || $user->isSupply()
-            || $user->isAccounting();
+        return $user->isSupply() || $user->isTssd() || $user->isAccounting();
     }
 
-    public function view(
-        User $user,
-        CallOff $callOff
-    ): bool {
-        return $user->isTssd()
-            || $user->isSupply()
-            || $user->isAccounting();
+    public function view(User $user, CallOff $callOff): bool
+    {
+        return $this->viewAny($user);
     }
 
     public function create(User $user): bool
@@ -28,31 +22,23 @@ class CallOffPolicy
         return $user->isSupply();
     }
 
-    public function update(
-        User $user,
-        CallOff $callOff
-    ): bool {
-        return false;
+    public function update(User $user, CallOff $callOff): bool
+    {
+        return $user->isSupply();
     }
 
-    public function delete(
-        User $user,
-        CallOff $callOff
-    ): bool {
-        return false;
+    public function approve(User $user, CallOff $callOff): bool
+    {
+        return $user->isSupply();
     }
 
-    public function restore(
-        User $user,
-        CallOff $callOff
-    ): bool {
-        return false;
+    public function print(User $user, CallOff $callOff): bool
+    {
+        return $user->isSupply() || $user->isTssd() || $user->isAccounting();
     }
 
-    public function forceDelete(
-        User $user,
-        CallOff $callOff
-    ): bool {
-        return false;
+    public function delete(User $user, CallOff $callOff): bool
+    {
+        return $user->isSupply() && ! $callOff->isApproved();
     }
 }

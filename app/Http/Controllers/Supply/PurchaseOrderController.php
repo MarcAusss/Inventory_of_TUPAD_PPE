@@ -75,7 +75,7 @@ class PurchaseOrderController extends Controller
 
         DB::transaction(function () use ($request, $validated): void {
             $document = $request->hasFile('document')
-                ? $request->file('document')->store('purchase-orders', 'public')
+                ? $request->file('document')->store('purchase-orders', 'local')
                 : null;
 
             $totalAmount = collect($validated['items'])->sum(
@@ -184,14 +184,17 @@ class PurchaseOrderController extends Controller
 
             if ($request->hasFile('document')) {
                 if (
-                    $purchaseOrder->document !== null &&
-                    Storage::disk('public')->exists($purchaseOrder->document)
+                    $purchaseOrder->document !== null
+                    && (
+                        Storage::disk('local')->exists($purchaseOrder->document)
+                        || Storage::disk('public')->exists($purchaseOrder->document)
+                    )
                 ) {
-                    Storage::disk('public')->delete($purchaseOrder->document);
+                    Storage::disk(Storage::disk('local')->exists($purchaseOrder->document) ? 'local' : 'public')->delete($purchaseOrder->document);
                 }
 
                 $document = $request->file('document')
-                    ->store('purchase-orders', 'public');
+                    ->store('purchase-orders', 'local');
             }
 
             /*
@@ -307,9 +310,9 @@ class PurchaseOrderController extends Controller
 
             if (
                 $purchaseOrder->document !== null &&
-                Storage::disk('public')->exists($purchaseOrder->document)
+                Storage::disk('local')->exists($purchaseOrder->document) || Storage::disk('public')->exists($purchaseOrder->document)
             ) {
-                Storage::disk('public')->delete($purchaseOrder->document);
+                Storage::disk(Storage::disk('local')->exists($purchaseOrder->document) ? 'local' : 'public')->delete($purchaseOrder->document);
             }
 
             $purchaseOrder->delete();

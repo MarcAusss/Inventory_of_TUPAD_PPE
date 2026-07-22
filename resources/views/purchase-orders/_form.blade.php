@@ -325,7 +325,7 @@
                         </p>
                     </div>
 
-                    <a href="{{ Storage::url($purchaseOrder->document) }}" target="_blank" rel="noopener"
+                    <a href="{{ route('documents.purchase-orders', $purchaseOrder) }}" target="_blank" rel="noopener"
                         class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-100">
                         View Current Document
                     </a>

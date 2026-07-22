@@ -39,7 +39,7 @@ class CallOffService extends BaseService
 
             $documentPath = $approvalDocument->store(
                 'call-off-approvals',
-                'public'
+                'local'
             );
 
             $callOff = CallOff::query()->create([

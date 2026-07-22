@@ -150,7 +150,7 @@
                         <div>
                             <p class="font-bold text-slate-900">Purchase Order Document</p>
                             <p class="mt-1 text-sm text-slate-500">The supporting document is available for viewing.</p>
-                        </div><a href="{{ Storage::url($purchaseOrder->document) }}" target="_blank" rel="noopener"
+                        </div><a href="{{ route('documents.purchase-orders', $purchaseOrder) }}" target="_blank" rel="noopener"
                             class="inline-flex items-center justify-center rounded-xl bg-[#339DCB] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#2D94BE]">View
                             Document</a>
                     </div>

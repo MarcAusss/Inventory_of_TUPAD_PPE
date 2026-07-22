@@ -4,610 +4,329 @@ namespace App\Services;
 
 use App\Models\DeliveryReceiptItem;
 use App\Models\ProvinceDistribution;
-use App\Models\ProvincialInventory;
 use App\Models\SupplyDesignationItem;
 use Illuminate\Support\Collection;
-use Illuminate\Validation\ValidationException;
 
-class CallOffInventoryService extends BaseService
+class CallOffInventoryService
 {
     /**
-     * Return Call-Off allocations that still have PPE available
-     * for project designation.
+     * Build the inventory balances for one provincial allocation.
      *
-     * The available quantity is limited by both:
+     * Returned structure:
      *
-     * 1. Remaining PPE under the selected Call-Off.
-     * 2. Current province-wide pooled inventory.
+     * [
+     *     item_id => [
+     *         'item_id' => int,
+     *         'allocated_quantity' => int,
+     *         'actual_received' => int,
+     *         'previously_distributed' => int,
+     *         'call_off_available' => int,
+     *         'available_for_projects' => int,
+     *     ],
+     * ]
      *
-     * @return Collection<int, ProvinceDistribution>
-     */
-    public function availableAllocations(): Collection
-    {
-        $this->requireProvincial();
-
-        $provinceId = $this->provinceId();
-
-        abort_unless(
-            $provinceId,
-            403,
-            'This Provincial Office account has no assigned province.'
-        );
-
-        $allocations = ProvinceDistribution::query()
-            ->with([
-                'distributionBatch.callOff',
-                'distributionBatch.purchaseOrder.supplier',
-                'province',
-                'items.item',
-                'deliveryReceipts.items',
-                'supplyDesignations.items',
-            ])
-            ->where(
-                'province_id',
-                $provinceId
-            )
-            ->whereIn(
-                'status',
-                [
-                    'Partially Received',
-                    'Received',
-                ]
-            )
-            ->whereHas(
-                'distributionBatch.callOff',
-                function ($query): void {
-                    $query->whereIn(
-                        'status',
-                        [
-                            'Approved',
-                            'Completed',
-                        ]
-                    );
-                }
-            )
-            ->latest('received_at')
-            ->latest('id')
-            ->get();
-
-        return $allocations
-            ->map(
-                function (
-                    ProvinceDistribution $allocation
-                ): ProvinceDistribution {
-                    $balances = $this->balances(
-                        $allocation
-                    );
-
-                    $availableTotal = collect(
-                        $balances
-                    )->sum(
-                        'available_for_projects'
-                    );
-
-                    $allocation->setAttribute(
-                        'call_off_balances',
-                        $balances
-                    );
-
-                    $allocation->setAttribute(
-                        'available_for_projects_total',
-                        (int) $availableTotal
-                    );
-
-                    return $allocation;
-                }
-            )
-            ->filter(
-                fn (
-                    ProvinceDistribution $allocation
-                ): bool => (int) $allocation
-                    ->available_for_projects_total > 0
-            )
-            ->values();
-    }
-
-    /**
-     * Build the inventory balances for one selected Call-Off.
-     *
-     * Call-Off available:
-     *
-     * Actual received under the selected Call-Off
-     * - Completed project designations linked to the selected Call-Off
-     *
-     * Effective available:
-     *
-     * Minimum of:
-     * - Call-Off available
-     * - Current pooled provincial inventory
-     *
-     * The pooled limitation is required because legacy completed
-     * designations may have reduced the provincial inventory without
-     * being linked to a specific Call-Off.
-     *
-     * @return array<int, array<string, mixed>>
+     * @return array<int, array<string, int>>
      */
     public function balances(
         ProvinceDistribution $allocation
     ): array {
-        $this->ensureProvinceAccess(
-            $allocation
-        );
-
         $allocation->loadMissing([
-            'distributionBatch.callOff',
-            'distributionBatch.purchaseOrder.supplier',
             'items.item',
+            'deliveryReceipts.items',
+            'supplyDesignations.items',
         ]);
 
-        $allocationItemIds = $allocation
-            ->items
-            ->pluck('id')
-            ->map(
-                fn ($id): int => (int) $id
-            )
-            ->values()
-            ->all();
+        $allocated = $this->allocatedQuantities($allocation);
+        $received = $this->receivedQuantities($allocation);
+        $distributed = $this->distributedQuantities($allocation);
 
-        $itemIds = $allocation
-            ->items
-            ->pluck('item_id')
-            ->map(
-                fn ($id): int => (int) $id
-            )
-            ->values()
-            ->all();
+        $itemIds = collect()
+            ->merge($allocated->keys())
+            ->merge($received->keys())
+            ->merge($distributed->keys())
+            ->filter()
+            ->unique()
+            ->values();
 
-        $receivedByAllocationItem =
-            $this->receivedByAllocationItem(
-                $allocation,
-                $allocationItemIds
-            );
+        return $itemIds
+            ->mapWithKeys(function (int|string $itemId) use (
+                $allocated,
+                $received,
+                $distributed
+            ): array {
+                $itemId = (int) $itemId;
 
-        $distributedByItem =
-            $this->distributedByItem(
-                $allocation,
-                $itemIds
-            );
-
-        /*
-         * Get the real current province-wide inventory.
-         *
-         * This already includes the effects of:
-         * - all Delivery Receipts
-         * - all completed project designations
-         * - legacy designations not linked to Call-Offs
-         */
-        $pooledInventoryByItem =
-            ProvincialInventory::query()
-                ->where(
-                    'province_id',
-                    $allocation->province_id
-                )
-                ->whereIn(
-                    'item_id',
-                    $itemIds
-                )
-                ->pluck(
-                    'quantity',
-                    'item_id'
-                )
-                ->map(
-                    fn ($quantity): int => (int) $quantity
+                $allocatedQuantity = max(
+                    0,
+                    (int) $allocated->get($itemId, 0)
                 );
 
-        $balances = [];
+                $actualReceived = max(
+                    0,
+                    (int) $received->get($itemId, 0)
+                );
 
-        foreach (
-            $allocation->items as $allocationItem
-        ) {
-            $allocationItemId =
-                (int) $allocationItem->id;
-
-            $itemId =
-                (int) $allocationItem->item_id;
-
-            $allocated =
-                (int) $allocationItem->quantity;
-
-            $actualReceived = (int) (
-                $receivedByAllocationItem[
-                    $allocationItemId
-                ] ?? 0
-            );
-
-            $previouslyDistributed = (int) (
-                $distributedByItem[
-                    $itemId
-                ] ?? 0
-            );
-
-            /*
-             * PPE allocated but not physically received yet.
-             */
-            $remainingReceivable = max(
-                0,
-                $allocated - $actualReceived
-            );
-
-            /*
-             * PPE remaining according to the selected Call-Off only.
-             */
-            $callOffAvailable = max(
-                0,
-                $actualReceived
-                    - $previouslyDistributed
-            );
-
-            /*
-             * Actual PPE currently available across the whole province.
-             */
-            $pooledAvailable = max(
-                0,
-                (int) (
-                    $pooledInventoryByItem[
-                        $itemId
-                    ] ?? 0
-                )
-            );
-
-            /*
-             * Safe quantity that may be distributed right now.
-             *
-             * Example:
-             *
-             * Call-Off available = 40
-             * Pooled available   = 16
-             *
-             * Effective available = 16
-             */
-            $effectiveAvailable = min(
-                $callOffAvailable,
-                $pooledAvailable
-            );
-
-            /*
-             * This represents Call-Off stock that cannot currently be
-             * issued because province-wide stock was previously consumed
-             * by legacy or unassigned project designations.
-             */
-            $legacyOrUnassignedReserve = max(
-                0,
-                $callOffAvailable
-                    - $effectiveAvailable
-            );
-
-            $balances[$itemId] = [
-                'province_distribution_item_id' => $allocationItemId,
-
-                'item_id' => $itemId,
-
-                'item' => $allocationItem->item,
-
-                'allocated' => $allocated,
-
-                'actual_received' => $actualReceived,
-
-                'previously_distributed' => $previouslyDistributed,
-
-                'remaining_receivable' => $remainingReceivable,
+                $previouslyDistributed = max(
+                    0,
+                    (int) $distributed->get($itemId, 0)
+                );
 
                 /*
-                 * Raw remaining balance under the selected Call-Off.
+                 * PPE remaining under the approved Call-Off allocation.
+                 *
+                 * This protects against receiving more than what was
+                 * originally allocated.
                  */
-                'call_off_available' => $callOffAvailable,
+                $callOffAvailable = max(
+                    0,
+                    $allocatedQuantity - $previouslyDistributed
+                );
 
                 /*
-                 * Current province-wide stock.
+                 * PPE that may still be assigned to projects.
+                 *
+                 * This is based on what was actually received, less the
+                 * quantities already issued through Supply Designations.
                  */
-                'pooled_available' => $pooledAvailable,
+                $receivedAvailable = max(
+                    0,
+                    $actualReceived - $previouslyDistributed
+                );
 
                 /*
-                 * Quantity used by:
-                 * - the Blade max attribute
-                 * - JavaScript validation
-                 * - Form Request validation
-                 * - SupplyDesignationService validation
+                 * Use the lower balance so the office cannot distribute:
+                 *
+                 * 1. More than it actually received; or
+                 * 2. More than the approved Call-Off allocation.
                  */
-                'available_for_projects' => $effectiveAvailable,
+                $availableForProjects = min(
+                    $callOffAvailable,
+                    $receivedAvailable
+                );
 
-                'legacy_or_unassigned_reserve' => $legacyOrUnassignedReserve,
-            ];
-        }
-
-        return $balances;
+                return [
+                    $itemId => [
+                        'item_id' => $itemId,
+                        'allocated_quantity' => $allocatedQuantity,
+                        'actual_received' => $actualReceived,
+                        'previously_distributed' => $previouslyDistributed,
+                        'call_off_available' => $callOffAvailable,
+                        'available_for_projects' => max(
+                            0,
+                            $availableForProjects
+                        ),
+                    ],
+                ];
+            })
+            ->all();
     }
 
     /**
-     * Get the safe available quantity for one PPE item.
+     * Determine whether an allocation has any PPE available
+     * for project distribution.
+     */
+    public function hasAvailableStock(
+        ProvinceDistribution $allocation
+    ): bool {
+        return collect($this->balances($allocation))
+            ->contains(
+                fn (array $balance): bool =>
+                    (int) ($balance['available_for_projects'] ?? 0) > 0
+            );
+    }
+
+    /**
+     * Get the total quantity currently available for projects.
+     */
+    public function totalAvailableForProjects(
+        ProvinceDistribution $allocation
+    ): int {
+        return collect($this->balances($allocation))
+            ->sum(
+                fn (array $balance): int =>
+                    (int) ($balance['available_for_projects'] ?? 0)
+            );
+    }
+
+    /**
+     * Get the available quantity of one item.
      */
     public function availableQuantity(
         ProvinceDistribution $allocation,
         int $itemId
     ): int {
-        $balances = $this->balances(
-            $allocation
-        );
+        $balance = $this->balances($allocation)[$itemId] ?? null;
 
-        return (int) (
-            $balances[$itemId][
-                'available_for_projects'
-            ] ?? 0
+        return max(
+            0,
+            (int) ($balance['available_for_projects'] ?? 0)
         );
     }
 
     /**
-     * Validate submitted project quantities.
-     *
-     * @param  array<int|string, mixed>  $submittedItems
+     * Get the total quantity allocated under the Call-Off.
      */
-    public function validateProjectQuantities(
-        ProvinceDistribution $allocation,
-        array $submittedItems
-    ): void {
-        $balances = $this->balances(
-            $allocation
-        );
-
-        $errors = [];
-
-        $positiveTotal = 0;
-
-        foreach (
-            $submittedItems as $itemId => $quantity
-        ) {
-            if (
-                filter_var(
-                    $itemId,
-                    FILTER_VALIDATE_INT
-                ) === false
-            ) {
-                $errors['items'] =
-                    'One submitted PPE item identifier is invalid.';
-
-                continue;
-            }
-
-            $itemId = (int) $itemId;
-
-            if (
-                filter_var(
-                    $quantity,
-                    FILTER_VALIDATE_INT
-                ) === false
-            ) {
-                $errors[
-                    "items.{$itemId}"
-                ] =
-                    'The project quantity must be a whole number.';
-
-                continue;
-            }
-
-            $quantity = (int) $quantity;
-
-            if ($quantity < 0) {
-                $errors[
-                    "items.{$itemId}"
-                ] =
-                    'Project quantities cannot be negative.';
-
-                continue;
-            }
-
-            if ($quantity === 0) {
-                continue;
-            }
-
-            $positiveTotal += $quantity;
-
-            if (! isset($balances[$itemId])) {
-                $errors[
-                    "items.{$itemId}"
-                ] =
-                    'This PPE item does not belong to the selected Call-Off allocation.';
-
-                continue;
-            }
-
-            $available = (int) $balances[
-                $itemId
-            ]['available_for_projects'];
-
-            if ($quantity > $available) {
-                $item = $balances[
-                    $itemId
-                ]['item'];
-
-                $itemName = $this->displayItemName(
-                    $item
-                );
-
-                $callOffAvailable = (int) $balances[
-                    $itemId
-                ]['call_off_available'];
-
-                $pooledAvailable = (int) $balances[
-                    $itemId
-                ]['pooled_available'];
-
-                $errors[
-                    "items.{$itemId}"
-                ] =
-                    "{$itemName} has only "
-                    .number_format($available)
-                    .' safely available. '
-                    .'The selected Call-Off has '
-                    .number_format($callOffAvailable)
-                    .' remaining, while the current combined provincial '
-                    .'inventory has '
-                    .number_format($pooledAvailable)
-                    .'.';
-            }
-        }
-
-        if ($positiveTotal <= 0) {
-            $errors['items'] =
-                'Enter at least one PPE quantity greater than zero.';
-        }
-
-        if ($errors !== []) {
-            throw ValidationException::withMessages(
-                $errors
+    public function totalAllocated(
+        ProvinceDistribution $allocation
+    ): int {
+        return collect($this->balances($allocation))
+            ->sum(
+                fn (array $balance): int =>
+                    (int) ($balance['allocated_quantity'] ?? 0)
             );
-        }
     }
 
     /**
-     * Calculate received quantities grouped by original provincial
-     * allocation item.
-     *
-     * @param  array<int, int>  $allocationItemIds
-     * @return Collection<int|string, int>
+     * Get the total quantity actually received.
      */
-    private function receivedByAllocationItem(
-        ProvinceDistribution $allocation,
-        array $allocationItemIds
+    public function totalReceived(
+        ProvinceDistribution $allocation
+    ): int {
+        return collect($this->balances($allocation))
+            ->sum(
+                fn (array $balance): int =>
+                    (int) ($balance['actual_received'] ?? 0)
+            );
+    }
+
+    /**
+     * Get the total quantity already assigned to projects.
+     */
+    public function totalDistributed(
+        ProvinceDistribution $allocation
+    ): int {
+        return collect($this->balances($allocation))
+            ->sum(
+                fn (array $balance): int =>
+                    (int) ($balance['previously_distributed'] ?? 0)
+            );
+    }
+
+    /**
+     * Quantities allocated by TSSD to the province.
+     *
+     * @return Collection<int, int>
+     */
+    private function allocatedQuantities(
+        ProvinceDistribution $allocation
     ): Collection {
-        if ($allocationItemIds === []) {
-            return collect();
+        if ($allocation->relationLoaded('items')) {
+            return $allocation->items
+                ->groupBy('item_id')
+                ->map(
+                    fn (Collection $rows): int =>
+                        (int) $rows->sum('quantity')
+                );
+        }
+
+        return $allocation->items()
+            ->selectRaw('item_id, SUM(quantity) AS total_quantity')
+            ->groupBy('item_id')
+            ->pluck('total_quantity', 'item_id')
+            ->map(
+                fn (mixed $quantity): int => (int) $quantity
+            );
+    }
+
+    /**
+     * Quantities received through Delivery Receipts.
+     *
+     * Only Delivery Receipts with the status "Received" are included.
+     *
+     * @return Collection<int, int>
+     */
+    private function receivedQuantities(
+        ProvinceDistribution $allocation
+    ): Collection {
+        if ($allocation->relationLoaded('deliveryReceipts')) {
+            return $allocation->deliveryReceipts
+                ->filter(
+                    fn ($receipt): bool =>
+                        strcasecmp(
+                            trim((string) $receipt->status),
+                            'Received'
+                        ) === 0
+                )
+                ->flatMap(
+                    fn ($receipt) => $receipt->items
+                )
+                ->groupBy('item_id')
+                ->map(
+                    fn (Collection $rows): int =>
+                        (int) $rows->sum('received_quantity')
+                );
         }
 
         return DeliveryReceiptItem::query()
-            ->whereIn(
-                'province_distribution_item_id',
-                $allocationItemIds
-            )
-            ->whereHas(
-                'deliveryReceipt',
-                function ($query) use (
-                    $allocation
-                ): void {
-                    $query->where(
-                        'province_distribution_id',
-                        $allocation->id
-                    );
-                }
-            )
             ->selectRaw(
-                '
-                province_distribution_item_id,
-                SUM(received_quantity) AS total_received
-                '
+                'delivery_receipt_items.item_id,
+                SUM(delivery_receipt_items.received_quantity)
+                AS total_quantity'
             )
-            ->groupBy(
-                'province_distribution_item_id'
+            ->join(
+                'delivery_receipts',
+                'delivery_receipts.id',
+                '=',
+                'delivery_receipt_items.delivery_receipt_id'
             )
+            ->where(
+                'delivery_receipts.province_distribution_id',
+                $allocation->id
+            )
+            ->where('delivery_receipts.status', 'Received')
+            ->groupBy('delivery_receipt_items.item_id')
             ->pluck(
-                'total_received',
-                'province_distribution_item_id'
+                'total_quantity',
+                'delivery_receipt_items.item_id'
             )
             ->map(
-                fn ($quantity): int => (int) $quantity
+                fn (mixed $quantity): int => (int) $quantity
             );
     }
 
     /**
-     * Calculate completed project distributions linked to the selected
-     * Call-Off.
+     * Quantities already issued through Supply Designations.
      *
-     * @param  array<int, int>  $itemIds
-     * @return Collection<int|string, int>
+     * @return Collection<int, int>
      */
-    private function distributedByItem(
-        ProvinceDistribution $allocation,
-        array $itemIds
+    private function distributedQuantities(
+        ProvinceDistribution $allocation
     ): Collection {
-        if ($itemIds === []) {
-            return collect();
+        if ($allocation->relationLoaded('supplyDesignations')) {
+            return $allocation->supplyDesignations
+                ->flatMap(
+                    fn ($designation) => $designation->items
+                )
+                ->groupBy('item_id')
+                ->map(
+                    fn (Collection $rows): int =>
+                        (int) $rows->sum('quantity')
+                );
         }
 
         return SupplyDesignationItem::query()
-            ->whereIn(
-                'item_id',
-                $itemIds
-            )
-            ->whereHas(
-                'supplyDesignation',
-                function ($query) use (
-                    $allocation
-                ): void {
-                    $query
-                        ->where(
-                            'province_distribution_id',
-                            $allocation->id
-                        )
-                        ->where(
-                            'status',
-                            'Completed'
-                        );
-                }
-            )
             ->selectRaw(
-                '
-                item_id,
-                SUM(quantity) AS total_distributed
-                '
+                'supply_designation_items.item_id,
+                SUM(supply_designation_items.quantity)
+                AS total_quantity'
             )
-            ->groupBy('item_id')
+            ->join(
+                'supply_designations',
+                'supply_designations.id',
+                '=',
+                'supply_designation_items.supply_designation_id'
+            )
+            ->where(
+                'supply_designations.province_distribution_id',
+                $allocation->id
+            )
+            ->groupBy('supply_designation_items.item_id')
             ->pluck(
-                'total_distributed',
-                'item_id'
+                'total_quantity',
+                'supply_designation_items.item_id'
             )
             ->map(
-                fn ($quantity): int => (int) $quantity
+                fn (mixed $quantity): int => (int) $quantity
             );
-    }
-
-    /**
-     * Ensure the authenticated Provincial Office can access the
-     * selected allocation.
-     */
-    private function ensureProvinceAccess(
-        ProvinceDistribution $allocation
-    ): void {
-        $provinceId = $this->provinceId();
-
-        abort_unless(
-            $provinceId,
-            403,
-            'This Provincial Office account has no assigned province.'
-        );
-
-        abort_unless(
-            (int) $allocation->province_id
-                === (int) $provinceId,
-            403,
-            'You cannot use another province’s Call-Off allocation.'
-        );
-    }
-
-    /**
-     * Build a readable PPE name.
-     */
-    private function displayItemName(
-        mixed $item
-    ): string {
-        if (! $item) {
-            return 'PPE item';
-        }
-
-        $itemName = trim(
-            (string) (
-                $item->item_name
-                ?? 'PPE item'
-            )
-        );
-
-        $label = trim(
-            (string) (
-                $item->label
-                ?? ''
-            )
-        );
-
-        return $label !== ''
-            ? "{$itemName} ({$label})"
-            : $itemName;
     }
 }

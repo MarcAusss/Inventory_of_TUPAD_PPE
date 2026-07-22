@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\RedirectDashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Documents\SecureDocumentController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProvincialOffice\InventoryLedgerController;
 
@@ -46,6 +47,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
+
+    Route::prefix('secure-documents')->name('documents.')->group(function () {
+        Route::get('/purchase-orders/{purchaseOrder}', [SecureDocumentController::class, 'purchaseOrder'])->name('purchase-orders');
+        Route::get('/call-offs/{callOff}', [SecureDocumentController::class, 'callOff'])->name('call-offs');
+        Route::get('/delivery-receipt-documents/{document}', [SecureDocumentController::class, 'receiptDocument'])->name('receipt-documents');
+        Route::get('/delivery-receipts/{deliveryReceipt}', [SecureDocumentController::class, 'receiptLegacy'])->name('receipt-legacy');
+        Route::get('/supply-designations/{supplyDesignation}/are', [SecureDocumentController::class, 'are'])->name('are');
+    });
 
     Route::get(
         '/inventory-ledger',

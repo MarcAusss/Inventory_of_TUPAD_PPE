@@ -9,7 +9,6 @@ use App\Models\PdfTemplate;
 use App\Services\PdfTemplateService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -204,25 +203,19 @@ class PdfTemplateController extends Controller
      * Display the uploaded PDF in the browser.
      */
     public function preview(
-        PdfTemplate $pdfTemplate
+        PdfTemplate $pdfTemplate,
+        PdfTemplateService $service
     ): BinaryFileResponse {
-        abort_unless(
-            Storage::disk('public')->exists(
-                $pdfTemplate->pdf_path
-            ),
-            404,
-            'The uploaded PDF file could not be found.'
-        );
+        $disk = $service->diskContaining($pdfTemplate->pdf_path);
+        abort_unless($disk, 404, 'The uploaded PDF file could not be found.');
 
         return response()->file(
-            Storage::disk('public')->path(
-                $pdfTemplate->pdf_path
-            ),
+            \Illuminate\Support\Facades\Storage::disk($disk)->path($pdfTemplate->pdf_path),
             [
                 'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="'
-                    .$pdfTemplate->original_filename
-                    .'"',
+                'Content-Disposition' => 'inline',
+                'X-Content-Type-Options' => 'nosniff',
+                'Cache-Control' => 'private, no-store, max-age=0',
             ]
         );
     }
@@ -231,23 +224,19 @@ class PdfTemplateController extends Controller
      * Download the uploaded PDF.
      */
     public function download(
-        PdfTemplate $pdfTemplate
+        PdfTemplate $pdfTemplate,
+        PdfTemplateService $service
     ): BinaryFileResponse {
-        abort_unless(
-            Storage::disk('public')->exists(
-                $pdfTemplate->pdf_path
-            ),
-            404,
-            'The uploaded PDF file could not be found.'
-        );
+        $disk = $service->diskContaining($pdfTemplate->pdf_path);
+        abort_unless($disk, 404, 'The uploaded PDF file could not be found.');
 
         return response()->download(
-            Storage::disk('public')->path(
-                $pdfTemplate->pdf_path
-            ),
+            \Illuminate\Support\Facades\Storage::disk($disk)->path($pdfTemplate->pdf_path),
             $pdfTemplate->original_filename,
             [
                 'Content-Type' => 'application/pdf',
+                'X-Content-Type-Options' => 'nosniff',
+                'Cache-Control' => 'private, no-store, max-age=0',
             ]
         );
     }

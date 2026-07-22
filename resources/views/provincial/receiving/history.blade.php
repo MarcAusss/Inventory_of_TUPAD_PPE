@@ -129,7 +129,7 @@
 
                                     @if($receipt->document)
                                         <a
-                                            href="{{ asset('storage/' . $receipt->document) }}"
+                                            href="{{ route('documents.receipt-legacy', $receipt) }}"
                                             target="_blank"
                                             rel="noopener"
                                             class="mt-1 inline-flex text-xs font-bold text-[#0284C7] hover:underline"
