@@ -5,7 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 
+
+#[Fillable([
+    'name',
+    'category',
+    'type',
+    'size',
+    'brand',
+    'unit',
+    'unit_cost',
+])]
 class Item extends Model
 {
     protected $fillable = [
@@ -17,6 +28,7 @@ class Item extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+    protected $table = 'items';
 
     /*
     |--------------------------------------------------------------------------
@@ -29,6 +41,21 @@ class Item extends Model
     public function purchaseOrderItems(): HasMany
     {
         return $this->hasMany(PurchaseOrderItem::class);
+    }
+    protected function casts(): array
+    {
+        return [
+            'unit_cost' => 'decimal:2',
+        ];
+    }
+
+    public function provinceDistributionItems(): HasMany
+    {
+        return $this->hasMany(
+            ProvinceDistributionItem::class,
+            'item_id',
+            'id'
+        );
     }
 
     /*

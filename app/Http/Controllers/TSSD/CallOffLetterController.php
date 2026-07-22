@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class CallOffLetterController extends Controller
@@ -19,6 +18,23 @@ class CallOffLetterController extends Controller
         'Supply and Delivery of Personal Protective Equipment '
         . 'for the implementation of TUPAD Program under '
         . 'Framework Agreement';
+
+    /*
+    |--------------------------------------------------------------------------
+    | PPE Item IDs
+    |--------------------------------------------------------------------------
+    |
+    | These IDs are based on the records shown in your debugging result.
+    |
+    */
+
+    private const LONG_SLEEVE_MEDIUM_ID = 1;
+    private const LONG_SLEEVE_LARGE_ID = 2;
+    private const BUCKET_HAT_ID = 3;
+    private const RUBBER_BOOTS_US9_ID = 4;
+    private const RUBBER_BOOTS_US10_ID = 5;
+    private const HAND_GLOVES_ID = 6;
+    private const FACE_MASK_ID = 7;
 
     /*
     |--------------------------------------------------------------------------
@@ -131,7 +147,7 @@ class CallOffLetterController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Update editable NEFA title
+    | Update
     |--------------------------------------------------------------------------
     */
 
@@ -179,7 +195,7 @@ class CallOffLetterController extends Controller
         $distributions = ProvinceDistribution::query()
             ->with([
                 'province',
-                'items.item',
+                'items',
             ])
             ->where(
                 'tssd_distribution_batch_id',
@@ -188,11 +204,10 @@ class CallOffLetterController extends Controller
             ->orderBy('province_id')
             ->get();
 
-        $rows = $distributions
-            ->map(
-                fn (ProvinceDistribution $distribution): array =>
-                    $this->makeDistributionRow($distribution)
-            );
+        $rows = $distributions->map(
+            fn (ProvinceDistribution $distribution): array =>
+                $this->makeDistributionRow($distribution)
+        );
 
         $totals = [
             'long_sleeve_medium' =>
@@ -212,6 +227,9 @@ class CallOffLetterController extends Controller
 
             'hand_gloves' =>
                 (int) $rows->sum('hand_gloves'),
+
+            'face_mask' =>
+                (int) $rows->sum('face_mask'),
         ];
 
         return view(
@@ -222,8 +240,10 @@ class CallOffLetterController extends Controller
                 'purchaseOrder' => $batch->purchaseOrder,
                 'rows' => $rows,
                 'totals' => $totals,
+
                 'nefaTitle' => $callOff->nefa_title
                     ?: self::DEFAULT_NEFA_TITLE,
+
                 'callOffLabel' => $this->makeCallOffLabel(
                     $callOff->call_off_number
                 ),
@@ -233,7 +253,7 @@ class CallOffLetterController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Create one printable province row
+    | Build printable province row
     |--------------------------------------------------------------------------
     */
 
@@ -247,169 +267,74 @@ class CallOffLetterController extends Controller
             'place_of_delivery' =>
                 $distribution->place_of_delivery
                 ?: $distribution->province?->delivery_address
+                ?: $distribution->province?->office_name
                 ?: '—',
 
             'delivery_date' =>
                 $distribution->scheduled_delivery_date,
 
             'long_sleeve_medium' =>
-                $this->findItemQuantity(
+                $this->quantityByItemId(
                     $distribution->items,
-                    [
-                        'long sleeve medium',
-                        'long sleeves medium',
-                        'long sleeve m',
-                        'long sleeves m',
-                    ],
-                    'medium'
+                    self::LONG_SLEEVE_MEDIUM_ID
                 ),
 
             'long_sleeve_large' =>
-                $this->findItemQuantity(
+                $this->quantityByItemId(
                     $distribution->items,
-                    [
-                        'long sleeve large',
-                        'long sleeves large',
-                        'long sleeve l',
-                        'long sleeves l',
-                    ],
-                    'large'
+                    self::LONG_SLEEVE_LARGE_ID
                 ),
 
             'bucket_hat' =>
-                $this->findItemQuantity(
+                $this->quantityByItemId(
                     $distribution->items,
-                    [
-                        'bucket hat',
-                        'bucket hats',
-                    ]
+                    self::BUCKET_HAT_ID
                 ),
 
             'rubber_boots_us9' =>
-                $this->findItemQuantity(
+                $this->quantityByItemId(
                     $distribution->items,
-                    [
-                        'rubber boots us9',
-                        'rubber boot us9',
-                        'rubber boots uk9',
-                        'rubber boot uk9',
-                        'rubber boots 9',
-                    ],
-                    '9'
+                    self::RUBBER_BOOTS_US9_ID
                 ),
 
             'rubber_boots_us10' =>
-                $this->findItemQuantity(
+                $this->quantityByItemId(
                     $distribution->items,
-                    [
-                        'rubber boots us10',
-                        'rubber boot us10',
-                        'rubber boots uk10',
-                        'rubber boot uk10',
-                        'rubber boots 10',
-                    ],
-                    '10'
+                    self::RUBBER_BOOTS_US10_ID
                 ),
 
             'hand_gloves' =>
-                $this->findItemQuantity(
+                $this->quantityByItemId(
                     $distribution->items,
-                    [
-                        'hand gloves',
-                        'hand glove',
-                        'gloves',
-                        'glove',
-                    ]
+                    self::HAND_GLOVES_ID
+                ),
+
+            'face_mask' =>
+                $this->quantityByItemId(
+                    $distribution->items,
+                    self::FACE_MASK_ID
                 ),
         ];
     }
 
     /*
     |--------------------------------------------------------------------------
-    | Find item quantity using item name and size
+    | Find quantity directly from item ID
     |--------------------------------------------------------------------------
     */
 
-    private function findItemQuantity(
+    private function quantityByItemId(
         Collection $distributionItems,
-        array $possibleNames,
-        ?string $requiredSize = null
+        int $itemId
     ): int {
-        $possibleNames = collect($possibleNames)
-            ->map(
-                fn (string $name): string =>
-                    $this->normalize($name)
-            );
-
-        $matchingItems = $distributionItems->filter(
-            function ($distributionItem) use (
-                $possibleNames,
-                $requiredSize
-            ): bool {
-                $item = $distributionItem->item;
-
-                if (! $item) {
-                    return false;
-                }
-
-                $name = $this->normalize(
-                    (string) $item->name
-                );
-
-                $category = $this->normalize(
-                    (string) (
-                        $item->category
-                        ?? $item->type
-                        ?? ''
-                    )
-                );
-
-                $size = $this->normalize(
-                    (string) ($item->size ?? '')
-                );
-
-                $combined = trim(
-                    $name . ' ' . $category . ' ' . $size
-                );
-
-                $nameMatched = $possibleNames->contains(
-                    fn (string $possibleName): bool =>
-                        Str::contains(
-                            $combined,
-                            $possibleName
-                        )
-                );
-
-                if (! $nameMatched) {
-                    return false;
-                }
-
-                if ($requiredSize === null) {
-                    return true;
-                }
-
-                return Str::contains(
-                    $combined,
-                    $this->normalize($requiredSize)
-                );
-            }
-        );
-
-        return (int) $matchingItems->sum('quantity');
-    }
-
-    private function normalize(string $value): string
-    {
-        return Str::of($value)
-            ->lower()
-            ->replace(['-', '_', '/', '(', ')'], ' ')
-            ->squish()
-            ->toString();
+        return (int) $distributionItems
+            ->where('item_id', $itemId)
+            ->sum('quantity');
     }
 
     /*
     |--------------------------------------------------------------------------
-    | Convert a Call-Off value into a readable label
+    | Call-Off label
     |--------------------------------------------------------------------------
     */
 
@@ -432,9 +357,19 @@ class CallOffLetterController extends Controller
     private function extractSequenceNumber(
         string $value
     ): ?int {
+        /*
+        |--------------------------------------------------------------------------
+        | Prefer the final Call-Off sequence
+        |--------------------------------------------------------------------------
+        |
+        | Example:
+        | CO-2026-004 becomes 4th Call-Off, not 20th Call-Off.
+        |
+        */
+
         if (
             preg_match(
-                '/(?:^|\D)(\d{1,2})(?:st|nd|rd|th)?(?:\D|$)/i',
+                '/(\d+)\D*$/',
                 $value,
                 $matches
             )

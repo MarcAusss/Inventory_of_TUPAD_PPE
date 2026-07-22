@@ -13,6 +13,27 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
+        .letterhead-republic,
+        .letterhead-department,
+        .letterhead-region,
+        .letterhead-address,
+        .letterhead-contact,
+        .letterhead-email,
+        .details-table,
+        .recipient-name,
+        .recipient-line,
+        .attention-label,
+        .attention-name,
+        .attention-position,
+        .salutation,
+        .greeting,
+        .request-paragraph,
+        .closing-block,
+        .signature-name,
+        .signature-position {
+            font-family: Arial, Helvetica, sans-serif !important;
+        }
+
         /*
         |--------------------------------------------------------------------------
         | Page setup
@@ -21,7 +42,7 @@
 
         @page {
             size: A4 portrait;
-            margin: 10mm;
+            margin: 0;
         }
 
         * {
@@ -41,9 +62,7 @@
                 #eef4f7;
             color: #0f172a;
             font-family:
-                Arial,
-                Helvetica,
-                sans-serif;
+                Arial !important,
         }
 
         button,
@@ -224,7 +243,32 @@
         .paper-content {
             position: relative;
             min-height: 297mm;
-            padding: 9mm 11mm 10mm;
+            padding: 9mm 11mm 28mm;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Fixed A4 footer
+        |--------------------------------------------------------------------------
+        */
+
+        .paper-footer {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 20;
+            width: 100%;
+            line-height: 0;
+        }
+
+        .paper-footer img {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-height: 27mm;
+            object-fit: cover;
+            object-position: bottom center;
         }
 
         /*
@@ -241,6 +285,7 @@
             padding-bottom: 10px;
         }
 
+
         .letterhead-side {
             min-height: 60px;
         }
@@ -252,44 +297,44 @@
 
         .letterhead-republic {
             margin: 0;
-            font-family: "Times New Roman", Times, serif;
-            font-size: 10.5pt;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 10pt;
             font-weight: 400;
         }
 
         .letterhead-department {
             margin: 3px 0 0;
-            font-family: "Times New Roman", Times, serif;
-            font-size: 13pt;
-            font-weight: 800;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 11pt;
+            font-weight: 700;
             letter-spacing: 0.1px;
         }
 
         .letterhead-region {
             margin: 3px 0 0;
-            font-family: "Times New Roman", Times, serif;
-            font-size: 11pt;
-            font-weight: 700;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 10pt;
+            font-weight: 600;
         }
 
         .letterhead-address {
             margin: 5px 0 0;
-            font-family: "Times New Roman", Times, serif;
-            font-size: 8pt;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 9pt;
             font-style: italic;
         }
 
         .letterhead-contact {
             margin: 3px 0 0;
-            font-family: "Times New Roman", Times, serif;
-            font-size: 7.8pt;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 9pt;
             font-style: italic;
         }
 
         .letterhead-email {
             margin: 3px 0 0;
-            font-family: "Times New Roman", Times, serif;
-            font-size: 8pt;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 9pt;
             text-decoration: underline;
         }
 
@@ -400,21 +445,17 @@
         }
 
         .details-table th {
-            background: #0284C7;
-            color: #ffffff;
+            background: #8EAADB;
+            color: black;
             font-size: 6.4pt;
-            font-weight: 800;
+            font-weight: 600;
             text-align: center;
             print-color-adjust: exact;
             -webkit-print-color-adjust: exact;
         }
 
         .details-table thead tr:nth-child(2) th {
-            background: #075985;
-        }
-
-        .details-table tbody tr:not(.total-row):nth-child(even) {
-            background: #F0F9FF;
+            background: #8EAADB;
         }
 
         .details-table td {
@@ -446,7 +487,7 @@
 
         .total-row td {
             background: #E0F2FE;
-            color: #075985;
+            color: black;
             font-weight: 800;
             text-align: center;
             print-color-adjust: exact;
@@ -508,16 +549,26 @@
             }
 
             .paper {
-                width: 100%;
-                min-height: auto;
+                position: relative;
+                width: 210mm;
+                height: 297mm;
+                min-height: 297mm;
                 margin: 0;
-                overflow: visible;
+                overflow: hidden;
                 box-shadow: none;
             }
 
             .paper-content {
-                min-height: auto;
-                padding: 0;
+                min-height: 297mm;
+                padding: 9mm 11mm 28mm;
+            }
+
+            .paper-footer {
+                position: absolute;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                width: 100%;
             }
 
             .details-table {
@@ -580,7 +631,7 @@
     </style>
 </head>
 
-<body class="m-0 min-h-screen bg-slate-100 font-sans text-slate-900 antialiased">
+<body class="m-0 min-h-screen bg-slate-100 !font-arial text-slate-900 antialiased">
 
     {{-- Screen toolbar --}}
     <header class="print-toolbar sticky top-0 z-[100] border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-xl">
@@ -650,7 +701,7 @@
     </header>
 
     {{-- Print preview --}}
-    <div class="preview-wrapper overflow-x-auto px-[18px] pb-[50px] pt-7">
+    <div class="preview-wrapper overflow-x-auto px-[18px] pb-[50px] pt-7 relative">
 
         <div
             class="preview-information mx-auto mb-3 flex w-[210mm] items-center justify-between text-[11px] text-slate-500">
@@ -668,45 +719,54 @@
 
         <main class="paper relative mx-auto min-h-[297mm] w-[210mm] overflow-hidden bg-white shadow-2xl">
 
-            <div class="paper-content relative min-h-[297mm] px-[11mm] pb-[10mm] pt-[9mm]">
+            <div class="paper-content relative min-h-[297mm] px-[11mm] pb-[28mm] pt-[9mm]">
 
                 {{-- Letterhead --}}
-                <header class="letterhead">
+                <header class="letterhead border-b border-slate-400 pb-[10px] relative">
 
-                    <div class="letterhead-side"></div>
+                    <div class="letterhead-side relative left-[70px]">
+                        <img src="{{ asset('images/print/dole_logo.webp') }}" alt="DOLE Logo"
+                            class="max-h-[55px] w-[120px] object-contain" onerror="this.style.display='none'">
+                    </div>
 
                     <div class="letterhead-center">
 
-                        <p class="letterhead-republic">
+                        <p class="letterhead-republic !font-arial">
                             Republic of the Philippines
                         </p>
 
-                        <p class="letterhead-department">
+                        <p class="letterhead-department !font-arial">
                             DEPARTMENT OF LABOR AND EMPLOYMENT
                         </p>
 
-                        <p class="letterhead-region">
+                        <p class="letterhead-region !font-arial">
                             Regional Office No. 5
                         </p>
 
-                        <p class="letterhead-address">
+                        <p class="letterhead-address !font-arial">
                             DOLE RO5 Bldg., Doña Aurora St.,
                             Old Albay, Legazpi City
                         </p>
 
-                        <p class="letterhead-contact">
+                        <p class="letterhead-contact !font-arial">
                             ORD: 0981-461-8788&nbsp;&nbsp;
                             TSSD: 0963-206-0008&nbsp;&nbsp;
                             IMSD: 0912-330-4751
                         </p>
 
-                        <p class="letterhead-email">
+                        <p class="letterhead-email !font-arial">
                             ro5@dole.gov.ph
                         </p>
 
                     </div>
 
-                    <div class="letterhead-side"></div>
+                    <div class="letterhead-side flex items-center justify-end">
+                        <img src="{{ asset('images/print/Bagong_Pilipinas.png') }}" alt="Bagong Pilipinas"
+                            class="max-h-[55px] mr-4 w-[65px] object-contain" onerror="this.style.display='none'">
+
+                        <img src="{{ asset('images/print/iso-bureau-veritas.jpg') }}" alt="ISO Bureau Veritas"
+                            class="max-h-[90px] w-[170px] object-contain" onerror="this.style.display='none'">
+                    </div>
 
                 </header>
 
@@ -718,9 +778,9 @@
                     </div>
 
                     {{-- Recipient --}}
-                    <section class="recipient-block">
+                    <section class="recipient-block !mt-8">
 
-                        <p class="recipient-name">
+                        <p class="recipient-name !font-arial">
                             CHERRY B. MOSATALLA, CPA
                         </p>
 
@@ -731,8 +791,9 @@
                         <p class="recipient-line">
                             This Office
                         </p>
-
-                        <div class="attention-block">
+<br>
+<br>
+                        <div class="attention-block !mt-0">
 
                             <div class="attention-label">
                                 Attention:
@@ -782,7 +843,7 @@
                     <div class="table-wrapper mt-3.5 overflow-hidden rounded-lg border border-slate-300">
 
                         <table
-                            class="details-table w-full table-fixed border-collapse font-sans text-[6.6pt] leading-[1.15]">
+                            class="details-table w-full table-fixed border-collapse !font-arial text-[6.6pt] leading-[1.15]">
 
                             <colgroup>
                                 <col class="province-column">
@@ -962,11 +1023,11 @@
 
             </div>
 
-        </main>
+            <footer class="paper-footer" aria-label="Document footer">
+                <img src="{{ asset('images/footer.png') }}" alt="Footer">
+            </footer>
 
-        <footer class="fixed bottom-0 left-0 w-full print:fixed print:bottom-0">
-            <img src="{{ asset('images/footer.png') }}" alt="Footer" class="w-full h-auto object-cover">
-        </footer>
+        </main>
     </div>
 
 </body>
