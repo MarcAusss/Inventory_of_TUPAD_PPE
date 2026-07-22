@@ -38,7 +38,7 @@ class TssdDistributionController extends Controller
     /**
      * Display the form for creating a distribution batch.
      */
-    public function create(Request $request): View
+     public function create(Request $request): View
     {
         $purchaseOrders = PurchaseOrder::query()
             ->with([
@@ -46,7 +46,7 @@ class TssdDistributionController extends Controller
                 'items.item',
             ])
             ->whereIn('status', [
-                'Pending Distribution',
+                'Pending Distribution', 
                 'Distributed',
             ])
             ->latest('po_date')
