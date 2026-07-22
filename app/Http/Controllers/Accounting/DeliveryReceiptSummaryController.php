@@ -13,31 +13,15 @@ class DeliveryReceiptSummaryController extends Controller
 {
     public function __invoke(Request $request): View
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Filters
-        |--------------------------------------------------------------------------
-        */
-
-        $search = trim(
-            (string) $request->query('search', '')
-        );
-
+        $search = trim((string) $request->query('search', ''));
         $provinceId = $request->integer('province_id') ?: null;
-
-        $status = trim(
-            (string) $request->query('status', '')
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Base Delivery Receipt query
-        |--------------------------------------------------------------------------
-        */
+        $status = trim((string) $request->query('status', ''));
 
         $baseQuery = DeliveryReceipt::query()
             ->with([
                 'province',
+                'receivedByUser',
+                'documents',
                 'items.item',
                 'provinceDistribution.province',
                 'provinceDistribution.items.item',
@@ -53,11 +37,12 @@ class DeliveryReceiptSummaryController extends Controller
                                 ->where('province_id', $provinceId)
                                 ->orWhereHas(
                                     'provinceDistribution',
-                                    fn (Builder $distributionQuery) =>
+                                    function (Builder $distributionQuery) use ($provinceId): void {
                                         $distributionQuery->where(
                                             'province_id',
                                             $provinceId
-                                        )
+                                        );
+                                    }
                                 );
                         }
                     );
@@ -65,87 +50,86 @@ class DeliveryReceiptSummaryController extends Controller
             )
             ->when(
                 $status !== '',
-                fn (Builder $query) =>
-                    $query->where('status', $status)
+                function (Builder $query) use ($status): void {
+                    $query->where('status', $status);
+                }
             )
             ->when(
                 $search !== '',
                 function (Builder $query) use ($search): void {
+                    $like = '%' . $search . '%';
+
                     $query->where(
-                        function (Builder $subQuery) use ($search): void {
+                        function (Builder $subQuery) use ($like): void {
                             $subQuery
-                                ->where(
-                                    'dr_number',
-                                    'like',
-                                    '%' . $search . '%'
-                                )
-                                ->orWhere(
-                                    'received_by',
-                                    'like',
-                                    '%' . $search . '%'
-                                )
+                                ->where('dr_number', 'like', $like)
+                                ->orWhere('received_by', 'like', $like)
                                 ->orWhere(
                                     'physical_receiver_name',
                                     'like',
-                                    '%' . $search . '%'
+                                    $like
                                 )
+                                ->orWhere('remarks', 'like', $like)
                                 ->orWhereHas(
                                     'province',
-                                    fn (Builder $provinceQuery) =>
+                                    function (Builder $provinceQuery) use ($like): void {
                                         $provinceQuery->where(
                                             'name',
                                             'like',
-                                            '%' . $search . '%'
-                                        )
+                                            $like
+                                        );
+                                    }
                                 )
                                 ->orWhereHas(
                                     'provinceDistribution.province',
-                                    fn (Builder $provinceQuery) =>
+                                    function (Builder $provinceQuery) use ($like): void {
                                         $provinceQuery->where(
                                             'name',
                                             'like',
-                                            '%' . $search . '%'
-                                        )
+                                            $like
+                                        );
+                                    }
                                 )
                                 ->orWhereHas(
                                     'provinceDistribution.distributionBatch.callOff',
-                                    fn (Builder $callOffQuery) =>
+                                    function (Builder $callOffQuery) use ($like): void {
                                         $callOffQuery->where(
                                             'call_off_number',
                                             'like',
-                                            '%' . $search . '%'
-                                        )
+                                            $like
+                                        );
+                                    }
                                 )
                                 ->orWhereHas(
                                     'provinceDistribution.distributionBatch.purchaseOrder',
-                                    fn (Builder $purchaseOrderQuery) =>
-                                        $purchaseOrderQuery->where(
-                                            'po_number',
-                                            'like',
-                                            '%' . $search . '%'
-                                        )
+                                    function (Builder $purchaseOrderQuery) use ($like): void {
+                                        $purchaseOrderQuery
+                                            ->where('po_number', 'like', $like)
+                                            ->orWhere(
+                                                'nefa_number',
+                                                'like',
+                                                $like
+                                            );
+                                    }
                                 )
                                 ->orWhereHas(
                                     'provinceDistribution.distributionBatch.purchaseOrder.supplier',
-                                    fn (Builder $supplierQuery) =>
+                                    function (Builder $supplierQuery) use ($like): void {
                                         $supplierQuery->where(
                                             'supplier_name',
                                             'like',
-                                            '%' . $search . '%'
-                                        )
+                                            $like
+                                        );
+                                    }
                                 );
                         }
                     );
                 }
             );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Summary values from all matching Delivery Receipts
-        |--------------------------------------------------------------------------
-        */
+        $summaryQuery = clone $baseQuery;
 
-        $allReceipts = (clone $baseQuery)->get();
+        $allReceipts = $summaryQuery->get();
 
         $totalReceipts = $allReceipts->count();
 
@@ -162,52 +146,15 @@ class DeliveryReceiptSummaryController extends Controller
                 (int) $receipt->items->sum('received_quantity')
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Paginated Delivery Receipts
-        |--------------------------------------------------------------------------
-        */
-
         $receipts = (clone $baseQuery)
             ->orderByDesc('delivery_date')
             ->orderByDesc('id')
             ->paginate(20)
             ->withQueryString();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Compatibility aliases
-        |--------------------------------------------------------------------------
-        |
-        | Some versions of the Blade file use:
-        |
-        | $receipts
-        | $distributions
-        | $summaries
-        |
-        | They all point to the same paginator so the page does not crash.
-        |
-        */
-
-        $distributions = $receipts;
-
-        $summaries = $receipts;
-
-        /*
-        |--------------------------------------------------------------------------
-        | Province filter options
-        |--------------------------------------------------------------------------
-        */
-
         $provinces = Province::query()
             ->orderBy('name')
             ->get();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Return view
-        |--------------------------------------------------------------------------
-        */
 
         return view(
             'accounting.delivery-receipts.index',
@@ -217,9 +164,6 @@ class DeliveryReceiptSummaryController extends Controller
                 'status',
                 'provinces',
                 'receipts',
-                'distributions',
-                'summaries',
-                'allReceipts',
                 'totalReceipts',
                 'receivedCount',
                 'pendingCount',
