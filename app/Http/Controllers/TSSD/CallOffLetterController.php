@@ -58,8 +58,8 @@ class CallOffLetterController extends Controller
             ])
             ->when(
                 $status !== '',
-                fn (Builder $query) =>
-                    $query->where('status', $status)
+                fn(Builder $query) =>
+                $query->where('status', $status)
             )
             ->when(
                 $search !== '',
@@ -79,9 +79,7 @@ class CallOffLetterController extends Controller
                                 )
                                 ->orWhereHas(
                                     'distributionBatch.purchaseOrder',
-                                    function (
-                                        Builder $purchaseOrderQuery
-                                    ) use ($search): void {
+                                    function (Builder $purchaseOrderQuery) use ($search): void {
                                         $purchaseOrderQuery
                                             ->where(
                                                 'po_number',
@@ -97,12 +95,12 @@ class CallOffLetterController extends Controller
                                 )
                                 ->orWhereHas(
                                     'distributionBatch.purchaseOrder.supplier',
-                                    fn (Builder $supplierQuery) =>
-                                        $supplierQuery->where(
-                                            'supplier_name',
-                                            'like',
-                                            '%' . $search . '%'
-                                        )
+                                    fn(Builder $supplierQuery) =>
+                                    $supplierQuery->where(
+                                        'supplier_name',
+                                        'like',
+                                        '%' . $search . '%'
+                                    )
                                 );
                         }
                     );
@@ -155,10 +153,27 @@ class CallOffLetterController extends Controller
         UpdateCallOffLetterRequest $request,
         CallOff $callOff
     ): RedirectResponse {
+        $validated = $request->validated();
+
         $callOff->update([
             'nefa_title' => trim(
                 (string) $request->validated('nefa_title')
             ),
+
+            'print_total_amount' =>
+                $request->validated('print_total_amount'),
+
+            'print_margin_top' =>
+                $request->validated('print_margin_top'),
+
+            'print_margin_right' =>
+                $request->validated('print_margin_right'),
+
+            'print_margin_bottom' =>
+                $request->validated('print_margin_bottom'),
+
+            'print_margin_left' =>
+                $request->validated('print_margin_left'),
         ]);
 
         return redirect()
@@ -168,7 +183,7 @@ class CallOffLetterController extends Controller
             )
             ->with(
                 'success',
-                'The NEFA project title was updated successfully.'
+                'The Call-Off letter settings were updated successfully.'
             );
     }
 
@@ -205,8 +220,8 @@ class CallOffLetterController extends Controller
             ->get();
 
         $rows = $distributions->map(
-            fn (ProvinceDistribution $distribution): array =>
-                $this->makeDistributionRow($distribution)
+            fn(ProvinceDistribution $distribution): array =>
+            $this->makeDistributionRow($distribution)
         );
 
         $totals = [
@@ -247,6 +262,29 @@ class CallOffLetterController extends Controller
                 'callOffLabel' => $this->makeCallOffLabel(
                     $callOff->call_off_number
                 ),
+
+                'printDistributionBatch' =>
+                    $this->ordinal((int) $batch->id),
+
+                'printTotalAmount' =>
+                    $callOff->print_total_amount
+                    ?? $batch->purchaseOrder?->total_amount
+                    ?? 0,
+
+                'printMargins' => [
+                    'top' => (float) (
+                        $callOff->print_margin_top ?? 9
+                    ),
+                    'right' => (float) (
+                        $callOff->print_margin_right ?? 11
+                    ),
+                    'bottom' => (float) (
+                        $callOff->print_margin_bottom ?? 28
+                    ),
+                    'left' => (float) (
+                        $callOff->print_margin_left ?? 11
+                    ),
+                ],
             ]
         );
     }

@@ -13,6 +13,19 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
+        :root {
+            --paper-margin-top: {{ $printMargins['top'] }}mm;
+            --paper-margin-right: {{ $printMargins['right'] }}mm;
+            --paper-margin-bottom: {{ $printMargins['bottom'] }}mm;
+            --paper-margin-left: {{ $printMargins['left'] }}mm;
+        }
+
+        html,
+        body,
+        body * {
+            font-family: Arial, Helvetica, sans-serif !important;
+        }
+
         .letterhead-republic,
         .letterhead-department,
         .letterhead-region,
@@ -61,8 +74,7 @@
                     transparent 32%),
                 #eef4f7;
             color: #0f172a;
-            font-family:
-                Arial !important,
+            font-family: Arial, Helvetica, sans-serif !important;
         }
 
         button,
@@ -243,7 +255,11 @@
         .paper-content {
             position: relative;
             min-height: 297mm;
-            padding: 9mm 11mm 28mm;
+            padding:
+                var(--paper-margin-top)
+                var(--paper-margin-right)
+                var(--paper-margin-bottom)
+                var(--paper-margin-left);
         }
 
         /*
@@ -345,7 +361,7 @@
         */
 
         .letter-content {
-            font-family: "Times New Roman", Times, serif;
+            font-family: Arial, Helvetica, sans-serif;
             font-size: 10.5pt;
             line-height: 1.35;
         }
@@ -560,7 +576,11 @@
 
             .paper-content {
                 min-height: 297mm;
-                padding: 9mm 11mm 28mm;
+                padding:
+                var(--paper-margin-top)
+                var(--paper-margin-right)
+                var(--paper-margin-bottom)
+                var(--paper-margin-left);
             }
 
             .paper-footer {
@@ -631,7 +651,7 @@
     </style>
 </head>
 
-<body class="m-0 min-h-screen bg-slate-100 !font-arial text-slate-900 antialiased">
+<body class="m-0 min-h-screen bg-slate-100 text-slate-900 antialiased">
 
     {{-- Screen toolbar --}}
     <header class="print-toolbar sticky top-0 z-[100] border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-xl">
@@ -832,9 +852,11 @@
                         </strong>
                         with project title
                         “<strong>{{ $nefaTitle }}</strong>”
+                        under distribution batch
+                        <strong>{{ $printDistributionBatch }}</strong>,
                         amounting to
                         <strong>
-                            P{{ number_format((float) ($purchaseOrder?->total_amount ?? 0), 2) }}
+                            P{{ number_format((float) $printTotalAmount, 2) }}
                         </strong>.
                         Below are the details:
                     </p>

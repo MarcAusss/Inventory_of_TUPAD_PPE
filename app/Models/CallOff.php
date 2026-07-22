@@ -18,6 +18,11 @@ class CallOff extends Model
         'assigned_by',
         'assigned_at',
         'nefa_title',
+        'print_total_amount',
+        'print_margin_top',
+        'print_margin_right',
+        'print_margin_bottom',
+        'print_margin_left',
         'approved_by',
         'approved_at',
         'approval_document',
@@ -31,6 +36,11 @@ class CallOff extends Model
             'call_off_date' => 'date',
             'assigned_at' => 'datetime',
             'approved_at' => 'datetime',
+            'print_total_amount' => 'decimal:2',
+            'print_margin_top' => 'decimal:2',
+            'print_margin_right' => 'decimal:2',
+            'print_margin_bottom' => 'decimal:2',
+            'print_margin_left' => 'decimal:2',
         ];
     }
 
