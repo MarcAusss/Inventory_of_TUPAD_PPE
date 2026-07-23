@@ -1,13 +1,13 @@
 <?php
 
 use App\Http\Controllers\TSSD\CallOffController;
+use App\Http\Controllers\TSSD\CallOffLetterController;
 use App\Http\Controllers\TSSD\DashboardController;
 use App\Http\Controllers\TSSD\InventoryLedgerController;
 use App\Http\Controllers\TSSD\PdfTemplateController;
 use App\Http\Controllers\TSSD\TssdDistributionController;
 use App\Http\Controllers\TSSD\UserManagementController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\TSSD\CallOffLetterController;
 
 Route::middleware([
     'auth',
@@ -22,65 +22,71 @@ Route::middleware([
             DashboardController::class
         )->name('dashboard');
 
-
         Route::get(
             '/inventory-monitoring',
             [InventoryLedgerController::class, 'index']
         )->name('inventory-monitoring.index');
 
-        Route::resource(
-            'distributions',
-            TssdDistributionController::class
-        )->only([
-                    'index',
-                    'create',
-                    'store',
-                    'show',
-                ]);
+        /*
+        |--------------------------------------------------------------------------
+        | TSSD Distributions
+        |--------------------------------------------------------------------------
+        */
 
         Route::get(
             '/purchase-orders/{poId}/remaining',
-            [
-                TssdDistributionController::class,
-                'getRemaining',
-            ]
+            [TssdDistributionController::class, 'getRemaining']
         )
             ->whereNumber('poId')
             ->name('purchase-orders.remaining');
 
+        Route::get(
+            '/distributions/{distribution}/print',
+            [TssdDistributionController::class, 'print']
+        )
+            ->whereNumber('distribution')
+            ->name('distributions.print');
+
+        Route::resource(
+            'distributions',
+            TssdDistributionController::class
+        )->only([
+            'index',
+            'create',
+            'store',
+            'show',
+        ]);
+
         /*
         |--------------------------------------------------------------------------
-        | Call-Offs - TSSD is view-only
+        | Call-Offs
         |--------------------------------------------------------------------------
         */
 
         Route::get(
             '/call-offs',
-            [
-                CallOffController::class,
-                'index',
-            ]
+            [CallOffController::class, 'index']
         )->name('call-offs.index');
 
         Route::get(
             '/call-offs/{callOff}/print',
-            [
-                CallOffController::class,
-                'print',
-            ]
+            [CallOffController::class, 'print']
         )
             ->whereNumber('callOff')
             ->name('call-offs.print');
 
         Route::get(
             '/call-offs/{callOff}',
-            [
-                CallOffController::class,
-                'show',
-            ]
+            [CallOffController::class, 'show']
         )
             ->whereNumber('callOff')
             ->name('call-offs.show');
+
+        /*
+        |--------------------------------------------------------------------------
+        | PDF Templates
+        |--------------------------------------------------------------------------
+        */
 
         Route::get(
             '/pdf-templates',
@@ -153,6 +159,12 @@ Route::middleware([
             ->whereNumber('pdfTemplate')
             ->name('pdf-templates.destroy');
 
+        /*
+        |--------------------------------------------------------------------------
+        | User Management
+        |--------------------------------------------------------------------------
+        */
+
         Route::get(
             '/users',
             [UserManagementController::class, 'index']
@@ -178,31 +190,12 @@ Route::middleware([
         )
             ->whereNumber('user')
             ->name('users.update');
-        Route::get(
-            '/distributions/{distribution}/print',
-            [
-                TssdDistributionController::class,
-                'print',
-            ]
-        )
-            ->whereNumber('distribution')
-            ->name('distributions.print');
-        Route::resource(
-            'distributions',
-            TssdDistributionController::class
-        )->only([
-                    'index',
-                    'create',
-                    'store',
-                    'show',
-                ]);
 
         /*
         |--------------------------------------------------------------------------
-        | Letter to IMSD automated
+        | Letter to IMSD
         |--------------------------------------------------------------------------
         */
-
 
         Route::get(
             '/call-off-letters',
@@ -212,15 +205,21 @@ Route::middleware([
         Route::get(
             '/call-off-letters/{callOff}/edit',
             [CallOffLetterController::class, 'edit']
-        )->name('call-off-letters.edit');
+        )
+            ->whereNumber('callOff')
+            ->name('call-off-letters.edit');
 
         Route::put(
             '/call-off-letters/{callOff}',
             [CallOffLetterController::class, 'update']
-        )->name('call-off-letters.update');
+        )
+            ->whereNumber('callOff')
+            ->name('call-off-letters.update');
 
         Route::get(
             '/call-off-letters/{callOff}/print',
             [CallOffLetterController::class, 'print']
-        )->name('call-off-letters.print');
+        )
+            ->whereNumber('callOff')
+            ->name('call-off-letters.print');
     });

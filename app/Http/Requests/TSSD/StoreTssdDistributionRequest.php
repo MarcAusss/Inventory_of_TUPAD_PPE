@@ -4,47 +4,56 @@ namespace App\Http\Requests\TSSD;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class StoreTssdDistributionRequest extends FormRequest
 {
     /**
-     * Only the TSSD Unit may submit distribution batches.
+     * Determine whether the authenticated user may submit the request.
      */
     public function authorize(): bool
     {
-        return $this->user()?->isTssd() === true;
+        return auth()->check();
     }
 
     /**
-     * Convert the JSON hidden input into a regular PHP array.
+     * Convert the JSON string submitted by the hidden input into a PHP array
+     * before Laravel runs validation.
      */
     protected function prepareForValidation(): void
     {
-        $distributions = $this->input(
-            'distributions'
-        );
+        $distributions = $this->input('distributions');
 
         if (is_string($distributions)) {
-            $decoded = json_decode(
+            $decodedDistributions = json_decode(
                 $distributions,
                 true
             );
 
-            $distributions =
-                json_last_error()
-                === JSON_ERROR_NONE
-                ? $decoded
-                : null;
+            $this->merge([
+                'distributions' => json_last_error() === JSON_ERROR_NONE
+                    && is_array($decodedDistributions)
+                        ? $decodedDistributions
+                        : null,
+            ]);
         }
 
-        $this->merge([
-            'distributions' =>
-                $distributions,
-        ]);
+        if ($this->has('remarks')) {
+            $remarks = trim(
+                (string) $this->input('remarks')
+            );
+
+            $this->merge([
+                'remarks' => $remarks !== ''
+                    ? $remarks
+                    : null,
+            ]);
+        }
     }
 
     /**
+     * Validation rules for a TSSD distribution batch.
+     *
      * @return array<string, mixed>
      */
     public function rules(): array
@@ -56,27 +65,16 @@ class StoreTssdDistributionRequest extends FormRequest
                 'exists:purchase_orders,id',
             ],
 
-            'distributions.*.scheduled_delivery_date' => [
-                'required',
-                'date_format:Y-m-d',
-            ],
-
             'remarks' => [
                 'nullable',
                 'string',
-                'max:5000',
+                'max:2000',
             ],
 
             'distributions' => [
                 'required',
                 'array',
                 'min:1',
-                'max:6',
-            ],
-
-            'distributions.*' => [
-                'required',
-                'array:province_id,scheduled_delivery_date,long_sleeve_medium,long_sleeve_large,bucket_hat,rubber_boots_us9,rubber_boots_us10,hand_gloves,mask',
             ],
 
             'distributions.*.province_id' => [
@@ -86,152 +84,128 @@ class StoreTssdDistributionRequest extends FormRequest
                 'exists:provinces,id',
             ],
 
+            'distributions.*.scheduled_delivery_date' => [
+                'required',
+                'date',
+            ],
+
+            'distributions.*.place_of_delivery' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+
             'distributions.*.long_sleeve_medium' => [
                 'required',
                 'integer',
                 'min:0',
-                'max:1000000',
             ],
 
             'distributions.*.long_sleeve_large' => [
                 'required',
                 'integer',
                 'min:0',
-                'max:1000000',
             ],
 
             'distributions.*.bucket_hat' => [
                 'required',
                 'integer',
                 'min:0',
-                'max:1000000',
             ],
 
             'distributions.*.rubber_boots_us9' => [
                 'required',
                 'integer',
                 'min:0',
-                'max:1000000',
             ],
 
             'distributions.*.rubber_boots_us10' => [
                 'required',
                 'integer',
                 'min:0',
-                'max:1000000',
             ],
 
             'distributions.*.hand_gloves' => [
                 'required',
                 'integer',
                 'min:0',
-                'max:1000000',
             ],
 
             'distributions.*.mask' => [
                 'required',
                 'integer',
                 'min:0',
-                'max:1000000',
             ],
         ];
     }
 
     /**
-     * Validate conditions involving complete province rows.
+     * Add validation that requires at least one PPE quantity for each province.
      */
-    public function withValidator(
-        Validator $validator
-    ): void {
-        $validator->after(
-            function (Validator $validator): void {
-                $distributions =
-                    $this->input(
-                        'distributions',
-                        []
-                    );
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            $distributions = $this->input(
+                'distributions',
+                []
+            );
 
-                if (!is_array($distributions)) {
-                    return;
+            if (!is_array($distributions)) {
+                return;
+            }
+
+            foreach ($distributions as $index => $distribution) {
+                if (!is_array($distribution)) {
+                    continue;
                 }
 
-                $wholeBatchTotal = 0;
+                $totalQuantity =
+                    (int) ($distribution['long_sleeve_medium'] ?? 0)
+                    + (int) ($distribution['long_sleeve_large'] ?? 0)
+                    + (int) ($distribution['bucket_hat'] ?? 0)
+                    + (int) ($distribution['rubber_boots_us9'] ?? 0)
+                    + (int) ($distribution['rubber_boots_us10'] ?? 0)
+                    + (int) ($distribution['hand_gloves'] ?? 0)
+                    + (int) ($distribution['mask'] ?? 0);
 
-                foreach (
-                    $distributions
-                    as $index => $distribution
-                ) {
-                    if (!is_array($distribution)) {
-                        continue;
-                    }
-
-                    $provinceTotal = collect([
-                        $distribution[
-                            'long_sleeve_medium'
-                        ] ?? 0,
-
-                        $distribution[
-                            'long_sleeve_large'
-                        ] ?? 0,
-
-                        $distribution[
-                            'bucket_hat'
-                        ] ?? 0,
-
-                        $distribution[
-                            'rubber_boots_us9'
-                        ] ?? 0,
-
-                        $distribution[
-                            'rubber_boots_us10'
-                        ] ?? 0,
-
-                        $distribution[
-                            'hand_gloves'
-                        ] ?? 0,
-
-                        $distribution[
-                            'mask'
-                        ] ?? 0,
-                    ])
-                        ->map(
-                            fn($value): int =>
-                            (int) $value
-                        )
-                        ->sum();
-
-                    $wholeBatchTotal +=
-                        $provinceTotal;
-
-                    if ($provinceTotal <= 0) {
-                        $validator->errors()->add(
+                if ($totalQuantity <= 0) {
+                    $validator
+                        ->errors()
+                        ->add(
                             "distributions.{$index}",
-                            'At least one PPE quantity must be greater than zero for each selected province.'
+                            'Each province must have at least one PPE item assigned.'
                         );
-                    }
-                    if (
-                        empty(
-                        $distribution['scheduled_delivery_date']
-                    )
-                    ) {
-                        $validator->errors()->add(
-                            "distributions.{$index}.scheduled_delivery_date",
-                            'Please provide the scheduled delivery date.'
-                        );
-                    }
-                }
-
-                if ($wholeBatchTotal <= 0) {
-                    $validator->errors()->add(
-                        'distributions',
-                        'The distribution batch must contain at least one PPE item.'
-                    );
                 }
             }
-        );
+        });
     }
 
     /**
+     * Return JSON validation errors to the JavaScript request instead of
+     * redirecting back and returning the complete HTML create page.
+     */
+    protected function failedValidation(
+        Validator $validator
+    ): void {
+        if (
+            $this->expectsJson()
+            || $this->ajax()
+        ) {
+            throw new HttpResponseException(
+                response()->json([
+                    'success' => false,
+                    'message' => 'Please correct the distribution information.',
+                    'errors' => $validator->errors(),
+                ], 422)
+            );
+        }
+
+        parent::failedValidation($validator);
+    }
+
+    /**
+     * Custom validation messages.
+     *
      * @return array<string, string>
      */
     public function messages(): array
@@ -243,82 +217,79 @@ class StoreTssdDistributionRequest extends FormRequest
             'purchase_order_id.exists' =>
                 'The selected Purchase Order does not exist.',
 
-            'distributions.*.scheduled_delivery_date.required' =>
-                'Please provide a delivery date for every provincial office.',
-
-            'distributions.*.scheduled_delivery_date.date' =>
-                'Please provide a valid delivery date for every provincial office.',
-
             'distributions.required' =>
                 'Please assign PPE to at least one province.',
 
             'distributions.array' =>
-                'The submitted distribution data is invalid.',
+                'The provincial distribution information is invalid.',
 
             'distributions.min' =>
                 'Please assign PPE to at least one province.',
 
             'distributions.*.province_id.required' =>
-                'Every distribution entry must have a province.',
+                'Every allocation must have a province.',
 
             'distributions.*.province_id.distinct' =>
-                'A province cannot be added more than once to the same distribution batch.',
+                'A province may only be assigned once per batch.',
 
             'distributions.*.province_id.exists' =>
                 'One of the selected provinces does not exist.',
 
-            'distributions.*.long_sleeve_medium.integer' =>
-                'Long Sleeve Medium quantity must be a whole number.',
+            'distributions.*.scheduled_delivery_date.required' =>
+                'Every province must have a delivery date.',
 
-            'distributions.*.long_sleeve_medium.min' =>
-                'Long Sleeve Medium quantity cannot be negative.',
+            'distributions.*.scheduled_delivery_date.date' =>
+                'One of the delivery dates is invalid.',
 
-            'distributions.*.long_sleeve_large.integer' =>
-                'Long Sleeve Large quantity must be a whole number.',
+            'distributions.*.long_sleeve_medium.required' =>
+                'The Long Sleeve Medium quantity is required.',
 
-            'distributions.*.long_sleeve_large.min' =>
-                'Long Sleeve Large quantity cannot be negative.',
+            'distributions.*.long_sleeve_large.required' =>
+                'The Long Sleeve Large quantity is required.',
 
-            'distributions.*.bucket_hat.integer' =>
-                'Bucket Hat quantity must be a whole number.',
+            'distributions.*.bucket_hat.required' =>
+                'The Bucket Hat quantity is required.',
 
-            'distributions.*.bucket_hat.min' =>
-                'Bucket Hat quantity cannot be negative.',
+            'distributions.*.rubber_boots_us9.required' =>
+                'The Rubber Boots US9 quantity is required.',
 
-            'distributions.*.rubber_boots_us9.integer' =>
-                'Rubber Boots US9 quantity must be a whole number.',
+            'distributions.*.rubber_boots_us10.required' =>
+                'The Rubber Boots US10 quantity is required.',
 
-            'distributions.*.rubber_boots_us9.min' =>
-                'Rubber Boots US9 quantity cannot be negative.',
+            'distributions.*.hand_gloves.required' =>
+                'The Hand Gloves quantity is required.',
 
-            'distributions.*.rubber_boots_us10.integer' =>
-                'Rubber Boots US10 quantity must be a whole number.',
+            'distributions.*.mask.required' =>
+                'The Mask quantity is required.',
 
-            'distributions.*.rubber_boots_us10.min' =>
-                'Rubber Boots US10 quantity cannot be negative.',
+            'distributions.*.*.integer' =>
+                'All PPE quantities must be whole numbers.',
 
-            'distributions.*.hand_gloves.integer' =>
-                'Hand Gloves quantity must be a whole number.',
-
-            'distributions.*.hand_gloves.min' =>
-                'Hand Gloves quantity cannot be negative.',
-
-            'distributions.*.mask.integer' =>
-                'Mask quantity must be a whole number.',
-
-            'distributions.*.mask.min' =>
-                'Mask quantity cannot be negative.',
+            'distributions.*.*.min' =>
+                'PPE quantities cannot be negative.',
         ];
     }
 
     /**
-     * Preserve Laravel's normal JSON 422 validation response.
+     * Human-readable field labels.
+     *
+     * @return array<string, string>
      */
-    protected function failedValidation(
-        Validator $validator
-    ): never {
-        throw new ValidationException(
-            $validator
-        );
+    public function attributes(): array
+    {
+        return [
+            'purchase_order_id' => 'Purchase Order',
+            'distributions' => 'provincial distributions',
+            'distributions.*.province_id' => 'province',
+            'distributions.*.scheduled_delivery_date' => 'delivery date',
+            'distributions.*.place_of_delivery' => 'place of delivery',
+            'distributions.*.long_sleeve_medium' => 'Long Sleeve Medium',
+            'distributions.*.long_sleeve_large' => 'Long Sleeve Large',
+            'distributions.*.bucket_hat' => 'Bucket Hat',
+            'distributions.*.rubber_boots_us9' => 'Rubber Boots US9',
+            'distributions.*.rubber_boots_us10' => 'Rubber Boots US10',
+            'distributions.*.hand_gloves' => 'Hand Gloves',
+            'distributions.*.mask' => 'Mask',
+        ];
     }
 }

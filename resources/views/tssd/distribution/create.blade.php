@@ -226,7 +226,8 @@
                                 <tr class="transition hover:bg-[#F3FAFD]">
                                     <td class="px-5 py-4 font-bold text-[#143A52]">{{ $province->name }}</td>
                                     <td class="px-5 py-4 text-sm text-slate-700">—</td>
-                                    <td class="px-5 py-4 text-sm text-slate-700">{{ $province->deliveryLocation() }}</td>
+                                    <td class="px-5 py-4 text-sm text-slate-700">{{ $province->deliveryLocation() }}
+                                    </td>
                                     <td class="px-4 py-4 text-center text-sm text-slate-700">{{ $lsm }}</td>
                                     <td class="px-4 py-4 text-center text-sm text-slate-700">{{ $lsl }}</td>
                                     <td class="px-4 py-4 text-center text-sm text-slate-700">{{ $bucket }}</td>
@@ -289,7 +290,7 @@
         </div>
     </form>
 
-</x-po_dashboard_layout>
+
 
 <div id="assignModal"
     class="fixed inset-0 z-50 hidden items-center justify-center border-[#E4EEF5] p-4 backdrop-blur-sm">
@@ -1932,18 +1933,24 @@
                                 }
                             );
 
-                        let data;
+                        const responseText = await response.text();
+
+                        let data = null;
 
                         try {
-                            data =
-                                await response
-                                .json();
+                            data = responseText ?
+                                JSON.parse(responseText) :
+                                {};
                         } catch (error) {
+                            console.error('Laravel response:', responseText);
+
                             throw new Error(
-                                'The server returned an invalid response. Check the Laravel log for details.'
+                                responseText.includes('<!DOCTYPE html>') ||
+                                responseText.includes('<html') ?
+                                'Laravel returned an HTML error page. Open the browser console to see the response.' :
+                                responseText || 'Laravel returned an empty or invalid response.'
                             );
                         }
-
                         if (!response.ok) {
                             throw new Error(
                                 buildValidationMessage(
@@ -1980,3 +1987,4 @@
         }
     );
 </script>
+</x-po_dashboard_layout>
