@@ -108,7 +108,7 @@
                         'label' => 'Pending Distribution',
                         'value' => $statistics['pending_distributions'] ?? 0,
                         'description' => 'POs awaiting allocation',
-                        'style' => 'bg-amber-50 text-amber-800 ring-amber-200',
+                        'style' => 'bg-red-50 text-red-800 ring-red-200',
                     ],
                     [
                         'label' => 'Distributed POs',

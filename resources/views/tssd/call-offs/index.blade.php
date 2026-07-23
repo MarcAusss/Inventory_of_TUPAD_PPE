@@ -44,7 +44,7 @@
                             <th class="px-6 py-4 text-left">Call-Off Number</th>
                             <th class="px-6 py-4 text-left">Purchase Order</th>
                             <th class="px-6 py-4 text-left">Supplier</th>
-                            <th class="px-6 py-4 text-center">Provinces</th>
+                            {{-- <th class="px-6 py-4 text-center">Provinces</th> --}}
                             <th class="px-6 py-4 text-left">Call-Off Date</th>
                             <th class="px-6 py-4 text-left">Assigned By</th>
                             <th class="px-6 py-4 text-center">Status</th>

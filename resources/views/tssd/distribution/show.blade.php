@@ -142,6 +142,14 @@
                             <th rowspan="2"
                                 class="border-b border-r border-slate-300 bg-[#339DCB] px-5 py-4 text-left">Province
                             </th>
+                            <th rowspan="2"
+                                class="border-b border-r border-slate-300 bg-[#339DCB] px-5 py-4 text-center">
+                                Delivery Date
+                            </th>
+                            <th rowspan="2"
+                                class="border-b border-r border-slate-300 bg-[#339DCB] px-5 py-4 text-left">
+                                Place of Delivery
+                            </th>
                             <th colspan="3"
                                 class="border-b border-r border-slate-300 bg-[#339DCB] px-5 py-4 text-center">Long
                                 Sleeves</th>
@@ -279,6 +287,14 @@
                                 <td
                                     class="border-b border-r border-[#E4EEF5] px-5 py-4 font-bold uppercase text-[#143A52]">
                                     {{ $province->name }}
+                                </td>
+
+                                <td class="border-b border-r border-[#E4EEF5] px-5 py-4 text-center text-sm text-slate-700">
+                                    {{ optional($provinceDistribution?->scheduled_delivery_date)->format('M d, Y') ?? '—' }}
+                                </td>
+
+                                <td class="border-b border-r border-[#E4EEF5] px-5 py-4 text-left text-sm text-slate-700">
+                                    {{ $provinceDistribution?->place_of_delivery ?? '—' }}
                                 </td>
 
                                 <td class="border-b border-r border-[#E4EEF5] px-4 py-4 text-center">
