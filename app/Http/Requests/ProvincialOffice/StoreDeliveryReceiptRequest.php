@@ -27,7 +27,7 @@ class StoreDeliveryReceiptRequest extends FormRequest
                 'string',
                 'max:100',
                 new NoControlCharacters(),
-                'regex:/^[A-Za-z0-9][A-Za-z0-9 ._\\\/-]*$/',
+                'regex:#^[A-Za-z0-9][A-Za-z0-9 ._/-]*$#',
                 'unique:delivery_receipts,dr_number',
             ],
 
@@ -87,7 +87,7 @@ class StoreDeliveryReceiptRequest extends FormRequest
                     'provinceDistribution'
                 );
 
-                if (! $allocation) {
+                if (!$allocation) {
                     $validator->errors()->add(
                         'province_distribution',
                         'The provincial allocation could not be found.'
@@ -105,9 +105,9 @@ class StoreDeliveryReceiptRequest extends FormRequest
                     $this->user()?->province_id;
 
                 if (
-                    ! $provinceId
+                    !$provinceId
                     || (int) $allocation->province_id
-                        !== (int) $provinceId
+                    !== (int) $provinceId
                 ) {
                     $validator->errors()->add(
                         'province_distribution',
@@ -121,7 +121,7 @@ class StoreDeliveryReceiptRequest extends FormRequest
                     $allocation
                         ->distributionBatch
                         ?->callOff
-                        ?->status !== 'Approved'
+                            ?->status !== 'Approved'
                 ) {
                     $validator->errors()->add(
                         'province_distribution',
@@ -131,7 +131,7 @@ class StoreDeliveryReceiptRequest extends FormRequest
                     return;
                 }
 
-                if (! $allocation->canBeReceived()) {
+                if (!$allocation->canBeReceived()) {
                     $validator->errors()->add(
                         'province_distribution',
                         'This allocation is no longer available for receiving.'
@@ -145,7 +145,7 @@ class StoreDeliveryReceiptRequest extends FormRequest
                     []
                 );
 
-                if (! is_array($submittedItems)) {
+                if (!is_array($submittedItems)) {
                     return;
                 }
 
@@ -153,7 +153,7 @@ class StoreDeliveryReceiptRequest extends FormRequest
                     ->items
                     ->pluck('id')
                     ->map(
-                        fn ($id): int => (int) $id
+                        fn($id): int => (int) $id
                     )
                     ->values()
                     ->all();
@@ -168,7 +168,7 @@ class StoreDeliveryReceiptRequest extends FormRequest
                     )
                     ->whereHas(
                         'deliveryReceipt',
-                        fn ($query) => $query->where(
+                        fn($query) => $query->where(
                             'province_distribution_id',
                             $allocation->id
                         )
@@ -196,7 +196,7 @@ class StoreDeliveryReceiptRequest extends FormRequest
                         "items.{$allocationItem->id}";
 
                     if (
-                        ! array_key_exists(
+                        !array_key_exists(
                             $allocationItem->id,
                             $submittedItems
                         )
@@ -242,7 +242,7 @@ class StoreDeliveryReceiptRequest extends FormRequest
                     $remainingReceivable = max(
                         0,
                         (int) $allocationItem->quantity
-                            - $alreadyReceived
+                        - $alreadyReceived
                     );
 
                     if (
@@ -252,13 +252,13 @@ class StoreDeliveryReceiptRequest extends FormRequest
                         $itemName =
                             $allocationItem
                                 ->item
-                                ?->item_name
+                                    ?->item_name
                             ?? 'PPE item';
 
                         $label =
                             $allocationItem
                                 ->item
-                                ?->label;
+                                    ?->label;
 
                         $displayName = $label
                             ? "{$itemName} ({$label})"
@@ -267,14 +267,14 @@ class StoreDeliveryReceiptRequest extends FormRequest
                         $validator->errors()->add(
                             $field,
                             "{$displayName} has only "
-                            .number_format(
+                            . number_format(
                                 $remainingReceivable
                             )
-                            .' remaining to receive. '
-                            .number_format(
+                            . ' remaining to receive. '
+                            . number_format(
                                 $alreadyReceived
                             )
-                            .' has already been recorded from previous Delivery Receipts.'
+                            . ' has already been recorded from previous Delivery Receipts.'
                         );
                     }
                 }
@@ -283,7 +283,7 @@ class StoreDeliveryReceiptRequest extends FormRequest
                     array_keys($submittedItems) as $submittedId
                 ) {
                     if (
-                        ! in_array(
+                        !in_array(
                             (int) $submittedId,
                             $allocationItemIds,
                             true
@@ -322,8 +322,8 @@ class StoreDeliveryReceiptRequest extends FormRequest
                 $normalizedItems[$itemId] =
                     $quantity === null
                     || $quantity === ''
-                        ? 0
-                        : $quantity;
+                    ? 0
+                    : $quantity;
             }
         }
 
