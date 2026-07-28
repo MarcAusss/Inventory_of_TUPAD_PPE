@@ -63,6 +63,25 @@ body {
     color: #666;
     font-weight: 500;
 }
+
+
+.back-button {
+    display: inline-block;
+    padding: 8px 18px;
+    border: 1.5px solid #1f4a9d;
+    border-radius: 6px;
+    background: #1f4a9d;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.back-button:hover {
+    background: #163a7d;
+}
+
 .access-denied {
     display: flex;
     align-items: center;
@@ -107,13 +126,18 @@ body {
 
         <div class="content">
             <h3>403 | FORBIDDEN </h3>
-            <p>You do not have permission to access this page or perform this action.</p>
+            <p> You do not have permission to access this page or perform this action.</p>
       <div class="access-denied">
     <span class="lock">🔒</span>
     <span class="text">ACCESS DENIED</span>
 </div>
-<span class="system-name">
+            
             <span>TUPAD | Tulong Panghanapbuhay sa ating Disadvantaged Workers</span>
+           
+             <a class="back-button" href="javascript:history.back()">Go Back</a>
+<span class="system-name">
+  
+            
         </div>
 
     </div>
