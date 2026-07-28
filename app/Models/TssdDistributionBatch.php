@@ -18,12 +18,25 @@ class TssdDistributionBatch extends Model
         'distribution_date',
         'status',
         'remarks',
+        'call_off_letter_nefa_title',
+        'call_off_letter_total_amount',
+        'call_off_letter_margin_top',
+        'call_off_letter_margin_right',
+        'call_off_letter_margin_bottom',
+        'call_off_letter_margin_left',
+        'call_off_letter_submitted_at',
     ];
 
     protected function casts(): array
     {
         return [
             'distribution_date' => 'date',
+            'call_off_letter_total_amount' => 'decimal:2',
+            'call_off_letter_margin_top' => 'decimal:2',
+            'call_off_letter_margin_right' => 'decimal:2',
+            'call_off_letter_margin_bottom' => 'decimal:2',
+            'call_off_letter_margin_left' => 'decimal:2',
+            'call_off_letter_submitted_at' => 'datetime',
         ];
     }
 

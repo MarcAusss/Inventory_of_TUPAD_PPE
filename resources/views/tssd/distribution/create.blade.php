@@ -274,6 +274,96 @@
                 </div>
             </section>
 
+            <section class="overflow-hidden rounded-3xl border border-sky-200 bg-white shadow-sm">
+                <div class="border-b border-sky-100 bg-sky-50/70 px-6 py-5 sm:px-7">
+                    <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#2D94BE]">
+                        Required Request Letter
+                    </p>
+
+                    <h2 class="mt-1 text-lg font-bold text-slate-950">
+                        Call-Off Number Request Letter Settings
+                    </h2>
+
+                    <p class="mt-2 max-w-4xl text-sm leading-6 text-slate-600">
+                        When you save this distribution, the system will automatically generate this request letter and submit it to the Supply Unit. The Supply Unit will review the same provincial PPE allocations and assign the official Call-Off Number.
+                    </p>
+                </div>
+
+                <div class="space-y-6 p-6 sm:p-7">
+                    <div class="grid gap-5 lg:grid-cols-2">
+                        <div class="lg:col-span-2">
+                            <label for="nefa_title" class="mb-2 block text-sm font-bold text-slate-700">
+                                NEFA Project Title
+                            </label>
+
+                            <textarea id="nefa_title" name="nefa_title" rows="3" required maxlength="1000"
+                                class="w-full rounded-xl border-slate-300 shadow-sm focus:border-[#339DCB] focus:ring-[#339DCB]">{{ old('nefa_title', $defaultNefaTitle) }}</textarea>
+
+                            <p class="mt-2 text-xs leading-5 text-slate-500">
+                                This is the editable project title that will appear in the generated request letter.
+                            </p>
+                        </div>
+
+                        <div>
+                            <label for="print_total_amount" class="mb-2 block text-sm font-bold text-slate-700">
+                                Printed Total PO Amount
+                            </label>
+
+                            <div class="relative">
+                                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 font-bold text-slate-500">₱</span>
+                                <input id="print_total_amount" type="number" name="print_total_amount"
+                                    value="{{ old('print_total_amount') }}" min="0" max="9999999999999.99" step="0.01" required
+                                    class="w-full rounded-xl border-slate-300 pl-9 shadow-sm focus:border-[#339DCB] focus:ring-[#339DCB]">
+                            </div>
+
+                            <p class="mt-2 text-xs leading-5 text-slate-500">
+                                The selected Purchase Order amount is loaded automatically but may be adjusted for the printed letter only.
+                            </p>
+                        </div>
+
+                        <div class="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-800">
+                            <strong>Preview before saving:</strong> The preview uses the current unsaved distribution data. Opening it will not create or submit any database record.
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-800">A4 Paper Margins</h3>
+                        <p class="mt-1 text-xs leading-5 text-slate-500">
+                            Margins are measured in millimeters. The bottom margin must remain at least 27 mm for the footer image.
+                        </p>
+
+                        <div class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                            @foreach ([
+                                ['print_margin_top', 'Top Margin', 9, 0, 50],
+                                ['print_margin_right', 'Right Margin', 11, 0, 50],
+                                ['print_margin_bottom', 'Bottom Margin', 28, 27, 70],
+                                ['print_margin_left', 'Left Margin', 11, 0, 50],
+                            ] as [$field, $label, $default, $minimum, $maximum])
+                                <div>
+                                    <label for="{{ $field }}" class="mb-2 block text-sm font-bold text-slate-700">
+                                        {{ $label }}
+                                    </label>
+
+                                    <div class="relative">
+                                        <input id="{{ $field }}" type="number" name="{{ $field }}"
+                                            value="{{ old($field, $default) }}" min="{{ $minimum }}" max="{{ $maximum }}" step="0.5" required
+                                            class="w-full rounded-xl border-slate-300 pr-12 shadow-sm focus:border-[#339DCB] focus:ring-[#339DCB]">
+                                        <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-xs font-bold text-slate-500">mm</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button type="button" id="openCallOffLetterPreview"
+                            class="inline-flex items-center justify-center rounded-xl border border-[#339DCB] bg-white px-6 py-3 text-sm font-bold text-[#247BA0] transition hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-50">
+                            Open Call-Off Letter Preview
+                        </button>
+                    </div>
+                </div>
+            </section>
+
             <section
                 class="flex flex-col-reverse gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:justify-end">
                 <a href="{{ route('tssd.distributions.index') }}"
@@ -283,7 +373,7 @@
 
                 <button type="submit" id="submitDistributionButton"
                     class="inline-flex items-center justify-center rounded-xl bg-[#339DCB] px-7 py-3 text-sm font-bold text-white transition hover:bg-[#2D94BE] disabled:cursor-not-allowed disabled:opacity-60">
-                    Save Distribution
+                    Save Distribution & Submit Letter
                 </button>
             </section>
 
@@ -417,6 +507,9 @@
             const distributionIndexUrl =
                 @json(route('tssd.distributions.index'));
 
+            const callOffLetterPreviewUrl =
+                @json(route('tssd.distributions.call-off-letter-preview'));
+
             const remainingUrlTemplate =
                 @json(route('tssd.purchase-orders.remaining', [
                         'poId' => '__PO_ID__',
@@ -514,6 +607,16 @@
             const submitButton =
                 document.getElementById(
                     'submitDistributionButton'
+                );
+
+            const previewButton =
+                document.getElementById(
+                    'openCallOffLetterPreview'
+                );
+
+            const printTotalAmountInput =
+                document.getElementById(
+                    'print_total_amount'
                 );
 
             const saveAssignButton =
@@ -1287,10 +1390,13 @@
                         distribution => Boolean(distribution.scheduled_delivery_date)
                     );
 
-                submitButton.disabled = !hasSelectedPO ||
+                const disabled = !hasSelectedPO ||
                     !hasDistributions ||
                     !validCombinedTotals ||
                     !everyProvinceHasDeliveryDate;
+
+                submitButton.disabled = disabled;
+                previewButton.disabled = disabled;
             }
 
             async function loadRemaining(
@@ -1415,6 +1521,8 @@
                                 )
                                 .value = '';
 
+                            printTotalAmountInput.value = '';
+
                             purchaseSummary.innerHTML = `
                                 <tr>
                                     <td
@@ -1455,6 +1563,9 @@
                             selectedPO
                             .nefa_number ??
                             '';
+
+                        printTotalAmountInput.value =
+                            selectedPO.total_amount ?? '';
 
                         const items =
                             selectedPO.items ||
@@ -1851,6 +1962,57 @@
                         }
                     }
                 );
+
+            previewButton.addEventListener(
+                'click',
+                function() {
+                    if (!selectedPO) {
+                        alert('Please select a Purchase Order.');
+                        return;
+                    }
+
+                    if (distributions.length === 0) {
+                        alert('Please assign PPE to at least one province.');
+                        return;
+                    }
+
+                    if (!combinedAllocationIsValid()) {
+                        alert('One or more combined PPE allocations exceed the Purchase Order remaining quantity.');
+                        return;
+                    }
+
+                    if (!form.checkValidity()) {
+                        form.reportValidity();
+                        return;
+                    }
+
+                    distributionsInput.value = JSON.stringify(distributions);
+
+                    const previewForm = document.createElement('form');
+                    previewForm.method = 'POST';
+                    previewForm.action = callOffLetterPreviewUrl;
+                    previewForm.target = '_blank';
+                    previewForm.className = 'hidden';
+
+                    const formData = new FormData(form);
+
+                    formData.forEach((value, key) => {
+                        if (value instanceof File) {
+                            return;
+                        }
+
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = key;
+                        input.value = String(value);
+                        previewForm.appendChild(input);
+                    });
+
+                    document.body.appendChild(previewForm);
+                    previewForm.submit();
+                    previewForm.remove();
+                }
+            );
 
             form.addEventListener(
                 'submit',

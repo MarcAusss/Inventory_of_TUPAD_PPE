@@ -38,6 +38,14 @@ class StoreTssdDistributionRequest extends FormRequest
             ]);
         }
 
+        if ($this->has('print_total_amount')) {
+            $this->merge([
+                'print_total_amount' => $this->normalizeAmount(
+                    $this->input('print_total_amount')
+                ),
+            ]);
+        }
+
         if ($this->has('remarks')) {
             $remarks = trim(
                 (string) $this->input('remarks')
@@ -69,6 +77,47 @@ class StoreTssdDistributionRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:2000',
+            ],
+
+            'nefa_title' => [
+                'required',
+                'string',
+                'max:1000',
+            ],
+
+            'print_total_amount' => [
+                'required',
+                'numeric',
+                'min:0',
+                'max:9999999999999.99',
+            ],
+
+            'print_margin_top' => [
+                'required',
+                'numeric',
+                'min:0',
+                'max:50',
+            ],
+
+            'print_margin_right' => [
+                'required',
+                'numeric',
+                'min:0',
+                'max:50',
+            ],
+
+            'print_margin_bottom' => [
+                'required',
+                'numeric',
+                'min:27',
+                'max:70',
+            ],
+
+            'print_margin_left' => [
+                'required',
+                'numeric',
+                'min:0',
+                'max:50',
             ],
 
             'distributions' => [
@@ -217,6 +266,16 @@ class StoreTssdDistributionRequest extends FormRequest
             'purchase_order_id.exists' =>
                 'The selected Purchase Order does not exist.',
 
+
+            'nefa_title.required' =>
+                'The NEFA project title for the request letter is required.',
+
+            'print_total_amount.required' =>
+                'The printed total amount is required.',
+
+            'print_margin_bottom.min' =>
+                'The bottom margin must be at least 27 mm to protect the footer.',
+
             'distributions.required' =>
                 'Please assign PPE to at least one province.',
 
@@ -279,6 +338,12 @@ class StoreTssdDistributionRequest extends FormRequest
     {
         return [
             'purchase_order_id' => 'Purchase Order',
+            'nefa_title' => 'NEFA project title',
+            'print_total_amount' => 'printed total amount',
+            'print_margin_top' => 'top print margin',
+            'print_margin_right' => 'right print margin',
+            'print_margin_bottom' => 'bottom print margin',
+            'print_margin_left' => 'left print margin',
             'distributions' => 'provincial distributions',
             'distributions.*.province_id' => 'province',
             'distributions.*.scheduled_delivery_date' => 'delivery date',
@@ -292,4 +357,18 @@ class StoreTssdDistributionRequest extends FormRequest
             'distributions.*.mask' => 'Mask',
         ];
     }
+
+    private function normalizeAmount(mixed $value): mixed
+    {
+        if (! is_string($value)) {
+            return $value;
+        }
+
+        return str_replace(
+            [',', '₱', 'P', 'p', ' '],
+            '',
+            trim($value)
+        );
+    }
+
 }

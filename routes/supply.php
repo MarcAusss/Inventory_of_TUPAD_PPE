@@ -5,6 +5,7 @@ use App\Http\Controllers\Supply\DashboardController;
 use App\Http\Controllers\Supply\ItemController;
 use App\Http\Controllers\Supply\PurchaseOrderController;
 use App\Http\Controllers\Supply\SupplierController;
+use App\Http\Controllers\TSSD\CallOffLetterController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -69,6 +70,13 @@ Route::middleware([
         )
             ->whereNumber('distributionBatch')
             ->name('call-offs.show');
+
+        Route::get(
+            '/call-offs/batches/{distributionBatch}/request-letter',
+            [CallOffLetterController::class, 'print']
+        )
+            ->whereNumber('distributionBatch')
+            ->name('call-offs.request-letter');
 
         Route::post(
             '/call-offs/batches/{distributionBatch}/assign',

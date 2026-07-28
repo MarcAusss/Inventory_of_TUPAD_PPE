@@ -8,6 +8,7 @@ use App\Models\Province;
 use App\Models\ProvinceDistributionItem;
 use App\Models\PurchaseOrder;
 use App\Models\TSSDDistribution;
+use App\Models\TssdDistributionBatch;
 use App\Services\DistributionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,6 +17,11 @@ use Illuminate\View\View;
 
 class TssdDistributionController extends Controller
 {
+    private const DEFAULT_NEFA_TITLE =
+        'Supply and Delivery of Personal Protective Equipment '
+        . 'for the implementation of TUPAD Program under '
+        . 'Framework Agreement';
+
     /**
      * Display the available Purchase Orders and their distribution status.
      */
@@ -86,6 +92,7 @@ class TssdDistributionController extends Controller
             'provinces' => $provinces,
             'provinceDistributions' => $provinceDistributions,
             'purchaseOrderId' => $purchaseOrderId,
+            'defaultNefaTitle' => self::DEFAULT_NEFA_TITLE,
         ]);
     }
 
@@ -102,12 +109,117 @@ class TssdDistributionController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Distribution batch saved successfully.',
+            'message' => 'Distribution saved and the Call-Off Number request letter was submitted to the Supply Unit.',
             'batch_id' => $batch->id,
             'redirect_url' => route(
                 'tssd.distributions.show',
                 $batch->purchase_order_id
             ),
+        ]);
+    }
+
+    /**
+     * Render the Call-Off request letter from the current unsaved form data.
+     */
+    public function previewCallOffLetter(
+        StoreTssdDistributionRequest $request
+    ): View {
+        $data = $request->validated();
+
+        $purchaseOrder = PurchaseOrder::query()
+            ->with('supplier')
+            ->findOrFail((int) $data['purchase_order_id']);
+
+        $provinceIds = collect($data['distributions'])
+            ->pluck('province_id')
+            ->map(fn ($id): int => (int) $id)
+            ->unique()
+            ->values();
+
+        $provinces = Province::query()
+            ->whereIn('id', $provinceIds)
+            ->get()
+            ->keyBy('id');
+
+        $rows = collect($data['distributions'])
+            ->map(function (array $distribution) use ($provinces): array {
+                $province = $provinces->get(
+                    (int) $distribution['province_id']
+                );
+
+                return [
+                    'province' => $province?->name ?? '—',
+                    'place_of_delivery' =>
+                        $province?->deliveryLocation()
+                        ?? ($distribution['place_of_delivery'] ?? '—'),
+                    'delivery_date' =>
+                        $distribution['scheduled_delivery_date'] ?? null,
+                    'long_sleeve_medium' =>
+                        (int) ($distribution['long_sleeve_medium'] ?? 0),
+                    'long_sleeve_large' =>
+                        (int) ($distribution['long_sleeve_large'] ?? 0),
+                    'bucket_hat' =>
+                        (int) ($distribution['bucket_hat'] ?? 0),
+                    'rubber_boots_us9' =>
+                        (int) ($distribution['rubber_boots_us9'] ?? 0),
+                    'rubber_boots_us10' =>
+                        (int) ($distribution['rubber_boots_us10'] ?? 0),
+                    'hand_gloves' =>
+                        (int) ($distribution['hand_gloves'] ?? 0),
+                    'face_mask' =>
+                        (int) ($distribution['mask'] ?? 0),
+                ];
+            })
+            ->values();
+
+        $totals = [
+            'long_sleeve_medium' =>
+                (int) $rows->sum('long_sleeve_medium'),
+            'long_sleeve_large' =>
+                (int) $rows->sum('long_sleeve_large'),
+            'bucket_hat' =>
+                (int) $rows->sum('bucket_hat'),
+            'rubber_boots_us9' =>
+                (int) $rows->sum('rubber_boots_us9'),
+            'rubber_boots_us10' =>
+                (int) $rows->sum('rubber_boots_us10'),
+            'hand_gloves' =>
+                (int) $rows->sum('hand_gloves'),
+            'face_mask' =>
+                (int) $rows->sum('face_mask'),
+        ];
+
+        $batch = new TssdDistributionBatch([
+            'distribution_date' => now()->toDateString(),
+            'call_off_letter_nefa_title' => $data['nefa_title'],
+            'call_off_letter_total_amount' => $data['print_total_amount'],
+            'call_off_letter_margin_top' => $data['print_margin_top'],
+            'call_off_letter_margin_right' => $data['print_margin_right'],
+            'call_off_letter_margin_bottom' => $data['print_margin_bottom'],
+            'call_off_letter_margin_left' => $data['print_margin_left'],
+        ]);
+        $batch->setRelation('purchaseOrder', $purchaseOrder);
+
+        return view('tssd.call-off-letters.print', [
+            'callOff' => null,
+            'batch' => $batch,
+            'purchaseOrder' => $purchaseOrder,
+            'rows' => $rows,
+            'totals' => $totals,
+            'nefaTitle' => $data['nefa_title'],
+            'callOffLabel' =>
+                'assignment of an official Call-Off Number for the distribution',
+            'printDistributionBatch' => 'Draft Preview',
+            'printTotalAmount' => $data['print_total_amount'],
+            'printMargins' => [
+                'top' => (float) $data['print_margin_top'],
+                'right' => (float) $data['print_margin_right'],
+                'bottom' => (float) $data['print_margin_bottom'],
+                'left' => (float) $data['print_margin_left'],
+            ],
+            'documentDate' => now(),
+            'isDraftPreview' => true,
+            'backUrl' => null,
         ]);
     }
 

@@ -76,10 +76,17 @@
                     </p>
                 </div>
 
-                <a href="{{ route('supply.call-offs.index') }}"
-                    class="inline-flex items-center justify-center rounded-xl border border-[#90C4DD] bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
-                    Back to Call-Offs
-                </a>
+                <div class="flex flex-col gap-2 sm:flex-row">
+                    <a href="{{ route('supply.call-offs.request-letter', $batch) }}" target="_blank"
+                        class="inline-flex items-center justify-center rounded-xl bg-[#339DCB] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#247BA0]">
+                        View TSSD Request Letter
+                    </a>
+
+                    <a href="{{ route('supply.call-offs.index') }}"
+                        class="inline-flex items-center justify-center rounded-xl border border-[#90C4DD] bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
+                        Back to Call-Offs
+                    </a>
+                </div>
             </div>
         </section>
 

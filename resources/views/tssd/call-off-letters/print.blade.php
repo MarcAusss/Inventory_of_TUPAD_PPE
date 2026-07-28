@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>
-        {{ $callOff->call_off_number ?? 'Call-Off' }} Letter
+        {{ $callOff?->call_off_number ?? 'Call-Off Request' }} Letter
     </title>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -675,7 +675,7 @@
                     </p>
 
                     <p class="toolbar-subtitle mt-1 truncate text-xs text-slate-500">
-                        {{ $callOff->call_off_number ?? 'No Call-Off Number' }}
+                        {{ $callOff?->call_off_number ?? 'Pending Call-Off Number' }}
                         ·
                         NEFA No.
                         {{ $purchaseOrder?->nefa_number ?? 'Not available' }}
@@ -686,7 +686,8 @@
 
             <div class="toolbar-actions flex shrink-0 items-center gap-2.5">
 
-                <a href="{{ route('tssd.call-off-letters.edit', $callOff) }}"
+                <a href="{{ $backUrl ?: '#' }}"
+                    @if ($isDraftPreview) onclick="window.close(); return false;" @endif
                     class="toolbar-button toolbar-button-back inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl border border-sky-200 bg-white px-4 py-2.5 text-[13px] font-extrabold text-[#0284C7] transition hover:-translate-y-px hover:border-sky-300 hover:bg-sky-50">
 
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
@@ -728,7 +729,7 @@
 
             <span
                 class="preview-badge inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-white px-2.5 py-1.5 font-bold text-[#0284C7]">
-                A4 Portrait
+                {{ $isDraftPreview ? 'Unsaved Draft Preview' : 'A4 Portrait' }}
             </span>
 
             <span>
@@ -794,7 +795,7 @@
 
                     {{-- Document date --}}
                     <div class="document-date">
-                        {{ $callOff->call_off_date?->format('F j, Y') ?? now()->format('F j, Y') }}
+                        {{ $documentDate?->format('F j, Y') ?? now()->format('F j, Y') }}
                     </div>
 
                     {{-- Recipient --}}
@@ -872,7 +873,7 @@
                                 <col class="place-column">
                                 <col class="date-column">
 
-                                @for ($column = 0; $column < 6; $column++)
+                                @for ($column = 0; $column < 7; $column++)
                                     <col class="quantity-column">
                                 @endfor
                             </colgroup>
@@ -906,6 +907,10 @@
 
                                     <th rowspan="2">
                                         GLOVES
+                                    </th>
+
+                                    <th rowspan="2">
+                                        FACE MASK
                                     </th>
                                 </tr>
 
@@ -963,15 +968,18 @@
                                             {{ number_format($row['hand_gloves']) }}
                                         </td>
 
+                                        <td class="quantity-cell">
+                                            {{ number_format($row['face_mask']) }}
+                                        </td>
+
                                     </tr>
 
                                 @empty
 
                                     <tr>
-                                        <td colspan="9" class="empty-table-cell">
+                                        <td colspan="10" class="empty-table-cell">
 
-                                            No provincial distributions
-                                            were found for this Call-Off.
+                                            No provincial allocations were found for this request letter.
 
                                         </td>
                                     </tr>
@@ -1005,6 +1013,10 @@
 
                                     <td>
                                         {{ number_format($totals['hand_gloves']) }}
+                                    </td>
+
+                                    <td>
+                                        {{ number_format($totals['face_mask']) }}
                                     </td>
 
                                 </tr>

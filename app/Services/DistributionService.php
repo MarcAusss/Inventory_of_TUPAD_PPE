@@ -166,6 +166,26 @@ class DistributionService
 
                         'remarks' => $data['remarks']
                             ?? null,
+
+                        'call_off_letter_nefa_title' =>
+                            $data['nefa_title'],
+
+                        'call_off_letter_total_amount' =>
+                            $data['print_total_amount'],
+
+                        'call_off_letter_margin_top' =>
+                            $data['print_margin_top'],
+
+                        'call_off_letter_margin_right' =>
+                            $data['print_margin_right'],
+
+                        'call_off_letter_margin_bottom' =>
+                            $data['print_margin_bottom'],
+
+                        'call_off_letter_margin_left' =>
+                            $data['print_margin_left'],
+
+                        'call_off_letter_submitted_at' => now(),
                     ]);
 
                 foreach (

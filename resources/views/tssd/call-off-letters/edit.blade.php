@@ -1,24 +1,55 @@
 <x-po_dashboard_layout title="Prepare Call-Off Letter">
 
     @php
-        $batch = $callOff->distributionBatch;
-        $purchaseOrder = $batch?->purchaseOrder;
+        $batch = $distributionBatch;
+        $callOff = $batch->callOff;
+        $purchaseOrder = $batch->purchaseOrder;
         $supplier = $purchaseOrder?->supplier;
 
-        $nefaTitle = old('nefa_title', $callOff->nefa_title ?: $defaultNefaTitle);
+        $nefaTitle = old(
+            'nefa_title',
+            $batch->call_off_letter_nefa_title
+                ?: $callOff?->nefa_title
+                ?: $defaultNefaTitle,
+        );
 
         $printTotalAmount = old(
             'print_total_amount',
-            $callOff->print_total_amount ?? ($purchaseOrder?->total_amount ?? 0),
+            $batch->call_off_letter_total_amount
+                ?? $callOff?->print_total_amount
+                ?? $purchaseOrder?->total_amount
+                ?? 0,
         );
 
-        $printMarginTop = old('print_margin_top', $callOff->print_margin_top ?? 9);
+        $printMarginTop = old(
+            'print_margin_top',
+            $batch->call_off_letter_margin_top
+                ?? $callOff?->print_margin_top
+                ?? 9,
+        );
 
-        $printMarginRight = old('print_margin_right', $callOff->print_margin_right ?? 11);
+        $printMarginRight = old(
+            'print_margin_right',
+            $batch->call_off_letter_margin_right
+                ?? $callOff?->print_margin_right
+                ?? 11,
+        );
 
-        $printMarginBottom = old('print_margin_bottom', $callOff->print_margin_bottom ?? 28);
+        $printMarginBottom = old(
+            'print_margin_bottom',
+            $batch->call_off_letter_margin_bottom
+                ?? $callOff?->print_margin_bottom
+                ?? 28,
+        );
 
-        $printMarginLeft = old('print_margin_left', $callOff->print_margin_left ?? 11);
+        $printMarginLeft = old(
+            'print_margin_left',
+            $batch->call_off_letter_margin_left
+                ?? $callOff?->print_margin_left
+                ?? 11,
+        );
+
+        $letterStatus = $callOff?->status ?: 'Pending Call-Off Number';
     @endphp
 
     <div class="mx-auto max-w-6xl space-y-6">
@@ -61,10 +92,7 @@
                 <p class="mt-2 text-sm
                            leading-6 text-slate-600">
 
-                    The Call-Off, NEFA, Purchase Order,
-                    batch and supplier fields are generated
-                    automatically. The NEFA title, printed
-                    amount, and A4 paper margins can be edited.
+                    The request letter was generated automatically when this distribution was saved. The official Call-Off Number and date remain pending until the Supply Unit approves and assigns them.
 
                 </p>
 
@@ -91,7 +119,7 @@
                    bg-white p-6 shadow-sm sm:p-8">
 
             <form method="POST"
-                action="{{ route('tssd.call-off-letters.update', $callOff) }}"
+                action="{{ route('tssd.call-off-letters.update', $batch) }}"
                 class="space-y-7">
 
                 @csrf
@@ -111,7 +139,7 @@
                         </label>
 
                         <input type="text"
-                            value="{{ $callOff->call_off_number ?: 'Not assigned' }}"
+                            value="{{ $callOff?->call_off_number ?: 'Pending Supply assignment' }}"
                             readonly
                             class="w-full cursor-not-allowed
                                    rounded-xl border-slate-200
@@ -132,7 +160,7 @@
                         </label>
 
                         <input type="text"
-                            value="{{ $callOff->call_off_date?->format('F d, Y') ?? 'Not assigned' }}"
+                            value="{{ $callOff?->call_off_date?->format('F d, Y') ?? 'Pending Supply assignment' }}"
                             readonly
                             class="w-full cursor-not-allowed
                                    rounded-xl border-slate-200
@@ -273,7 +301,7 @@
                         </label>
 
                         <input type="text"
-                            value="{{ $callOff->status ?: 'Pending Approval' }}"
+                            value="{{ $letterStatus }}"
                             readonly
                             class="w-full cursor-not-allowed
                                    rounded-xl border-slate-200
@@ -481,11 +509,11 @@
                                font-bold text-white
                                transition hover:bg-[#247BA0]">
 
-                        Save Letter Settings
+                        Save Request Letter Settings
 
                     </button>
 
-                    <a href="{{ route('tssd.call-off-letters.print', $callOff) }}"
+                    <a href="{{ route('tssd.call-off-letters.print', $batch) }}"
                         target="_blank"
                         class="rounded-xl
                                bg-[#143A52]

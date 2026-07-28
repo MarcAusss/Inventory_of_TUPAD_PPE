@@ -40,6 +40,11 @@ Route::middleware([
             ->whereNumber('poId')
             ->name('purchase-orders.remaining');
 
+        Route::post(
+            '/distributions/call-off-letter-preview',
+            [TssdDistributionController::class, 'previewCallOffLetter']
+        )->name('distributions.call-off-letter-preview');
+
         Route::get(
             '/distributions/{distribution}/print',
             [TssdDistributionController::class, 'print']
@@ -203,23 +208,23 @@ Route::middleware([
         )->name('call-off-letters.index');
 
         Route::get(
-            '/call-off-letters/{callOff}/edit',
+            '/call-off-letters/{distributionBatch}/edit',
             [CallOffLetterController::class, 'edit']
         )
-            ->whereNumber('callOff')
+            ->whereNumber('distributionBatch')
             ->name('call-off-letters.edit');
 
         Route::put(
-            '/call-off-letters/{callOff}',
+            '/call-off-letters/{distributionBatch}',
             [CallOffLetterController::class, 'update']
         )
-            ->whereNumber('callOff')
+            ->whereNumber('distributionBatch')
             ->name('call-off-letters.update');
 
         Route::get(
-            '/call-off-letters/{callOff}/print',
+            '/call-off-letters/{distributionBatch}/print',
             [CallOffLetterController::class, 'print']
         )
-            ->whereNumber('callOff')
+            ->whereNumber('distributionBatch')
             ->name('call-off-letters.print');
     });
