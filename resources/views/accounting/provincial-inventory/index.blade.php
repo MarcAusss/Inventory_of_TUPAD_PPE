@@ -1,4 +1,4 @@
-<x-po_dashboard_layout title="Provincial Inventory Summary">
+<x-po_dashboard_layout title="Summary of Provincial Inventory">
 
     <div class="mx-auto max-w-[1900px] space-y-6">
 
@@ -37,7 +37,7 @@
                         class="mt-4 text-2xl font-bold
                                text-slate-950 sm:text-3xl">
 
-                        Provincial Inventory Summary
+                        Summary of Provincial Inventory
 
                     </h1>
 

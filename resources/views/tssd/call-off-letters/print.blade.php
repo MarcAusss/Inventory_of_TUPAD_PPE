@@ -863,79 +863,48 @@
                     </p>
 
                     {{-- Provincial distribution table --}}
+                    @php
+                        $itemColumns = collect($itemColumns ?? []);
+                        $quantityWidth = $itemColumns->isEmpty()
+                            ? 12
+                            : max(5.5, min(11, 51 / $itemColumns->count()));
+                    @endphp
+
                     <div class="table-wrapper mt-3.5 overflow-hidden rounded-lg border border-slate-300">
-
-                        <table
-                            class="details-table w-full table-fixed border-collapse !font-arial text-[6.6pt] leading-[1.15]">
-
+                        <table class="details-table w-full table-fixed border-collapse !font-arial text-[6.6pt] leading-[1.15]">
                             <colgroup>
                                 <col class="province-column">
                                 <col class="place-column">
                                 <col class="date-column">
-
-                                @for ($column = 0; $column < 7; $column++)
-                                    <col class="quantity-column">
-                                @endfor
+                                @foreach ($itemColumns as $item)
+                                    <col style="width: {{ $quantityWidth }}%">
+                                @endforeach
                             </colgroup>
 
                             <thead>
-
                                 <tr>
-                                    <th rowspan="2">
-                                        PROVINCE
-                                    </th>
+                                    <th>PROVINCE</th>
+                                    <th>PLACE OF DELIVERY</th>
+                                    <th>DATE OF DELIVERY</th>
 
-                                    <th rowspan="2">
-                                        PLACE OF DELIVERY
-                                    </th>
-
-                                    <th rowspan="2">
-                                        DATE OF DELIVERY
-                                    </th>
-
-                                    <th colspan="2">
-                                        LONGSLEEVE
-                                    </th>
-
-                                    <th rowspan="2">
-                                        BUCKET HAT
-                                    </th>
-
-                                    <th colspan="2">
-                                        RUBBER BOOTS
-                                    </th>
-
-                                    <th rowspan="2">
-                                        GLOVES
-                                    </th>
-
-                                    <th rowspan="2">
-                                        FACE MASK
-                                    </th>
+                                    @foreach ($itemColumns as $item)
+                                        <th>
+                                            {{ strtoupper($item->item_name) }}
+                                            @if ($item->label)
+                                                <span style="display:block; margin-top:2px; font-size:5.7pt;">
+                                                    {{ strtoupper($item->label) }}
+                                                </span>
+                                            @endif
+                                        </th>
+                                    @endforeach
                                 </tr>
-
-                                <tr>
-                                    <th>M</th>
-                                    <th>L</th>
-                                    <th>UK 9</th>
-                                    <th>UK 10</th>
-                                </tr>
-
                             </thead>
 
                             <tbody>
-
                                 @forelse ($rows as $row)
                                     <tr>
-
-                                        <td class="province-cell">
-                                            {{ $row['province'] }}
-                                        </td>
-
-                                        <td class="place-cell">
-                                            {{ $row['place_of_delivery'] }}
-                                        </td>
-
+                                        <td class="province-cell">{{ $row['province'] }}</td>
+                                        <td class="place-cell">{{ $row['place_of_delivery'] }}</td>
                                         <td class="date-cell">
                                             @if ($row['delivery_date'])
                                                 {{ \Illuminate\Support\Carbon::parse($row['delivery_date'])->format('F j, Y') }}
@@ -944,87 +913,28 @@
                                             @endif
                                         </td>
 
-                                        <td class="quantity-cell">
-                                            {{ number_format($row['long_sleeve_medium']) }}
-                                        </td>
-
-                                        <td class="quantity-cell">
-                                            {{ number_format($row['long_sleeve_large']) }}
-                                        </td>
-
-                                        <td class="quantity-cell">
-                                            {{ number_format($row['bucket_hat']) }}
-                                        </td>
-
-                                        <td class="quantity-cell">
-                                            {{ number_format($row['rubber_boots_us9']) }}
-                                        </td>
-
-                                        <td class="quantity-cell">
-                                            {{ number_format($row['rubber_boots_us10']) }}
-                                        </td>
-
-                                        <td class="quantity-cell">
-                                            {{ number_format($row['hand_gloves']) }}
-                                        </td>
-
-                                        <td class="quantity-cell">
-                                            {{ number_format($row['face_mask']) }}
-                                        </td>
-
+                                        @foreach ($itemColumns as $item)
+                                            <td class="quantity-cell">
+                                                {{ number_format((int) ($row['items'][$item->id] ?? 0)) }}
+                                            </td>
+                                        @endforeach
                                     </tr>
-
                                 @empty
-
                                     <tr>
-                                        <td colspan="10" class="empty-table-cell">
-
+                                        <td colspan="{{ 3 + $itemColumns->count() }}" class="empty-table-cell">
                                             No provincial allocations were found for this request letter.
-
                                         </td>
                                     </tr>
                                 @endforelse
 
                                 <tr class="total-row bg-sky-100 text-[#075985]">
-
-                                    <td colspan="3">
-                                        TOTAL
-                                    </td>
-
-                                    <td>
-                                        {{ number_format($totals['long_sleeve_medium']) }}
-                                    </td>
-
-                                    <td>
-                                        {{ number_format($totals['long_sleeve_large']) }}
-                                    </td>
-
-                                    <td>
-                                        {{ number_format($totals['bucket_hat']) }}
-                                    </td>
-
-                                    <td>
-                                        {{ number_format($totals['rubber_boots_us9']) }}
-                                    </td>
-
-                                    <td>
-                                        {{ number_format($totals['rubber_boots_us10']) }}
-                                    </td>
-
-                                    <td>
-                                        {{ number_format($totals['hand_gloves']) }}
-                                    </td>
-
-                                    <td>
-                                        {{ number_format($totals['face_mask']) }}
-                                    </td>
-
+                                    <td colspan="3">TOTAL</td>
+                                    @foreach ($itemColumns as $item)
+                                        <td>{{ number_format((int) ($totals[$item->id] ?? 0)) }}</td>
+                                    @endforeach
                                 </tr>
-
                             </tbody>
-
                         </table>
-
                     </div>
 
                     {{-- Closing --}}

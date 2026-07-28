@@ -407,8 +407,7 @@
                         >
                             Attach Document (PDF)
                             <span class="ml-1 text-xs font-normal text-slate-500">
-                                Optional scanned copy of the
-                                Delivery Receipt and Image of damaged items.
+                                
                             </span>
                         </label>
 
@@ -453,7 +452,7 @@
                             name="remarks"
                             rows="4"
                             maxlength="5000"
-                            placeholder="Optional discrepancy, shortage, condition, or delivery remarks."
+                            placeholder=""
                             class="w-full rounded-xl border-slate-300
                                    focus:border-[#0284C7]
                                    focus:ring-[#0284C7]"

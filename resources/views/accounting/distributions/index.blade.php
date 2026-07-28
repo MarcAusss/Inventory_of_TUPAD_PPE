@@ -1,4 +1,4 @@
-<x-po_dashboard_layout title="TSSD Distribution Summary">
+<x-po_dashboard_layout title="Summary of TSSD Distribution">
 
     <div class="mx-auto max-w-[1900px] space-y-6">
 
@@ -14,7 +14,7 @@
                     </span>
 
                     <h1 class="mt-4 text-2xl font-bold text-slate-950 sm:text-3xl">
-                        TSSD Distribution Summary
+                        Summary of TSSD Distribution
                     </h1>
 
                     <p class="mt-2 text-sm text-slate-600">

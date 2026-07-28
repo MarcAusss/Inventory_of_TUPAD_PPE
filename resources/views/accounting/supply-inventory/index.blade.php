@@ -1,4 +1,4 @@
-<x-po_dashboard_layout title="Supply Inventory Summary">
+<x-po_dashboard_layout title="Summary of Supply Inventory">
     <div
         x-data="{
             modalOpen: false,
@@ -90,7 +90,7 @@
                         class="mt-4 text-2xl font-bold text-slate-950
                                sm:text-3xl"
                     >
-                        Supply Inventory Summary
+                        Summary of Supply Inventory 
                     </h1>
 
                     <p class="mt-2 max-w-3xl text-sm text-slate-600">

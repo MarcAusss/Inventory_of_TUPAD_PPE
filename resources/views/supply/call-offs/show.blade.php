@@ -4,49 +4,15 @@
         $purchaseOrder = $batch->purchaseOrder;
         $allocations = $batch->provinceDistributions;
 
-        $normalizeAllocation = function ($allocation) {
-            $data = [
-                'ls_m' => 0,
-                'ls_l' => 0,
-                'bucket' => 0,
-                'boots_9' => 0,
-                'boots_10' => 0,
-                'gloves' => 0,
-                'mask' => 0,
-            ];
+        $itemColumns = $allocations
+            ->flatMap(fn ($allocation) => $allocation->items)
+            ->pluck('item')
+            ->filter()
+            ->unique('id')
+            ->sortBy(fn ($item) => strtolower($item->item_name . '|' . ($item->label ?? '')))
+            ->values();
 
-            foreach ($allocation->items as $allocationItem) {
-                $name = strtolower(trim((string) $allocationItem->item?->item_name));
-                $label = strtolower(trim((string) $allocationItem->item?->label));
-                $qty = (int) $allocationItem->quantity;
-
-                if (in_array($name, ['long sleeve', 'long sleeves', 'longsleeve', 'longsleeves'], true)) {
-                    if (in_array($label, ['m', 'medium'], true)) {
-                        $data['ls_m'] += $qty;
-                    }
-
-                    if (in_array($label, ['l', 'large'], true)) {
-                        $data['ls_l'] += $qty;
-                    }
-                } elseif ($name === 'bucket hat') {
-                    $data['bucket'] += $qty;
-                } elseif ($name === 'rubber boots') {
-                    if (in_array($label, ['us9', 'us 9', '9'], true)) {
-                        $data['boots_9'] += $qty;
-                    }
-
-                    if (in_array($label, ['us10', 'us 10', '10'], true)) {
-                        $data['boots_10'] += $qty;
-                    }
-                } elseif (in_array($name, ['gloves', 'hand gloves', 'hand glove'], true)) {
-                    $data['gloves'] += $qty;
-                } elseif ($name === 'mask') {
-                    $data['mask'] += $qty;
-                }
-            }
-
-            return $data;
-        };
+        $tableMinimumWidth = max(1100, 560 + ($itemColumns->count() * 145));
     @endphp
 
     <div class="mx-auto max-w-[1900px] space-y-6">
@@ -125,86 +91,56 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="min-w-[1500px] w-full border-separate border-spacing-0">
+                <table class="w-full border-separate border-spacing-0" style="min-width: {{ $tableMinimumWidth }}px">
                     <thead>
-                        <tr class="text-xs font-bold uppercase tracking-wide text-white">
-                            <th rowspan="2"
-                                class="border-b border-r border-[#90C4DD] bg-[#339DCB] px-5 py-4 text-left">
-                                Province
-                            </th>
-                            <th rowspan="2"
-                                class="border-b border-r border-[#90C4DD] bg-[#339DCB] px-5 py-4 text-center">Delivery
-                                Date</th>
-                            <th rowspan="2"
-                                class="border-b border-r border-[#90C4DD] bg-[#339DCB] px-5 py-4 text-left">Place of
-                                Delivery</th>
-                            <th colspan="3"
-                                class="border-b border-r border-[#90C4DD] bg-[#339DCB] px-5 py-4 text-center">Long
-                                Sleeves</th>
-                            <th rowspan="2"
-                                class="border-b border-r border-[#90C4DD] bg-[#339DCB] px-5 py-4 text-center">Bucket Hat
-                            </th>
-                            <th colspan="3"
-                                class="border-b border-r border-[#90C4DD] bg-[#339DCB] px-5 py-4 text-center">Rubber
-                                Boots</th>
-                            <th rowspan="2"
-                                class="border-b border-r border-[#90C4DD] bg-[#339DCB] px-5 py-4 text-center">Gloves
-                            </th>
-                            <th rowspan="2" class="border-b border-[#90C4DD] bg-[#339DCB] px-5 py-4 text-center">Mask
-                            </th>
-                        </tr>
-
-                        <tr class="text-[11px] font-bold uppercase">
-                            @foreach (['M', 'L', 'Total', 'US9', 'US10', 'Total'] as $label)
-                                <th
-                                    class="border-b border-r border-[#90C4DD] bg-[#2D94BE] px-4 py-3 text-center text-[#143A52]">
-                                    {{ $label }}
+                        <tr class="bg-[#2E628D] text-xs font-bold uppercase tracking-wide text-white">
+                            <th class="border-b border-r border-white/20 px-5 py-4 text-left">Province</th>
+                            <th class="border-b border-r border-white/20 px-5 py-4 text-center">Delivery Date</th>
+                            <th class="border-b border-r border-white/20 px-5 py-4 text-left">Place of Delivery</th>
+                            @foreach ($itemColumns as $item)
+                                <th class="border-b border-r border-white/20 px-4 py-4 text-center">
+                                    {{ $item->item_name }}
+                                    @if ($item->label)
+                                        <span class="block text-[10px] font-semibold normal-case opacity-90">{{ $item->label }}</span>
+                                    @endif
                                 </th>
                             @endforeach
+                            <th class="border-b border-white/20 px-4 py-4 text-center">Total PPE</th>
                         </tr>
                     </thead>
 
-                    <tbody>
+                    <tbody class="text-black">
                         @forelse($allocations as $allocation)
-                            @php($q = $normalizeAllocation($allocation))
+                            @php
+                                $quantities = $allocation->items
+                                    ->mapWithKeys(fn ($row) => [(int) $row->item_id => (int) $row->quantity]);
+                                $rowTotal = (int) $quantities->sum();
+                            @endphp
 
                             <tr class="transition hover:bg-slate-50">
-                                <td
-                                    class="border-b border-r border-slate-200 px-5 py-4 font-bold uppercase text-slate-900">
+                                <td class="border-b border-r border-slate-200 px-5 py-4 font-bold uppercase text-black">
                                     {{ $allocation->province?->name ?? '—' }}
                                 </td>
-                                <td
-                                    class="border-b border-r border-slate-200 px-5 py-4 text-center text-sm text-slate-600">
+                                <td class="border-b border-r border-slate-200 px-5 py-4 text-center text-sm text-black">
                                     {{ $allocation->scheduled_delivery_date?->format('M d, Y') ?? '—' }}
                                 </td>
-                                <td
-                                    class="min-w-56 border-b border-r border-slate-200 px-5 py-4 text-sm text-slate-600">
+                                <td class="min-w-56 border-b border-r border-slate-200 px-5 py-4 text-sm text-black">
                                     {{ $allocation->place_of_delivery ?: '—' }}
                                 </td>
-                                <td class="border-b border-r border-slate-200 px-4 py-4 text-center">
-                                    {{ number_format($q['ls_m']) }}</td>
-                                <td class="border-b border-r border-slate-200 px-4 py-4 text-center">
-                                    {{ number_format($q['ls_l']) }}</td>
-                                <td
-                                    class="border-b border-r border-slate-200 bg-[#DF979B]/10 px-4 py-4 text-center font-bold text-[#2D94BE]">
-                                    {{ number_format($q['ls_m'] + $q['ls_l']) }}</td>
-                                <td class="border-b border-r border-slate-200 px-4 py-4 text-center">
-                                    {{ number_format($q['bucket']) }}</td>
-                                <td class="border-b border-r border-slate-200 px-4 py-4 text-center">
-                                    {{ number_format($q['boots_9']) }}</td>
-                                <td class="border-b border-r border-slate-200 px-4 py-4 text-center">
-                                    {{ number_format($q['boots_10']) }}</td>
-                                <td
-                                    class="border-b border-r border-slate-200 bg-[#DF979B]/10 px-4 py-4 text-center font-bold text-[#2D94BE]">
-                                    {{ number_format($q['boots_9'] + $q['boots_10']) }}</td>
-                                <td class="border-b border-r border-slate-200 px-4 py-4 text-center">
-                                    {{ number_format($q['gloves']) }}</td>
-                                <td class="border-b border-slate-200 px-4 py-4 text-center">
-                                    {{ number_format($q['mask']) }}</td>
+
+                                @foreach ($itemColumns as $item)
+                                    <td class="border-b border-r border-slate-200 px-4 py-4 text-center text-black">
+                                        {{ number_format((int) ($quantities[$item->id] ?? 0)) }}
+                                    </td>
+                                @endforeach
+
+                                <td class="border-b border-slate-200 bg-sky-50 px-4 py-4 text-center font-black text-black">
+                                    {{ number_format($rowTotal) }}
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="12" class="px-6 py-14 text-center text-sm text-slate-500">
+                                <td colspan="{{ 4 + $itemColumns->count() }}" class="px-6 py-14 text-center text-sm text-slate-500">
                                     No provincial allocations were found.
                                 </td>
                             </tr>

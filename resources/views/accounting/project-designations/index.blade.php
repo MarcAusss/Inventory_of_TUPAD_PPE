@@ -1,10 +1,10 @@
-<x-po_dashboard_layout title="Project Designation Summary">
+<x-po_dashboard_layout title="Summary of Project Designation">
 
     <div class="mx-auto max-w-[1900px] space-y-6">
 
         {{-- Page Header --}}
         <x-accounting-summary-header
-            title="Project Designation Summary"
+            title="Summary of Project Designation"
             description="Read-only monitoring of PPE allocations designated to provincial projects."
         />
 

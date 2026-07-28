@@ -242,7 +242,7 @@ class ItemController extends Controller
 
         $message = $item->is_active
             ? 'PPE item marked as available.'
-            : 'PPE item marked as unavailable. It will no longer appear in new Purchase Orders.';
+            : 'PPE item marked as unavailable. It will no longer appear in new Purchase Orders or new provincial allocation inputs.';
 
         return back()->with('success', $message);
     }

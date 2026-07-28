@@ -4,6 +4,7 @@ namespace App\Http\Controllers\TSSD;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TSSD\UpdateCallOffLetterRequest;
+use App\Models\Item;
 use App\Models\ProvinceDistribution;
 use App\Models\TssdDistributionBatch;
 use Illuminate\Database\Eloquent\Builder;
@@ -19,13 +20,6 @@ class CallOffLetterController extends Controller
         . 'for the implementation of TUPAD Program under '
         . 'Framework Agreement';
 
-    private const LONG_SLEEVE_MEDIUM_ID = 1;
-    private const LONG_SLEEVE_LARGE_ID = 2;
-    private const BUCKET_HAT_ID = 3;
-    private const RUBBER_BOOTS_US9_ID = 4;
-    private const RUBBER_BOOTS_US10_ID = 5;
-    private const HAND_GLOVES_ID = 6;
-    private const FACE_MASK_ID = 7;
 
     public function index(Request $request): View
     {
@@ -204,7 +198,7 @@ class CallOffLetterController extends Controller
         $distributions = ProvinceDistribution::query()
             ->with([
                 'province',
-                'items',
+                'items.item',
             ])
             ->where(
                 'tssd_distribution_batch_id',
@@ -213,12 +207,22 @@ class CallOffLetterController extends Controller
             ->orderBy('province_id')
             ->get();
 
+        $itemColumns = $distributions
+            ->flatMap(fn (ProvinceDistribution $distribution) => $distribution->items)
+            ->pluck('item')
+            ->filter()
+            ->unique('id')
+            ->sortBy(fn (Item $item): string => strtolower(
+                $item->item_name . '|' . ($item->label ?? '')
+            ))
+            ->values();
+
         $rows = $distributions->map(
             fn (ProvinceDistribution $distribution): array =>
                 $this->makeDistributionRow($distribution)
         );
 
-        $totals = $this->makeTotals($rows);
+        $totals = $this->makeTotals($rows, $itemColumns);
         $callOff = $distributionBatch->callOff;
         $purchaseOrder = $distributionBatch->purchaseOrder;
 
@@ -232,6 +236,7 @@ class CallOffLetterController extends Controller
             'purchaseOrder' => $purchaseOrder,
             'rows' => $rows,
             'totals' => $totals,
+            'itemColumns' => $itemColumns,
             'nefaTitle' =>
                 $distributionBatch->call_off_letter_nefa_title
                 ?: $callOff?->nefa_title
@@ -300,64 +305,23 @@ class CallOffLetterController extends Controller
                 ?: $distribution->province?->office_name
                 ?: '—',
             'delivery_date' => $distribution->scheduled_delivery_date,
-            'long_sleeve_medium' => $this->quantityByItemId(
-                $distribution->items,
-                self::LONG_SLEEVE_MEDIUM_ID
-            ),
-            'long_sleeve_large' => $this->quantityByItemId(
-                $distribution->items,
-                self::LONG_SLEEVE_LARGE_ID
-            ),
-            'bucket_hat' => $this->quantityByItemId(
-                $distribution->items,
-                self::BUCKET_HAT_ID
-            ),
-            'rubber_boots_us9' => $this->quantityByItemId(
-                $distribution->items,
-                self::RUBBER_BOOTS_US9_ID
-            ),
-            'rubber_boots_us10' => $this->quantityByItemId(
-                $distribution->items,
-                self::RUBBER_BOOTS_US10_ID
-            ),
-            'hand_gloves' => $this->quantityByItemId(
-                $distribution->items,
-                self::HAND_GLOVES_ID
-            ),
-            'face_mask' => $this->quantityByItemId(
-                $distribution->items,
-                self::FACE_MASK_ID
-            ),
+            'items' => $distribution->items
+                ->mapWithKeys(fn ($distributionItem): array => [
+                    (int) $distributionItem->item_id => (int) $distributionItem->quantity,
+                ])
+                ->all(),
         ];
     }
 
-    private function makeTotals(Collection $rows): array
+    private function makeTotals(Collection $rows, Collection $itemColumns): array
     {
-        return [
-            'long_sleeve_medium' =>
-                (int) $rows->sum('long_sleeve_medium'),
-            'long_sleeve_large' =>
-                (int) $rows->sum('long_sleeve_large'),
-            'bucket_hat' =>
-                (int) $rows->sum('bucket_hat'),
-            'rubber_boots_us9' =>
-                (int) $rows->sum('rubber_boots_us9'),
-            'rubber_boots_us10' =>
-                (int) $rows->sum('rubber_boots_us10'),
-            'hand_gloves' =>
-                (int) $rows->sum('hand_gloves'),
-            'face_mask' =>
-                (int) $rows->sum('face_mask'),
-        ];
-    }
-
-    private function quantityByItemId(
-        Collection $distributionItems,
-        int $itemId
-    ): int {
-        return (int) $distributionItems
-            ->where('item_id', $itemId)
-            ->sum('quantity');
+        return $itemColumns
+            ->mapWithKeys(fn (Item $item): array => [
+                $item->id => (int) $rows->sum(
+                    fn (array $row): int => (int) ($row['items'][$item->id] ?? 0)
+                ),
+            ])
+            ->all();
     }
 
     private function makeCallOffLabel(?string $callOffNumber): string

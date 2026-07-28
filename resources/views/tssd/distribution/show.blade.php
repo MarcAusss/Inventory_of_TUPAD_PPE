@@ -60,31 +60,38 @@
         </section>
 
         @php
-            $ppeLabels = [
-                'lsm' => 'Longsleeve M',
-                'lsl' => 'Longsleeve L',
-                'bucket' => 'Bucket Hat',
-                'us9' => 'Boots US9',
-                'us10' => 'Boots US10',
-                'gloves' => 'Hand Gloves',
-                'mask' => 'Mask',
-            ];
+            $distributionRows = collect($distributions ?? [])->filter()->values();
 
-            /*
-             * Support either:
-             * 1. A flat collection of distribution rows, or
-             * 2. A collection already grouped by province ID.
-             */
-            $distributionRows = collect($distributions ?? []);
-
-            $distributionsByProvince = $distributionRows
-                ->flatten(1)
+            $itemColumns = $purchaseOrder->items
+                ->pluck('item')
+                ->merge(
+                    $distributionRows
+                        ->flatMap(fn ($distribution) => $distribution->items ?? collect())
+                        ->pluck('item')
+                )
                 ->filter()
-                ->groupBy(function ($row) {
-                    return $row->province_id ??
-                        ($row->tssd_province_distribution_id ??
-                            ($row->provinceDistribution?->province_id ?? $row->province?->id));
-                });
+                ->unique('id')
+                ->sortBy(fn ($item) => strtolower($item->item_name . '|' . ($item->label ?? '')))
+                ->values();
+
+            $purchasedByItem = $purchaseOrder->items
+                ->groupBy('item_id')
+                ->map(fn ($rows) => (int) $rows->sum('quantity'));
+
+            $distributedByItem = $distributionRows
+                ->flatMap(fn ($distribution) => $distribution->items ?? collect())
+                ->groupBy('item_id')
+                ->map(fn ($rows) => (int) $rows->sum('quantity'));
+
+            $remainingByItem = $itemColumns->mapWithKeys(fn ($item) => [
+                $item->id => max(
+                    0,
+                    (int) ($purchasedByItem[$item->id] ?? 0)
+                    - (int) ($distributedByItem[$item->id] ?? 0)
+                ),
+            ]);
+
+            $tableMinimumWidth = max(1100, 560 + ($itemColumns->count() * 145));
         @endphp
 
         <section class="overflow-hidden rounded-3xl border border-[#E4EEF5] bg-white shadow-sm">
@@ -93,28 +100,27 @@
                 <h2 class="mt-1 text-lg font-bold text-slate-950">Purchased and Remaining PPE</h2>
             </div>
 
-            <div class="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
-                @foreach ($ppeLabels as $key => $label)
+            <div class="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                @forelse ($itemColumns as $item)
                     <article class="rounded-2xl border border-[#E4EEF5] bg-[#F7FBFD] p-4">
-                        <p class="text-xs font-bold uppercase tracking-wide text-[#70879A]">{{ $label }}</p>
+                        <p class="text-xs font-bold uppercase tracking-wide text-black">
+                            {{ $item->item_name }}{{ $item->label ? ' (' . $item->label . ')' : '' }}
+                        </p>
 
-                        <div class="mt-4 space-y-3">
+                        <div class="mt-4 space-y-3 text-black">
                             <div class="flex items-center justify-between">
-                                <span class="text-xs font-semibold text-[#70879A]">Purchased</span>
-                                <span
-                                    class="text-lg font-bold text-[#143A52]">{{ number_format($purchased[$key] ?? 0) }}</span>
+                                <span class="text-xs font-semibold">Purchased</span>
+                                <span class="text-lg font-bold">{{ number_format((int) ($purchasedByItem[$item->id] ?? 0)) }}</span>
                             </div>
-
                             <div class="flex items-center justify-between border-t border-[#E4EEF5] pt-3">
-                                <span class="text-xs font-semibold text-[#70879A]">Remaining</span>
-                                <span
-                                    class="text-lg font-bold {{ ($remaining[$key] ?? 0) > 0 ? 'text-green-700' : 'text-slate-400' }}">
-                                    {{ number_format($remaining[$key] ?? 0) }}
-                                </span>
+                                <span class="text-xs font-semibold">Remaining</span>
+                                <span class="text-lg font-bold">{{ number_format((int) ($remainingByItem[$item->id] ?? 0)) }}</span>
                             </div>
                         </div>
                     </article>
-                @endforeach
+                @empty
+                    <p class="col-span-full py-8 text-center text-sm text-slate-500">No PPE items were found for this Purchase Order.</p>
+                @endforelse
             </div>
         </section>
 
@@ -136,203 +142,52 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="min-w-[1250px] w-full border-separate border-spacing-0">
+                <table class="w-full border-separate border-spacing-0" style="min-width: {{ $tableMinimumWidth }}px">
                     <thead>
-                        <tr class="text-xs font-bold uppercase tracking-wide text-white">
-                            <th rowspan="2"
-                                class="border-b border-r border-slate-300 bg-[#339DCB] px-5 py-4 text-left">Province
-                            </th>
-                            <th rowspan="2"
-                                class="border-b border-r border-slate-300 bg-[#339DCB] px-5 py-4 text-center">
-                                Delivery Date
-                            </th>
-                            <th rowspan="2"
-                                class="border-b border-r border-slate-300 bg-[#339DCB] px-5 py-4 text-left">
-                                Place of Delivery
-                            </th>
-                            <th colspan="3"
-                                class="border-b border-r border-slate-300 bg-[#339DCB] px-5 py-4 text-center">Long
-                                Sleeves</th>
-                            <th rowspan="2"
-                                class="border-b border-r border-slate-300 bg-[#339DCB] px-5 py-4 text-center">Bucket Hat
-                            </th>
-                            <th colspan="3"
-                                class="border-b border-r border-slate-300 bg-[#339DCB] px-5 py-4 text-center">Rubber
-                                Boots</th>
-                            <th rowspan="2"
-                                class="border-b border-r border-slate-300 bg-[#339DCB] px-5 py-4 text-center">Gloves
-                            </th>
-                            <th rowspan="2" class="border-b border-slate-300 bg-[#339DCB] px-5 py-4 text-center">Mask
-                            </th>
-                        </tr>
-
-                        <tr class="text-[11px] font-bold uppercase">
-                            <th
-                                class="border-b border-r border-slate-300 bg-[#C4ECFE] px-4 py-3 text-center text-[#143A52]">
-                                M</th>
-                            <th
-                                class="border-b border-r border-slate-300 bg-[#C4ECFE] px-4 py-3 text-center text-[#143A52]">
-                                L</th>
-                            <th
-                                class="border-b border-r border-slate-300 bg-[#C4ECFE] px-4 py-3 text-center text-[#143A52]">
-                                Total</th>
-                            <th
-                                class="border-b border-r border-slate-300 bg-[#C4ECFE] px-4 py-3 text-center text-[#143A52]">
-                                US9</th>
-                            <th
-                                class="border-b border-r border-slate-300 bg-[#C4ECFE] px-4 py-3 text-center text-[#143A52]">
-                                US10</th>
-                            <th
-                                class="border-b border-r border-slate-300 bg-[#C4ECFE] px-4 py-3 text-center text-[#143A52]">
-                                Total</th>
+                        <tr class="bg-[#2E628D] text-xs font-bold uppercase tracking-wide text-white">
+                            <th class="border-b border-r border-white/20 px-5 py-4 text-left">Province</th>
+                            <th class="border-b border-r border-white/20 px-5 py-4 text-center">Delivery Date</th>
+                            <th class="border-b border-r border-white/20 px-5 py-4 text-left">Place of Delivery</th>
+                            @foreach ($itemColumns as $item)
+                                <th class="border-b border-r border-white/20 px-4 py-4 text-center">
+                                    {{ $item->item_name }}
+                                    @if ($item->label)
+                                        <span class="block text-[10px] font-semibold normal-case opacity-90">{{ $item->label }}</span>
+                                    @endif
+                                </th>
+                            @endforeach
+                            <th class="border-b border-white/20 px-4 py-4 text-center">Total PPE</th>
                         </tr>
                     </thead>
 
-                    <tbody>
+                    <tbody class="text-black">
                         @foreach ($provinces as $province)
                             @php
-                                /*
-                                 * Find the saved provincial distribution for this province.
-                                 *
-                                 * Supports:
-                                 * - Collection of ProvinceDistribution models
-                                 * - Collection grouped by province ID
-                                 */
-                                $provinceDistribution = collect($distributions)->first(
-                                    fn($distribution): bool => (int) $distribution->province_id === (int) $province->id,
+                                $provinceDistribution = $distributionRows->first(
+                                    fn ($distribution): bool => (int) $distribution->province_id === (int) $province->id
                                 );
-
-                                /*
-                                 * In the current structure, quantities are stored in
-                                 * $provinceDistribution->items.
-                                 */
-                                $distributedItems = collect($provinceDistribution?->items ?? []);
-
-                                $lsm = $distributedItems
-                                    ->filter(function ($row) {
-                                        $name = strtolower(trim((string) $row->item?->item_name));
-
-                                        $label = strtolower(trim((string) $row->item?->label));
-
-                                        return in_array(
-                                            $name,
-                                            ['long sleeve', 'long sleeves', 'longsleeve', 'longsleeves'],
-                                            true,
-                                        ) && in_array($label, ['m', 'medium'], true);
-                                    })
-                                    ->sum('quantity');
-
-                                $lsl = $distributedItems
-                                    ->filter(function ($row) {
-                                        $name = strtolower(trim((string) $row->item?->item_name));
-
-                                        $label = strtolower(trim((string) $row->item?->label));
-
-                                        return in_array(
-                                            $name,
-                                            ['long sleeve', 'long sleeves', 'longsleeve', 'longsleeves'],
-                                            true,
-                                        ) && in_array($label, ['l', 'large'], true);
-                                    })
-                                    ->sum('quantity');
-
-                                $bucket = $distributedItems
-                                    ->filter(function ($row) {
-                                        $name = strtolower(trim((string) $row->item?->item_name));
-
-                                        return in_array($name, ['bucket hat', 'bucket hats'], true);
-                                    })
-                                    ->sum('quantity');
-
-                                $us9 = $distributedItems
-                                    ->filter(function ($row) {
-                                        $name = strtolower(trim((string) $row->item?->item_name));
-
-                                        $label = strtolower(trim((string) $row->item?->label));
-
-                                        return in_array($name, ['rubber boot', 'rubber boots'], true) &&
-                                            in_array($label, ['us9', 'us 9', '9'], true);
-                                    })
-                                    ->sum('quantity');
-
-                                $us10 = $distributedItems
-                                    ->filter(function ($row) {
-                                        $name = strtolower(trim((string) $row->item?->item_name));
-
-                                        $label = strtolower(trim((string) $row->item?->label));
-
-                                        return in_array($name, ['rubber boot', 'rubber boots'], true) &&
-                                            in_array($label, ['us10', 'us 10', '10'], true);
-                                    })
-                                    ->sum('quantity');
-
-                                $gloves = $distributedItems
-                                    ->filter(function ($row) {
-                                        $name = strtolower(trim((string) $row->item?->item_name));
-
-                                        return in_array($name, ['hand glove', 'hand gloves', 'glove', 'gloves'], true);
-                                    })
-                                    ->sum('quantity');
-
-                                $mask = $distributedItems
-                                    ->filter(function ($row) {
-                                        $name = strtolower(trim((string) $row->item?->item_name));
-
-                                        return in_array($name, ['mask', 'masks'], true);
-                                    })
-                                    ->sum('quantity');
+                                $quantities = collect($provinceDistribution?->items ?? [])
+                                    ->mapWithKeys(fn ($row) => [(int) $row->item_id => (int) $row->quantity]);
+                                $rowTotal = (int) $quantities->sum();
                             @endphp
 
                             <tr class="transition hover:bg-[#F7FBFD]">
-                                <td
-                                    class="border-b border-r border-[#E4EEF5] px-5 py-4 font-bold uppercase text-[#143A52]">
-                                    {{ $province->name }}
-                                </td>
-
-                                <td class="border-b border-r border-[#E4EEF5] px-5 py-4 text-center text-sm text-slate-700">
+                                <td class="border-b border-r border-[#E4EEF5] px-5 py-4 font-bold uppercase text-black">{{ $province->name }}</td>
+                                <td class="border-b border-r border-[#E4EEF5] px-5 py-4 text-center text-sm text-black">
                                     {{ optional($provinceDistribution?->scheduled_delivery_date)->format('M d, Y') ?? '—' }}
                                 </td>
-
-                                <td class="border-b border-r border-[#E4EEF5] px-5 py-4 text-left text-sm text-slate-700">
+                                <td class="border-b border-r border-[#E4EEF5] px-5 py-4 text-left text-sm text-black">
                                     {{ $provinceDistribution?->place_of_delivery ?? '—' }}
                                 </td>
 
-                                <td class="border-b border-r border-[#E4EEF5] px-4 py-4 text-center">
-                                    {{ number_format($lsm) }}
-                                </td>
+                                @foreach ($itemColumns as $item)
+                                    <td class="border-b border-r border-[#E4EEF5] px-4 py-4 text-center text-black">
+                                        {{ number_format((int) ($quantities[$item->id] ?? 0)) }}
+                                    </td>
+                                @endforeach
 
-                                <td class="border-b border-r border-[#E4EEF5] px-4 py-4 text-center">
-                                    {{ number_format($lsl) }}
-                                </td>
-
-                                <td
-                                    class="border-b border-r border-[#E4EEF5] bg-[#E9FFFF]/70 px-4 py-4 text-center font-bold text-[#2D94BE]">
-                                    {{ number_format($lsm + $lsl) }}
-                                </td>
-
-                                <td class="border-b border-r border-[#E4EEF5] px-4 py-4 text-center">
-                                    {{ number_format($bucket) }}
-                                </td>
-
-                                <td class="border-b border-r border-[#E4EEF5] px-4 py-4 text-center">
-                                    {{ number_format($us9) }}
-                                </td>
-
-                                <td class="border-b border-r border-[#E4EEF5] px-4 py-4 text-center">
-                                    {{ number_format($us10) }}
-                                </td>
-
-                                <td
-                                    class="border-b border-r border-[#E4EEF5] bg-[#E9FFFF]/70 px-4 py-4 text-center font-bold text-[#2D94BE]">
-                                    {{ number_format($us9 + $us10) }}
-                                </td>
-
-                                <td class="border-b border-r border-[#E4EEF5] px-4 py-4 text-center">
-                                    {{ number_format($gloves) }}
-                                </td>
-
-                                <td class="border-b border-[#E4EEF5] px-4 py-4 text-center">
-                                    {{ number_format($mask) }}
+                                <td class="border-b border-[#E4EEF5] bg-sky-50 px-4 py-4 text-center font-black text-black">
+                                    {{ number_format($rowTotal) }}
                                 </td>
                             </tr>
                         @endforeach

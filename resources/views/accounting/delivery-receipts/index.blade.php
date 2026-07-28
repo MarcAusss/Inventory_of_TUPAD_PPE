@@ -1,4 +1,4 @@
-<x-po_dashboard_layout title="Delivery Receipt Summary">
+<x-po_dashboard_layout title="Summary of Delivery Receipt">
     <div
         x-data="{
             modalOpen: false,
@@ -49,7 +49,7 @@
         class="mx-auto max-w-[1900px] space-y-6"
     >
         <x-accounting-summary-header
-            title="Delivery Receipt Summary"
+            title="Summary of Delivery Receipt"
             description="Read-only monitoring of Delivery Receipts submitted by provincial offices."
         />
 

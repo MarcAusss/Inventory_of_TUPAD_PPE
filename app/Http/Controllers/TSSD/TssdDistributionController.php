@@ -4,6 +4,7 @@ namespace App\Http\Controllers\TSSD;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TSSD\StoreTssdDistributionRequest;
+use App\Models\Item;
 use App\Models\Province;
 use App\Models\ProvinceDistributionItem;
 use App\Models\PurchaseOrder;
@@ -52,7 +53,7 @@ class TssdDistributionController extends Controller
                 'items.item',
             ])
             ->whereIn('status', [
-                'Pending Distribution', 
+                'Pending Distribution',
                 'Distributed',
             ])
             ->latest('po_date')
@@ -62,36 +63,22 @@ class TssdDistributionController extends Controller
             ->orderBy('name')
             ->get();
 
-        $purchaseOrderId = $request->integer('purchase_order_id');
-
-        /*
-         * This legacy collection is temporarily retained because the current
-         * Blade page still displays records from tssd_distributions.
-         *
-         * It will be removed after the create page is migrated fully to the
-         * normalized batch and province-distribution structure.
-         */
-        $provinceDistributions = collect();
-
-        if ($purchaseOrderId) {
-            $provinceDistributions = TSSDDistribution::query()
-                ->with([
-                    'province',
-                    'item',
-                ])
-                ->where(
-                    'purchase_order_id',
-                    $purchaseOrderId
-                )
-                ->get()
-                ->groupBy('province_id');
-        }
+        $activeItems = Item::query()
+            ->where('is_active', true)
+            ->orderBy('item_name')
+            ->orderBy('label')
+            ->get([
+                'id',
+                'item_name',
+                'label',
+                'unit_of_measurement',
+            ]);
 
         return view('tssd.distribution.create', [
             'purchaseOrders' => $purchaseOrders,
             'provinces' => $provinces,
-            'provinceDistributions' => $provinceDistributions,
-            'purchaseOrderId' => $purchaseOrderId,
+            'activeItems' => $activeItems,
+            'purchaseOrderId' => $request->integer('purchase_order_id'),
             'defaultNefaTitle' => self::DEFAULT_NEFA_TITLE,
         ]);
     }
@@ -141,53 +128,53 @@ class TssdDistributionController extends Controller
             ->get()
             ->keyBy('id');
 
+        $itemIds = collect($data['distributions'])
+            ->flatMap(function (array $distribution): array {
+                return collect($distribution['items'] ?? [])
+                    ->filter(fn ($quantity): bool => (int) $quantity > 0)
+                    ->keys()
+                    ->map(fn ($id): int => (int) $id)
+                    ->all();
+            })
+            ->unique()
+            ->values();
+
+        $itemColumns = Item::query()
+            ->whereIn('id', $itemIds)
+            ->orderBy('item_name')
+            ->orderBy('label')
+            ->get([
+                'id',
+                'item_name',
+                'label',
+                'unit_of_measurement',
+            ]);
+
         $rows = collect($data['distributions'])
             ->map(function (array $distribution) use ($provinces): array {
-                $province = $provinces->get(
-                    (int) $distribution['province_id']
-                );
+                $province = $provinces->get((int) $distribution['province_id']);
 
                 return [
                     'province' => $province?->name ?? '—',
-                    'place_of_delivery' =>
-                        $province?->deliveryLocation()
+                    'place_of_delivery' => $province?->deliveryLocation()
                         ?? ($distribution['place_of_delivery'] ?? '—'),
-                    'delivery_date' =>
-                        $distribution['scheduled_delivery_date'] ?? null,
-                    'long_sleeve_medium' =>
-                        (int) ($distribution['long_sleeve_medium'] ?? 0),
-                    'long_sleeve_large' =>
-                        (int) ($distribution['long_sleeve_large'] ?? 0),
-                    'bucket_hat' =>
-                        (int) ($distribution['bucket_hat'] ?? 0),
-                    'rubber_boots_us9' =>
-                        (int) ($distribution['rubber_boots_us9'] ?? 0),
-                    'rubber_boots_us10' =>
-                        (int) ($distribution['rubber_boots_us10'] ?? 0),
-                    'hand_gloves' =>
-                        (int) ($distribution['hand_gloves'] ?? 0),
-                    'face_mask' =>
-                        (int) ($distribution['mask'] ?? 0),
+                    'delivery_date' => $distribution['scheduled_delivery_date'] ?? null,
+                    'items' => collect($distribution['items'] ?? [])
+                        ->mapWithKeys(fn ($quantity, $itemId): array => [
+                            (int) $itemId => (int) $quantity,
+                        ])
+                        ->all(),
                 ];
             })
             ->values();
 
-        $totals = [
-            'long_sleeve_medium' =>
-                (int) $rows->sum('long_sleeve_medium'),
-            'long_sleeve_large' =>
-                (int) $rows->sum('long_sleeve_large'),
-            'bucket_hat' =>
-                (int) $rows->sum('bucket_hat'),
-            'rubber_boots_us9' =>
-                (int) $rows->sum('rubber_boots_us9'),
-            'rubber_boots_us10' =>
-                (int) $rows->sum('rubber_boots_us10'),
-            'hand_gloves' =>
-                (int) $rows->sum('hand_gloves'),
-            'face_mask' =>
-                (int) $rows->sum('face_mask'),
-        ];
+        $totals = $itemColumns
+            ->mapWithKeys(fn (Item $item): array => [
+                $item->id => (int) $rows->sum(
+                    fn (array $row): int => (int) ($row['items'][$item->id] ?? 0)
+                ),
+            ])
+            ->all();
 
         $batch = new TssdDistributionBatch([
             'distribution_date' => now()->toDateString(),
@@ -206,9 +193,9 @@ class TssdDistributionController extends Controller
             'purchaseOrder' => $purchaseOrder,
             'rows' => $rows,
             'totals' => $totals,
+            'itemColumns' => $itemColumns,
             'nefaTitle' => $data['nefa_title'],
-            'callOffLabel' =>
-                'assignment of an official Call-Off Number for the distribution',
+            'callOffLabel' => 'assignment of an official Call-Off Number for the distribution',
             'printDistributionBatch' => 'Draft Preview',
             'printTotalAmount' => $data['print_total_amount'],
             'printMargins' => [
@@ -450,101 +437,55 @@ class TssdDistributionController extends Controller
     public function getRemaining(int $poId): JsonResponse
     {
         $purchaseOrder = PurchaseOrder::query()
-            ->with([
-                'items.item',
-            ])
+            ->with('items.item')
             ->findOrFail($poId);
 
-        $purchased = $this->emptyPpeSummary();
-
-        foreach ($purchaseOrder->items as $purchaseOrderItem) {
-            $key = $this->mapKey(
-                $purchaseOrderItem->item?->item_name,
-                $purchaseOrderItem->item?->label
-            );
-
-            if ($key === null) {
-                continue;
-            }
-
-            $purchased[$key] +=
-                (int) $purchaseOrderItem->quantity;
-        }
-
-        $legacyRows = DB::table('tssd_distributions')
-            ->join(
-                'items',
-                'items.id',
-                '=',
-                'tssd_distributions.item_id'
-            )
-            ->where(
-                'tssd_distributions.purchase_order_id',
-                $poId
-            )
-            ->select(
-                'items.item_name',
-                'items.label',
-                DB::raw(
-                    'SUM(tssd_distributions.quantity) as total_quantity'
-                )
-            )
-            ->groupBy(
-                'items.item_name',
-                'items.label'
-            )
+        $activeItems = Item::query()
+            ->where('is_active', true)
+            ->orderBy('item_name')
+            ->orderBy('label')
             ->get();
 
-        $used = $this->emptyPpeSummary();
+        $purchased = $activeItems
+            ->mapWithKeys(fn (Item $item): array => [$item->id => 0])
+            ->all();
 
-        foreach ($legacyRows as $row) {
-            $key = $this->mapKey(
-                $row->item_name,
-                $row->label
-            );
+        foreach ($purchaseOrder->items as $purchaseOrderItem) {
+            $itemId = (int) $purchaseOrderItem->item_id;
 
-            if ($key === null) {
+            if (!array_key_exists($itemId, $purchased)) {
                 continue;
             }
 
-            $used[$key] += (int) $row->total_quantity;
+            $purchased[$itemId] += (int) $purchaseOrderItem->quantity;
         }
 
-        $normalizedRows = ProvinceDistributionItem::query()
+        $legacyUsed = TSSDDistribution::query()
+            ->where('purchase_order_id', $poId)
+            ->selectRaw('item_id, SUM(quantity) as total_quantity')
+            ->groupBy('item_id')
+            ->pluck('total_quantity', 'item_id');
+
+        $normalizedUsed = ProvinceDistributionItem::query()
             ->whereHas(
                 'provinceDistribution.distributionBatch',
                 function ($query) use ($poId): void {
-                    $query
-                        ->where('purchase_order_id', $poId)
+                    $query->where('purchase_order_id', $poId)
                         ->where('status', '!=', 'Cancelled');
                 }
             )
-            ->with('item')
-            ->selectRaw(
-                'item_id, SUM(quantity) as total_quantity'
-            )
+            ->selectRaw('item_id, SUM(quantity) as total_quantity')
             ->groupBy('item_id')
-            ->get();
-
-        foreach ($normalizedRows as $row) {
-            $key = $this->mapKey(
-                $row->item?->item_name,
-                $row->item?->label
-            );
-
-            if ($key === null) {
-                continue;
-            }
-
-            $used[$key] += (int) $row->total_quantity;
-        }
+            ->pluck('total_quantity', 'item_id');
 
         $remaining = [];
 
-        foreach ($purchased as $key => $quantity) {
-            $remaining[$key] = max(
+        foreach ($purchased as $itemId => $quantity) {
+            $remaining[$itemId] = max(
                 0,
-                $quantity - ($used[$key] ?? 0)
+                (int) $quantity
+                    - (int) ($legacyUsed[$itemId] ?? 0)
+                    - (int) ($normalizedUsed[$itemId] ?? 0)
             );
         }
 

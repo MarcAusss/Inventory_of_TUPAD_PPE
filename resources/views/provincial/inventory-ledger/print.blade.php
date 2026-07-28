@@ -161,7 +161,7 @@
 
                 <th rowspan="3"
                     class="print-color-exact w-[52px] border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center align-middle font-bold text-white">
-                    Date of Delivery
+                    Delivery Date
                 </th>
 
                 <th rowspan="3"
@@ -184,17 +184,17 @@
                     No. of Days
                 </th>
 
-                <th colspan="7"
+                <th colspan="8"
                     class="print-color-exact border border-[#333] bg-[#0284C7] px-0.5 py-[3px] text-center align-middle font-bold text-white">
                     Beginning Inventory
                 </th>
 
-                <th colspan="7"
+                <th colspan="8"
                     class="print-color-exact border border-[#333] bg-[#0EA5E9] px-0.5 py-[3px] text-center align-middle font-bold text-white">
                     Actual Distribution
                 </th>
 
-                <th colspan="7"
+                <th colspan="8"
                     class="print-color-exact border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center align-middle font-bold text-white">
                     Ending Inventory
                 </th>
@@ -216,6 +216,9 @@
                 <th rowspan="2"
                     class="print-color-exact border border-[#333] bg-[#0284C7] px-0.5 py-[3px] text-center font-bold text-white">
                     Mask</th>
+                <th rowspan="2" title="Beginning inventory subtotal"
+                    class="print-color-exact w-[24px] border border-[#333] bg-[#0284C7] px-0.5 py-[3px] text-center text-[6px] font-extrabold text-white">
+                    Σ</th>
 
                 <th colspan="2"
                     class="print-color-exact border border-[#333] bg-[#0EA5E9] px-0.5 py-[3px] text-center font-bold text-white">
@@ -232,6 +235,9 @@
                 <th rowspan="2"
                     class="print-color-exact border border-[#333] bg-[#0EA5E9] px-0.5 py-[3px] text-center font-bold text-white">
                     Mask</th>
+                <th rowspan="2" title="Actual distribution subtotal"
+                    class="print-color-exact w-[24px] border border-[#333] bg-[#0EA5E9] px-0.5 py-[3px] text-center text-[6px] font-extrabold text-white">
+                    Σ</th>
 
                 <th colspan="2"
                     class="print-color-exact border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center font-bold text-white">
@@ -248,6 +254,9 @@
                 <th rowspan="2"
                     class="print-color-exact border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center font-bold text-white">
                     Mask</th>
+                <th rowspan="2" title="Ending inventory subtotal"
+                    class="print-color-exact w-[24px] border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center text-[6px] font-extrabold text-white">
+                    Σ</th>
             </tr>
 
             <tr>
@@ -337,6 +346,11 @@
                         </td>
                     @endforeach
 
+                    <td title="Beginning inventory subtotal"
+                        class="print-color-exact w-[24px] border border-[#333] bg-slate-100 px-0.5 py-[3px] text-center align-middle text-[6px] font-extrabold text-black break-words">
+                        {{ number_format((int) ($row['beginning_total'] ?? collect($beginning)->sum())) }}
+                    </td>
+
                     @foreach ($ppeItemIds as $itemId)
                         <td
                             class="print-color-exact border border-[#333] bg-red-50 px-0.5 py-[3px] text-center align-middle font-bold break-words">
@@ -344,16 +358,26 @@
                         </td>
                     @endforeach
 
+                    <td title="Actual distribution subtotal"
+                        class="print-color-exact w-[24px] border border-[#333] bg-red-100 px-0.5 py-[3px] text-center align-middle text-[6px] font-extrabold text-black break-words">
+                        {{ number_format((int) ($row['actual_total'] ?? collect($actual)->sum())) }}
+                    </td>
+
                     @foreach ($ppeItemIds as $itemId)
                         <td
                             class="print-color-exact border border-[#333] bg-neutral-50 px-0.5 py-[3px] text-center align-middle font-bold break-words">
                             {{ number_format((int) ($ending[$itemId] ?? 0)) }}
                         </td>
                     @endforeach
+
+                    <td title="Ending inventory subtotal"
+                        class="print-color-exact w-[24px] border border-[#333] bg-neutral-100 px-0.5 py-[3px] text-center align-middle text-[6px] font-extrabold text-black break-words">
+                        {{ number_format((int) ($row['ending_total'] ?? collect($ending)->sum())) }}
+                    </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="30" class="border border-[#333] px-2 py-6 text-center text-[8px]">
+                    <td colspan="33" class="border border-[#333] px-2 py-6 text-center text-[8px]">
                         No project distribution records were found for this Delivery Receipt.
                     </td>
                 </tr>

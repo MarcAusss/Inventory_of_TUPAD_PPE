@@ -1272,7 +1272,7 @@
                                            border-r border-white/20
                                            px-4 py-4 text-left"
                                 >
-                                    Date of Delivery
+                                    Delivery Date
                                 </th>
 
                                 <th
@@ -1312,7 +1312,7 @@
                                 </th>
 
                                 <th
-                                    colspan="7"
+                                    colspan="8"
                                     class="border-r border-white/20
                                            bg-[#2E628D]
                                            px-4 py-4 text-center
@@ -1323,7 +1323,7 @@
                                 </th>
 
                                 <th
-                                    colspan="7"
+                                    colspan="8"
                                     class="border-r border-white/20
                                            bg-[#3B82C4]
                                            px-4 py-4 text-center
@@ -1334,7 +1334,7 @@
                                 </th>
 
                                 <th
-                                    colspan="7"
+                                    colspan="8"
                                     class="bg-[#244E70]
                                            px-4 py-4 text-center
                                            font-bold uppercase
@@ -1407,6 +1407,20 @@
                                             {{ $sectionColor }}"
                                     >
                                         Mask
+                                    </th>
+
+                                    <th
+                                        rowspan="2"
+                                        class="w-[58px] min-w-[58px]
+                                               border-r border-white/25
+                                               px-1.5 py-3 text-center
+                                               text-[11px] font-extrabold"
+                                        style="background-color:
+                                            {{ $sectionColor }}"
+                                        title="Section subtotal"
+                                        aria-label="Section subtotal"
+                                    >
+                                        Σ
                                     </th>
                                 @endforeach
                             </tr>
@@ -1774,6 +1788,24 @@
                                         </td>
                                     @endforeach
 
+                                    <td
+                                        class="w-[58px] min-w-[58px]
+                                               border-r border-slate-200
+                                               bg-slate-100 px-1.5 py-4
+                                               text-center text-[11px]
+                                               font-extrabold text-black"
+                                        title="Beginning inventory subtotal"
+                                    >
+                                        {{
+                                            number_format(
+                                                (int) (
+                                                    $row['beginning_total']
+                                                    ?? collect($beginning)->sum()
+                                                )
+                                            )
+                                        }}
+                                    </td>
+
                                     {{-- Actual distribution --}}
                                     @foreach(
                                         array_keys($ppeColumns)
@@ -1809,6 +1841,24 @@
                                         </td>
                                     @endforeach
 
+                                    <td
+                                        class="w-[58px] min-w-[58px]
+                                               border-r border-[#B8D9EE]/40
+                                               bg-[#B8D9EE]/20 px-1.5 py-4
+                                               text-center text-[11px]
+                                               font-extrabold text-black"
+                                        title="Actual distribution subtotal"
+                                    >
+                                        {{
+                                            number_format(
+                                                (int) (
+                                                    $row['actual_total']
+                                                    ?? collect($actual)->sum()
+                                                )
+                                            )
+                                        }}
+                                    </td>
+
                                     {{-- Ending inventory --}}
                                     @foreach(
                                         array_keys($ppeColumns)
@@ -1843,6 +1893,24 @@
                                             }}
                                         </td>
                                     @endforeach
+
+                                    <td
+                                        class="w-[58px] min-w-[58px]
+                                               border-r border-slate-200
+                                               bg-slate-100 px-1.5 py-4
+                                               text-center text-[11px]
+                                               font-extrabold text-black"
+                                        title="Ending inventory subtotal"
+                                    >
+                                        {{
+                                            number_format(
+                                                (int) (
+                                                    $row['ending_total']
+                                                    ?? collect($ending)->sum()
+                                                )
+                                            )
+                                        }}
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -1872,6 +1940,11 @@
                         <span>
                             <strong>Ending</strong>
                             = Beginning − Actual Distribution
+                        </span>
+
+                        <span>
+                            <strong>Σ</strong>
+                            = compact subtotal for that inventory section
                         </span>
                     </div>
 
