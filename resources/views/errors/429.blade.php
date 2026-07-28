@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -64,31 +63,23 @@ body {
     color: #666;
     font-weight: 500;
 }
-.access-denied {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
 
-    padding: 6px 16px;
-    margin: 4px 0;
 
+.back-button {
+    display: inline-block;
+    padding: 8px 18px;
     border: 1.5px solid #1f4a9d;
-    border-radius: 25px;
-
-    background: #fff;
-}
-
-.access-denied .lock {
-    font-size: 18px;
-    color: #f4b400;
-}
-
-.access-denied .text {
+    border-radius: 6px;
+    background: #1f4a9d;
+    color: #fff;
     font-size: 14px;
     font-weight: 600;
-    color: #b22222;
-    letter-spacing: 1px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.back-button:hover {
+    background: #163a7d;
 }
 
 .system-name {
@@ -108,11 +99,13 @@ body {
 
         <div class="content">
             <h3>429 | TOO MANY REQUEST </h3>
-            <p>You have made too many requests in a short period.</p>
-
-</div>
-<span class="system-name">
+            <p> You have made too many requests in a short period.</p>
             <span>TUPAD | Tulong Panghanapbuhay sa ating Disadvantaged Workers</span>
+           
+             <a class="back-button" href="javascript:history.back()">Go Back</a>
+<span class="system-name">
+  
+            
         </div>
 
     </div>
