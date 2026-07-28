@@ -46,7 +46,7 @@
 
                 <select name="status"
                     class="rounded-xl border-slate-300 focus:border-[#339DCB] focus:ring-[#339DCB]">
-                    <option value="">All statuses</option>
+                    <option value="">All status</option>
                     @foreach (['Pending Call-Off Number', 'Approved', 'Rejected'] as $statusOption)
                         <option value="{{ $statusOption }}" @selected($status === $statusOption)>
                             {{ $statusOption }}

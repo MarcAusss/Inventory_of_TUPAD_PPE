@@ -511,7 +511,7 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full min-w-[1250px] border-collapse text-sm">
+                <table class="ppe-grouped-summary-table w-full min-w-[1250px] border-collapse text-sm">
                     <thead class="text-white">
                         <tr class="bg-[#244E70]">
                             <th
@@ -629,48 +629,44 @@
                     </tbody>
 
                     <tfoot>
-                        <tr class="bg-[#244E70] text-white">
-                            <td class="border border-[#4F8DB8] px-5 py-4 text-right font-bold uppercase tracking-wide">
+                        <tr class="border-t-2 border-[#B7D6E6] bg-[#F7FBFD] text-black">
+                            <td class="border border-[#B7D6E6] px-5 py-4 text-right font-bold uppercase tracking-wide">
                                 Consolidated Total
                             </td>
 
-                            <td class="border border-[#4F8DB8] px-4 py-4 text-center font-bold">
-                                {{ number_format($provincialInventoryByProvince->sum(fn ($row) => $row['quantities'][1] ?? 0)) }}
-                            </td>
+                            {{-- Size totals are intentionally hidden here.
+                                 The grouped Long Sleeves total is shown only once. --}}
+                            <td class="border border-[#B7D6E6] px-4 py-4 text-center font-bold" aria-label="Included in Long Sleeves total"></td>
 
-                            <td class="border border-[#4F8DB8] px-4 py-4 text-center font-bold">
-                                {{ number_format($provincialInventoryByProvince->sum(fn ($row) => $row['quantities'][2] ?? 0)) }}
-                            </td>
+                            <td class="border border-[#B7D6E6] px-4 py-4 text-center font-bold" aria-label="Included in Long Sleeves total"></td>
 
-                            <td class="border border-[#4F8DB8] bg-[#2E628D] px-4 py-4 text-center font-bold">
+                            <td class="border border-[#B7D6E6] bg-[#EAF6FC] px-4 py-4 text-center font-bold">
                                 {{ number_format($provincialInventoryByProvince->sum('long_sleeve_total')) }}
                             </td>
 
-                            <td class="border border-[#4F8DB8] px-4 py-4 text-center font-bold">
+                            <td class="border border-[#B7D6E6] px-4 py-4 text-center font-bold">
                                 {{ number_format($provincialInventoryByProvince->sum(fn ($row) => $row['quantities'][3] ?? 0)) }}
                             </td>
 
-                            <td class="border border-[#4F8DB8] px-4 py-4 text-center font-bold">
-                                {{ number_format($provincialInventoryByProvince->sum(fn ($row) => $row['quantities'][4] ?? 0)) }}
-                            </td>
+                            {{-- Size totals are intentionally hidden here.
+                                 The grouped Rubber Boots total is shown only once. --}}
+                            <td class="border border-[#B7D6E6] px-4 py-4 text-center font-bold" aria-label="Included in Rubber Boots total"></td>
 
-                            <td class="border border-[#4F8DB8] px-4 py-4 text-center font-bold">
-                                {{ number_format($provincialInventoryByProvince->sum(fn ($row) => $row['quantities'][5] ?? 0)) }}
-                            </td>
+                            <td class="border border-[#B7D6E6] px-4 py-4 text-center font-bold" aria-label="Included in Rubber Boots total"></td>
 
-                            <td class="border border-[#4F8DB8] bg-[#2E628D] px-4 py-4 text-center font-bold">
+                            <td class="border border-[#B7D6E6] bg-[#EAF6FC] px-4 py-4 text-center font-bold">
                                 {{ number_format($provincialInventoryByProvince->sum('rubber_boots_total')) }}
                             </td>
 
-                            <td class="border border-[#4F8DB8] px-4 py-4 text-center font-bold">
+                            <td class="border border-[#B7D6E6] px-4 py-4 text-center font-bold">
                                 {{ number_format($provincialInventoryByProvince->sum(fn ($row) => $row['quantities'][6] ?? 0)) }}
                             </td>
 
-                            <td class="border border-[#4F8DB8] px-4 py-4 text-center font-bold">
+                            <td class="border border-[#B7D6E6] px-4 py-4 text-center font-bold">
                                 {{ number_format($provincialInventoryByProvince->sum(fn ($row) => $row['quantities'][7] ?? 0)) }}
                             </td>
 
-                            <td class="border border-[#4F8DB8] bg-[#2E628D] px-4 py-4 text-center text-base font-bold">
+                            <td class="border border-[#B7D6E6] bg-[#EAF6FC] px-4 py-4 text-center text-base font-bold">
                                 {{ number_format($provincialInventoryByProvince->sum('total_ppe')) }}
                             </td>
                         </tr>

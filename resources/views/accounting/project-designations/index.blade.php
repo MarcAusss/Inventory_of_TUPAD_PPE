@@ -130,7 +130,7 @@
                            focus:ring-[#339DCB]">
 
                     <option value="">
-                        All provinces
+                        Select province
                     </option>
 
                     @foreach ($provinces as $province)
@@ -157,7 +157,7 @@
                            focus:ring-[#339DCB]">
 
                     <option value="">
-                        All statuses
+                        All status
                     </option>
 
                     @foreach ($statuses as $statusOption)

@@ -270,7 +270,7 @@
             <div class="overflow-x-auto">
 
                 <table
-                    class="w-full min-w-[1250px]
+                    class="ppe-grouped-summary-table w-full min-w-[1250px]
                            border-collapse">
 
                     <thead
@@ -515,17 +515,11 @@
                                     Consolidated Total
                                 </td>
 
-                                <td class="px-4 py-4 text-center">
-                                    {{ number_format(
-                                        $totals['long_medium']
-                                    ) }}
-                                </td>
+                                {{-- Size totals are intentionally hidden here.
+                                     The grouped Long Sleeves total is shown only once. --}}
+                                <td class="px-4 py-4 text-center" aria-label="Included in Long Sleeves total"></td>
 
-                                <td class="px-4 py-4 text-center">
-                                    {{ number_format(
-                                        $totals['long_large']
-                                    ) }}
-                                </td>
+                                <td class="px-4 py-4 text-center" aria-label="Included in Long Sleeves total"></td>
 
                                 <td class="px-4 py-4 text-center">
                                     {{ number_format(
@@ -539,17 +533,11 @@
                                     ) }}
                                 </td>
 
-                                <td class="px-4 py-4 text-center">
-                                    {{ number_format(
-                                        $totals['boots_9']
-                                    ) }}
-                                </td>
+                                {{-- Size totals are intentionally hidden here.
+                                     The grouped Rubber Boots total is shown only once. --}}
+                                <td class="px-4 py-4 text-center" aria-label="Included in Rubber Boots total"></td>
 
-                                <td class="px-4 py-4 text-center">
-                                    {{ number_format(
-                                        $totals['boots_10']
-                                    ) }}
-                                </td>
+                                <td class="px-4 py-4 text-center" aria-label="Included in Rubber Boots total"></td>
 
                                 <td class="px-4 py-4 text-center">
                                     {{ number_format(

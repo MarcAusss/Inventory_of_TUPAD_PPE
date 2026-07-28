@@ -148,7 +148,9 @@
 
                     <select id="province_id" name="province_id"
                         class="block w-full rounded-xl border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-[#0284C7] focus:ring-[#0284C7]">
-                        <option value="">All provinces</option>
+                        <option value="">
+                            Select province
+                        </option>
 
                         @foreach ($provinces as $province)
                             <option value="{{ $province->id }}" @selected((int) $provinceId === (int) $province->id)>

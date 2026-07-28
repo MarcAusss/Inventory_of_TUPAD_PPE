@@ -118,3 +118,103 @@
         animation: none;
     }
 }
+@layer components {
+    /*
+     * Shared table styling
+     * The first row inside each table header is the main #2E628D header.
+     * Secondary/grouped header rows are styled separately below.
+     */
+    .app-dashboard-shell table > thead > tr:first-child > th {
+        background-color: #2E628D !important;
+        color: #ffffff !important;
+        border-color: rgb(255 255 255 / 0.2) !important;
+    }
+
+    .app-dashboard-shell table > thead > tr:first-child > th:first-child {
+        border-top-left-radius: inherit;
+    }
+
+    .app-dashboard-shell table > thead > tr:first-child > th:last-child {
+        border-top-right-radius: inherit;
+    }
+
+    /*
+     * Secondary/grouped table headers such as M, L, Total, US9, and US10.
+     * The exact requested color is #2e628dde.
+     */
+    .app-dashboard-shell table > thead > tr:not(:first-child) > th {
+        background-color: #2e628dde !important;
+        color: #ffffff !important;
+        border-color: rgb(255 255 255 / 0.2) !important;
+    }
+
+    /*
+     * Plain table data stays black throughout the dashboard.
+     * Badges, links, and action controls can still keep their own explicit colors.
+     */
+    .app-dashboard-shell table > tbody > tr > td,
+    .app-dashboard-shell .ppe-grouped-summary-table > tfoot > tr > td {
+        color: #000000 !important;
+    }
+
+    /*
+     * Table action controls remain fixed icon-only buttons.
+     * Their action wording is available through the native browser tooltip
+     * and accessible aria-label added by resources/js/app.js.
+     */
+    .app-dashboard-shell .table-action-control {
+        display: inline-flex !important;
+        width: 40px !important;
+        min-width: 40px !important;
+        max-width: 40px !important;
+        height: 40px !important;
+        min-height: 40px !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 0 !important;
+        overflow: hidden !important;
+        white-space: nowrap !important;
+        padding: 0 !important;
+        border-radius: 12px !important;
+        vertical-align: middle !important;
+        text-decoration: none !important;
+        line-height: 1 !important;
+        cursor: pointer;
+        transition:
+            background-color 180ms ease,
+            border-color 180ms ease,
+            color 180ms ease !important;
+    }
+
+    .app-dashboard-shell .table-action-control:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px rgb(46 98 141 / 0.22);
+    }
+
+    .app-dashboard-shell .table-action-icon {
+        display: inline-flex;
+        width: 20px;
+        min-width: 20px;
+        height: 20px;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 20px;
+    }
+
+    .app-dashboard-shell .table-action-icon svg {
+        width: 20px;
+        height: 20px;
+        display: block;
+    }
+
+    .app-dashboard-shell td form:has(> .table-action-control) {
+        display: inline-flex;
+        vertical-align: middle;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app-dashboard-shell .table-action-control {
+        transition: none !important;
+    }
+}

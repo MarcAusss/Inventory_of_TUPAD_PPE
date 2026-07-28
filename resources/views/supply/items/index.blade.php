@@ -175,7 +175,7 @@
                             focus:border-[#339DCB] focus:ring-[#339DCB]"
                     >
                         <option value="">
-                            All statuses
+                            All status
                         </option>
 
                         <option value="active" @selected($status === 'active')>

@@ -25,7 +25,7 @@
     </style>
 </head>
 
-<body class="bg-[#F7FBFD] font-sans text-[#36566E]">
+<body class="app-dashboard-shell bg-[#F7FBFD] font-sans text-[#36566E]">
 
     @php
         $user = auth()->user();

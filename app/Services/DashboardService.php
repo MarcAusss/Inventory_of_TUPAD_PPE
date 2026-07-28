@@ -797,7 +797,7 @@ class DashboardService extends BaseService
                         'masks'
                     ),
 
-                    'unit' => 'boxes',
+                    'unit' => 'piece',
                 ],
             ],
         ];

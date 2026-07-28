@@ -63,7 +63,7 @@
 
                 <select name="province_id"
                     class="rounded-xl border-slate-300 focus:border-[#339DCB] focus:ring-[#339DCB]">
-                    <option value="">All provinces</option>
+                    <option value="">Select province</option>
 
                     @foreach ($provinces as $province)
                         <option value="{{ $province->id }}" @selected((int) $provinceId === (int) $province->id)>
@@ -73,7 +73,7 @@
                 </select>
 
                 <select name="status" class="rounded-xl border-slate-300 focus:border-[#339DCB] focus:ring-[#339DCB]">
-                    <option value="">All statuses</option>
+                    <option value="">All status</option>
 
                     @foreach (['Pending', 'Approved', 'For Delivery', 'Partially Received', 'Received', 'Cancelled'] as $option)
                         <option value="{{ $option }}" @selected($status === $option)>
@@ -101,7 +101,7 @@
                         <tr>
                             <th class="px-5 py-4 text-left">Batch</th>
                             <th class="px-5 py-4 text-left">PO</th>
-                            <th class="px-5 py-4 text-left">Call-Off</th>
+                            <th class="px-5 py-4 text-left">Call-Off No.</th>
                             <th class="px-5 py-4 text-left">Province</th>
                             <th class="px-5 py-4 text-left">Supplier</th>
                             <th class="px-5 py-4 text-left">Scheduled Delivery</th>

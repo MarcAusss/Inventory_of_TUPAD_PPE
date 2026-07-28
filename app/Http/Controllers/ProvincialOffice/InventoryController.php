@@ -386,7 +386,7 @@ class InventoryController extends Controller
         );
 
         return match (true) {
-            $normalizedName === 'long sleeve'
+            $normalizedName === 'longsleeve'
                 && in_array(
                     $normalizedLabel,
                     [
@@ -396,7 +396,7 @@ class InventoryController extends Controller
                     true
                 ) => 'long_sleeve_medium',
 
-            $normalizedName === 'long sleeve'
+            $normalizedName === 'longsleeve'
                 && in_array(
                     $normalizedLabel,
                     [
