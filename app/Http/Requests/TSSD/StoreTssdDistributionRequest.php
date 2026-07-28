@@ -301,10 +301,10 @@ class StoreTssdDistributionRequest extends FormRequest
                 'One of the delivery dates is invalid.',
 
             'distributions.*.long_sleeve_medium.required' =>
-                'The Long Sleeve Medium quantity is required.',
+                'The Longsleeve Medium quantity is required.',
 
             'distributions.*.long_sleeve_large.required' =>
-                'The Long Sleeve Large quantity is required.',
+                'The Longsleeve Large quantity is required.',
 
             'distributions.*.bucket_hat.required' =>
                 'The Bucket Hat quantity is required.',
@@ -348,8 +348,8 @@ class StoreTssdDistributionRequest extends FormRequest
             'distributions.*.province_id' => 'province',
             'distributions.*.scheduled_delivery_date' => 'delivery date',
             'distributions.*.place_of_delivery' => 'place of delivery',
-            'distributions.*.long_sleeve_medium' => 'Long Sleeve Medium',
-            'distributions.*.long_sleeve_large' => 'Long Sleeve Large',
+            'distributions.*.long_sleeve_medium' => 'Longsleeve Medium',
+            'distributions.*.long_sleeve_large' => 'Longsleeve Large',
             'distributions.*.bucket_hat' => 'Bucket Hat',
             'distributions.*.rubber_boots_us9' => 'Rubber Boots US9',
             'distributions.*.rubber_boots_us10' => 'Rubber Boots US10',

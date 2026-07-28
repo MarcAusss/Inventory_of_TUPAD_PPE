@@ -24,12 +24,12 @@ class DistributionService
      */
     private array $ppeMap = [
         'long_sleeve_medium' => [
-            'name' => 'Long Sleeve',
+            'name' => 'Longsleeve',
             'label' => 'Medium',
         ],
 
         'long_sleeve_large' => [
-            'name' => 'Long Sleeve',
+            'name' => 'Longsleeve',
             'label' => 'Large',
         ],
 
@@ -412,11 +412,26 @@ class DistributionService
         foreach (
             $this->ppeMap as $field => $definition
         ) {
-            $query = Item::query()
-                ->where(
+            $query = Item::query();
+
+            if ($definition['name'] === 'Longsleeve') {
+                /*
+                 * Keep older databases compatible while Long Sleeve and
+                 * Long Sleeves records are migrated to Longsleeve.
+                 */
+                $query->whereRaw(
+                    "LOWER(REPLACE(item_name, ' ', '')) IN (?, ?)",
+                    [
+                        'longsleeve',
+                        'longsleeves',
+                    ]
+                );
+            } else {
+                $query->where(
                     'item_name',
                     $definition['name']
                 );
+            }
 
             if ($definition['label'] === null) {
                 $query->whereNull('label');

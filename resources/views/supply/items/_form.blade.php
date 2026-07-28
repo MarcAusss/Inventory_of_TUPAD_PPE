@@ -84,7 +84,7 @@
                         id="item_name"
                         name="item_name"
                         value="{{ old('item_name', $item->item_name) }}"
-                        placeholder="Example: Long Sleeve"
+                        placeholder="Example: Longsleeve"
                         required
                         autofocus
                         class="w-full rounded-xl border-[#B7D6E6] shadow-sm

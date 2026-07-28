@@ -306,7 +306,7 @@
                 </th>
 
                 <th colspan="3" class="bg-[#0284C7] text-white">
-                    Long Sleeves
+                    Longsleeve
                 </th>
 
                 <th rowspan="2" class="bg-[#0284C7] text-white">

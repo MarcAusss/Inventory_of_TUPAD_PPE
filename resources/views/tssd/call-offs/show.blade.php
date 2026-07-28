@@ -91,7 +91,7 @@
                             <th rowspan="2" class="border bg-[#339DCB] border-[#2D94BE] px-5 py-4 text-left">Province</th>
                             <th rowspan="2" class="border bg-[#339DCB] border-[#2D94BE] px-4 py-4 text-center">Delivery Date</th>
                             <th rowspan="2" class="border bg-[#339DCB] border-[#2D94BE] px-4 py-4 text-left">Place of Delivery</th>
-                            <th colspan="3" class="border bg-[#339DCB] border-[#2D94BE] px-4 py-3 text-center">Long Sleeves</th>
+                            <th colspan="3" class="border bg-[#339DCB] border-[#2D94BE] px-4 py-3 text-center">Longsleeve</th>
                             <th rowspan="2" class="border bg-[#339DCB] border-[#2D94BE] px-4 py-4 text-center">Bucket Hat</th>
                             <th colspan="3" class="border bg-[#339DCB] border-[#2D94BE] px-4 py-3 text-center">Rubber Boots</th>
                             <th rowspan="2" class="border bg-[#339DCB] border-[#2D94BE] px-4 py-4 text-center">Gloves</th>
@@ -114,13 +114,21 @@
 
                                 $lsm = $items->filter(fn ($row) =>
                                     $row->item
-                                    && $row->item->item_name === 'Long Sleeve'
+                                    && in_array(
+                                        strtolower(trim((string) $row->item->item_name)),
+                                        ['long sleeve', 'long sleeves', 'longsleeve', 'longsleeves'],
+                                        true,
+                                    )
                                     && $row->item->label === 'Medium'
                                 )->sum('quantity');
 
                                 $lsl = $items->filter(fn ($row) =>
                                     $row->item
-                                    && $row->item->item_name === 'Long Sleeve'
+                                    && in_array(
+                                        strtolower(trim((string) $row->item->item_name)),
+                                        ['long sleeve', 'long sleeves', 'longsleeve', 'longsleeves'],
+                                        true,
+                                    )
                                     && $row->item->label === 'Large'
                                 )->sum('quantity');
 

@@ -181,7 +181,11 @@
                                     $lsm = $rows
                                         ->filter(
                                             fn($r) => $r->item &&
-                                                $r->item->item_name == 'Long Sleeve' &&
+                                                in_array(
+                                                    strtolower(trim((string) $r->item->item_name)),
+                                                    ['long sleeve', 'long sleeves', 'longsleeve', 'longsleeves'],
+                                                    true,
+                                                ) &&
                                                 $r->item->label == 'Medium',
                                         )
                                         ->sum('quantity');
@@ -189,7 +193,11 @@
                                     $lsl = $rows
                                         ->filter(
                                             fn($r) => $r->item &&
-                                                $r->item->item_name == 'Long Sleeve' &&
+                                                in_array(
+                                                    strtolower(trim((string) $r->item->item_name)),
+                                                    ['long sleeve', 'long sleeves', 'longsleeve', 'longsleeves'],
+                                                    true,
+                                                ) &&
                                                 $r->item->label == 'Large',
                                         )
                                         ->sum('quantity');
@@ -445,8 +453,8 @@
 
             @php
                 $modalItems = [
-                    ['lsm', 'Long Sleeve', 'Medium'],
-                    ['lsl', 'Long Sleeve', 'Large'],
+                    ['lsm', 'Longsleeve', 'Medium'],
+                    ['lsl', 'Longsleeve', 'Large'],
                     ['bucket', 'Bucket Hat', '—'],
                     ['us9', 'Rubber Boots', 'US9'],
                     ['us10', 'Rubber Boots', 'US10'],
@@ -519,13 +527,13 @@
                 lsm: {
                     requestField: 'long_sleeve_medium',
 
-                    label: 'Long Sleeve Medium',
+                    label: 'Longsleeve Medium',
                 },
 
                 lsl: {
                     requestField: 'long_sleeve_large',
 
-                    label: 'Long Sleeve Large',
+                    label: 'Longsleeve Large',
                 },
 
                 bucket: {
@@ -682,15 +690,26 @@
                 itemName,
                 label
             ) {
+                const normalizedItemName = String(itemName ?? '')
+                    .trim()
+                    .toLowerCase();
+
+                const isLongsleeve = [
+                    'long sleeve',
+                    'long sleeves',
+                    'longsleeve',
+                    'longsleeves',
+                ].includes(normalizedItemName);
+
                 if (
-                    itemName === 'Long Sleeve' &&
+                    isLongsleeve &&
                     label === 'Medium'
                 ) {
                     return 'lsm';
                 }
 
                 if (
-                    itemName === 'Long Sleeve' &&
+                    isLongsleeve &&
                     label === 'Large'
                 ) {
                     return 'lsl';

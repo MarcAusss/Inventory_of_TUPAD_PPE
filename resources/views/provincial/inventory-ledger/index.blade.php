@@ -8,8 +8,8 @@
         |
         | These IDs correspond to the seven fixed PPE variants:
         |
-        | 1 - Long Sleeve Medium
-        | 2 - Long Sleeve Large
+        | 1 - Longsleeve Medium
+        | 2 - Longsleeve Large
         | 3 - Bucket Hat
         | 4 - Rubber Boots US9
         | 5 - Rubber Boots US10
@@ -21,12 +21,12 @@
         $ppeColumns = [
             1 => [
                 'short' => 'Medium',
-                'group' => 'Long Sleeve',
+                'group' => 'Longsleeve',
             ],
 
             2 => [
                 'short' => 'Large',
-                'group' => 'Long Sleeve',
+                'group' => 'Longsleeve',
             ],
 
             3 => [
@@ -622,7 +622,7 @@
                                     <th colspan="2"
                                         class="border-r border-white/20
                                            px-3 py-3 text-center">
-                                        Long Sleeve
+                                        Longsleeve
                                     </th>
 
                                     <th rowspan="2"
@@ -657,7 +657,7 @@
                                         class="border-r border-white/20
                                            bg-[#0EA5E9]
                                            px-3 py-3 text-center">
-                                        Long Sleeve
+                                        Longsleeve
                                     </th>
 
                                     <th rowspan="2"
@@ -696,7 +696,7 @@
                                         class="border-r border-white/20
                                            bg-[#075985]
                                            px-3 py-3 text-center">
-                                        Long Sleeve
+                                        Longsleeve
                                     </th>
 
                                     <th rowspan="2"

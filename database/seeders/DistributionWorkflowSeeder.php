@@ -15,8 +15,8 @@ class DistributionWorkflowSeeder extends Seeder
     /**
      * Seven PPE variants are expected:
      *
-     * 1 - Long Sleeve Medium
-     * 2 - Long Sleeve Large
+     * 1 - Longsleeve Medium
+     * 2 - Longsleeve Large
      * 3 - Bucket Hat
      * 4 - Rubber Boots US9
      * 5 - Rubber Boots US10

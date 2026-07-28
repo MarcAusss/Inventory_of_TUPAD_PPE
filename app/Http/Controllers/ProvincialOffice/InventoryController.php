@@ -373,9 +373,13 @@ class InventoryController extends Controller
         ?string $itemName,
         ?string $label
     ): ?string {
-        $normalizedName = strtolower(
-            trim(
-                (string) $itemName
+        $normalizedName = str_replace(
+            [' ', '-', '_'],
+            '',
+            strtolower(
+                trim(
+                    (string) $itemName
+                )
             )
         );
 

@@ -14,12 +14,12 @@
         $ppeColumns = [
             1 => [
                 'short' => 'Medium',
-                'group' => 'Long Sleeve',
+                'group' => 'Longsleeve',
             ],
 
             2 => [
                 'short' => 'Large',
-                'group' => 'Long Sleeve',
+                'group' => 'Longsleeve',
             ],
 
             3 => [
@@ -525,7 +525,7 @@
                                 colspan="3"
                                 class="border border-[#4F8DB8] bg-[#2E628D] px-4 py-4 text-center font-bold"
                             >
-                                Long Sleeves
+                                Longsleeve
                             </th>
 
                             <th
@@ -635,10 +635,10 @@
                             </td>
 
                             {{-- Size totals are intentionally hidden here.
-                                 The grouped Long Sleeves total is shown only once. --}}
-                            <td class="border border-[#B7D6E6] px-4 py-4 text-center font-bold" aria-label="Included in Long Sleeves total"></td>
+                                 The grouped Longsleeve total is shown only once. --}}
+                            <td class="border border-[#B7D6E6] px-4 py-4 text-center font-bold" aria-label="Included in Longsleeve total"></td>
 
-                            <td class="border border-[#B7D6E6] px-4 py-4 text-center font-bold" aria-label="Included in Long Sleeves total"></td>
+                            <td class="border border-[#B7D6E6] px-4 py-4 text-center font-bold" aria-label="Included in Longsleeve total"></td>
 
                             <td class="border border-[#B7D6E6] bg-[#EAF6FC] px-4 py-4 text-center font-bold">
                                 {{ number_format($provincialInventoryByProvince->sum('long_sleeve_total')) }}
@@ -1359,7 +1359,7 @@
                                         style="background-color:
                                             {{ $sectionColor }}"
                                     >
-                                        Long Sleeve
+                                        Longsleeve
                                     </th>
 
                                     <th

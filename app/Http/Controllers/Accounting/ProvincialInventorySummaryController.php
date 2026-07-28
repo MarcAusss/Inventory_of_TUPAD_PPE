@@ -69,8 +69,8 @@ class ProvincialInventorySummaryController extends Controller
         |
         | Item ID mapping:
         |
-        | 1 = Long Sleeves Medium
-        | 2 = Long Sleeves Large
+        | 1 = Longsleeve Medium
+        | 2 = Longsleeve Large
         | 3 = Bucket Hat
         | 4 = Rubber Boots US9
         | 5 = Rubber Boots US10

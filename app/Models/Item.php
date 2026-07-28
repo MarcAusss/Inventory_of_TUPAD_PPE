@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -23,6 +24,41 @@ class Item extends Model
         return [
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Store every Longsleeve spelling under one canonical item name.
+     */
+    protected function itemName(): Attribute
+    {
+        return Attribute::make(
+            set: function (mixed $value): string {
+                $itemName = trim((string) $value);
+
+                $normalizedName = strtolower(
+                    str_replace(
+                        [
+                            ' ',
+                            '-',
+                            '_',
+                        ],
+                        '',
+                        $itemName
+                    )
+                );
+
+                return in_array(
+                    $normalizedName,
+                    [
+                        'longsleeve',
+                        'longsleeves',
+                    ],
+                    true
+                )
+                    ? 'Longsleeve'
+                    : $itemName;
+            }
+        );
     }
 
     /*

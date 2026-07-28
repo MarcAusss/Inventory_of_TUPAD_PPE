@@ -203,7 +203,7 @@
             <tr>
                 <th colspan="2"
                     class="print-color-exact border border-[#333] bg-[#0284C7] px-0.5 py-[3px] text-center font-bold text-white">
-                    Long Sleeve</th>
+                    Longsleeve</th>
                 <th rowspan="2"
                     class="print-color-exact border border-[#333] bg-[#0284C7] px-0.5 py-[3px] text-center font-bold text-white">
                     Bucket Hat</th>
@@ -219,7 +219,7 @@
 
                 <th colspan="2"
                     class="print-color-exact border border-[#333] bg-[#0EA5E9] px-0.5 py-[3px] text-center font-bold text-white">
-                    Long Sleeve</th>
+                    Longsleeve</th>
                 <th rowspan="2"
                     class="print-color-exact border border-[#333] bg-[#0EA5E9] px-0.5 py-[3px] text-center font-bold text-white">
                     Bucket Hat</th>
@@ -235,7 +235,7 @@
 
                 <th colspan="2"
                     class="print-color-exact border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center font-bold text-white">
-                    Long Sleeve</th>
+                    Longsleeve</th>
                 <th rowspan="2"
                     class="print-color-exact border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center font-bold text-white">
                     Bucket Hat</th>

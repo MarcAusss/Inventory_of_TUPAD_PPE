@@ -59,7 +59,7 @@ class ItemSeeder extends Seeder
             [
                 'item_name' => 'Mask',
                 'label' => null,
-                'unit_of_measurement' => 'Piece',
+                'unit_of_measurement' => 'Box',
                 'is_active' => true,
             ],
 

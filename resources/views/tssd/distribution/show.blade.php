@@ -61,8 +61,8 @@
 
         @php
             $ppeLabels = [
-                'lsm' => 'Long Sleeve M',
-                'lsl' => 'Long Sleeve L',
+                'lsm' => 'Longsleeve M',
+                'lsl' => 'Longsleeve L',
                 'bucket' => 'Bucket Hat',
                 'us9' => 'Boots US9',
                 'us10' => 'Boots US10',

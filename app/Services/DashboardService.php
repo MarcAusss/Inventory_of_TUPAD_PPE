@@ -66,8 +66,8 @@ class DashboardService extends BaseService
             ->selectRaw(
                 '
             CASE
-                WHEN items.item_name = "Long Sleeve"
-                    THEN "Long Sleeves"
+                WHEN LOWER(REPLACE(items.item_name, " ", "")) IN ("longsleeve", "longsleeves")
+                    THEN "Longsleeve"
                 WHEN items.item_name = "Bucket Hat"
                     THEN "Bucket Hat"
                 WHEN items.item_name = "Rubber Boots"
@@ -368,8 +368,8 @@ class DashboardService extends BaseService
             ->selectRaw(
                 '
             CASE
-                WHEN items.item_name = "Long Sleeve"
-                    THEN "Long Sleeves"
+                WHEN LOWER(REPLACE(items.item_name, " ", "")) IN ("longsleeve", "longsleeves")
+                    THEN "Longsleeve"
                 WHEN items.item_name = "Bucket Hat"
                     THEN "Bucket Hat"
                 WHEN items.item_name = "Rubber Boots"
@@ -660,7 +660,7 @@ class DashboardService extends BaseService
 
                 SUM(
                     CASE
-                        WHEN items.item_name = ?
+                        WHEN LOWER(REPLACE(items.item_name, " ", "")) IN (?, ?)
                         THEN province_distribution_items.quantity
                         ELSE 0
                     END
@@ -699,7 +699,8 @@ class DashboardService extends BaseService
                 ) AS masks
                 ',
                 [
-                    'Long Sleeve',
+                    'longsleeve',
+                    'longsleeves',
                     'Bucket Hat',
                     'Rubber Boots',
                     'Hand Gloves',
@@ -741,7 +742,7 @@ class DashboardService extends BaseService
 
             'datasets' => [
                 [
-                    'label' => 'Long Sleeves',
+                    'label' => 'Longsleeve',
 
                     'data' => $this->chartValues(
                         $provinces,
@@ -797,7 +798,7 @@ class DashboardService extends BaseService
                         'masks'
                     ),
 
-                    'unit' => 'piece',
+                    'unit' => 'boxes',
                 ],
             ],
         ];

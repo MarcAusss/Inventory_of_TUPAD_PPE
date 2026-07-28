@@ -894,7 +894,7 @@
                                     </th>
 
                                     <th colspan="2">
-                                        LONG SLEEVES
+                                        LONGSLEEVE
                                     </th>
 
                                     <th rowspan="2">

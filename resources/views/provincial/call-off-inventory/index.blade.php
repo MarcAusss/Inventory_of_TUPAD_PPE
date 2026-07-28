@@ -3,12 +3,12 @@
     @php
         $ppeColumns = [
             1 => [
-                'name' => 'Long Sleeve',
+                'name' => 'Longsleeve',
                 'label' => 'Medium',
             ],
 
             2 => [
-                'name' => 'Long Sleeve',
+                'name' => 'Longsleeve',
                 'label' => 'Large',
             ],
 
@@ -416,7 +416,7 @@
                             class="text-[11px] font-bold uppercase"
                         >
                             @foreach([
-                                ['Long Sleeve', 2],
+                                ['Longsleeve', 2],
                                 ['Bucket Hat', 1],
                                 ['Rubber Boots', 2],
                                 ['Gloves', 1],
@@ -434,7 +434,7 @@
                             @endforeach
 
                             @foreach([
-                                ['Long Sleeve', 2],
+                                ['Longsleeve', 2],
                                 ['Bucket Hat', 1],
                                 ['Rubber Boots', 2],
                                 ['Gloves', 1],
