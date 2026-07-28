@@ -50,7 +50,7 @@ class StoreSupplyDesignationRequest extends FormRequest
             'designation_date' => [
                 'required',
                 'date_format:Y-m-d',
-                'before_or_equal:today',
+                'after_or_equal:today',
             ],
 
             'number_of_days' => [
@@ -203,6 +203,8 @@ class StoreSupplyDesignationRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'designation_date.after_or_equal' => 'The project designation date cannot be earlier than today.',
+
             'delivery_receipt_id.required' => 'Select a Delivery Receipt.',
 
             'delivery_receipt_id.exists' => 'The selected Delivery Receipt does not exist.',

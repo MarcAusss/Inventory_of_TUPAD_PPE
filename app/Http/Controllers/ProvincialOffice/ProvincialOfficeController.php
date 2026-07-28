@@ -287,7 +287,7 @@ class ProvincialOfficeController extends Controller
 
             'designation_number' => 'required|unique:supply_designations',
 
-            'designation_date' => 'required|date',
+            'designation_date' => 'required|date|after_or_equal:today',
 
             'project_name' => 'required|string|max:255',
 

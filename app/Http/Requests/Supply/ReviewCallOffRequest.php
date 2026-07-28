@@ -21,13 +21,13 @@ class ReviewCallOffRequest extends FormRequest
     {
         return [
             'call_off_number' => [
-                'required',
-                'string',
-                'max:100',
-                new NoControlCharacters(),
-                'regex:/^[A-Za-z0-9][A-Za-z0-9 ._\\\/-]*$/',
-                Rule::unique(CallOff::class, 'call_off_number'),
-            ],
+    'required',
+    'string',
+    'max:100',
+    new NoControlCharacters(),
+    'regex:/^[A-Za-z0-9][A-Za-z0-9 ._\/-]*$/',
+    Rule::unique(CallOff::class, 'call_off_number'),
+],
 
             'call_off_date' => [
                 'required',
