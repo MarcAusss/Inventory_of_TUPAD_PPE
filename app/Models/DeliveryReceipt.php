@@ -70,7 +70,7 @@ class DeliveryReceipt extends Model
     {
         return $this->hasMany(
             DeliveryReceiptItem::class
-        );
+        )->orderBy('item_id');
     }
 
     public function documents(): HasMany

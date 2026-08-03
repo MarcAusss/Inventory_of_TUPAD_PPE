@@ -104,8 +104,7 @@ class SupplyInventorySummaryController extends Controller
                     );
                 }
             )
-            ->orderBy('item_name')
-            ->orderBy('label')
+            ->orderForDisplay()
             ->paginate(20)
             ->withQueryString();
 

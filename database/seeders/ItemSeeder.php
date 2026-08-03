@@ -15,14 +15,14 @@ class ItemSeeder extends Seeder
         Item::insert([
 
             [
-                'item_name' => 'Longsleeve',
+                'item_name' => 'Longsleeves',
                 'label' => 'Medium',
                 'unit_of_measurement' => 'Piece',
                 'is_active' => true,
             ],
 
             [
-                'item_name' => 'Longsleeve',
+                'item_name' => 'Longsleeves',
                 'label' => 'Large',
                 'unit_of_measurement' => 'Piece',
                 'is_active' => true,

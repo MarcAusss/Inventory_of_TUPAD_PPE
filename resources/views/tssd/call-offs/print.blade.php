@@ -140,9 +140,9 @@
     </div>
 
     {{-- DOLE letterhead --}}
-   <div class="flex items-center justify-center pl-24">
+   <div class="flex items-center justify-center pl-8">
         <img src="{{ asset('images/print/dole_logo.webp') }}" alt="DOLE Logo"
-            class="max-h-[85px] w-[120px] object-contain" onerror="this.style.display='none'">
+            class="max-h-[95px] w-[130px] object-contain" onerror="this.style.display='none'">
 
         <div class="min-w-[320px] text-center">
             <p class="m-0 text-[10px] font-normal font-arial">
@@ -177,7 +177,7 @@
             class="max-h-[82px] w-[105px] object-contain" onerror="this.style.display='none'">
 
         <img src="{{ asset('images/print/iso-bureau-veritas.jpg') }}" alt="ISO Bureau Veritas"
-            class="max-h-[78px] w-[150px] object-contain" onerror="this.style.display='none'">
+            class="max-h-[88px] w-[160px] object-contain" onerror="this.style.display='none'">
     </div>
 
         <div class="flex justify-between my-3">
@@ -216,7 +216,7 @@
                 </th>
 
                 <th colspan="3" class="bg-[#339DCB] text-white">
-                    Longsleeve
+                    Longsleeves
                 </th>
 
                 <th rowspan="2" class="bg-[#339DCB] text-white">

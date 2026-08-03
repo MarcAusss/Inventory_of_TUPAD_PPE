@@ -120,7 +120,7 @@
                         'label' => 'Pending Call-Offs',
                         'value' => $statistics['pending_calloff_approvals'] ?? 0,
                         'description' => 'Awaiting Supply review',
-                        'style' => 'bg-orange-50 text-orange-800 ring-orange-200',
+                        'style' => 'bg-red-50 text-red-800 ring-red-200',
                     ],
                     [
                         'label' => 'Approved Call-Offs',

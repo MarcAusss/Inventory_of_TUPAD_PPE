@@ -337,7 +337,7 @@
                             class="mb-2 block text-sm
                                    font-bold text-slate-700"
                         >
-                            Actual Delivery Date
+                            Delivery Date
                         </label>
 
                         <input

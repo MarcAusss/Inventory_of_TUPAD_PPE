@@ -91,7 +91,7 @@
 
                 <p
                     class="mt-3 text-3xl font-extrabold
-                           text-amber-700">
+                           text-red-700">
 
                     {{ number_format($pendingCount) }}
 
@@ -326,7 +326,7 @@
                                         ],
                                         true
                                     )
-                                        => 'bg-amber-50 text-amber-700 ring-amber-200',
+                                        => 'bg-red-50 text-red-700 ring-red-200',
 
                                     default
                                         => 'bg-slate-100 text-slate-700 ring-slate-200',

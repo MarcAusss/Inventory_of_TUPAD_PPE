@@ -2,8 +2,8 @@
 
     @php
         $ppeLabels = [
-            'long_sleeve_medium' => 'Longsleeve Medium',
-            'long_sleeve_large' => 'Longsleeve Large',
+            'long_sleeve_medium' => 'Longsleeves Medium',
+            'long_sleeve_large' => 'Longsleeves Large',
             'bucket_hat' => 'Bucket Hat',
             'rubber_boots_us9' => 'Rubber Boots US9',
             'rubber_boots_us10' => 'Rubber Boots US10',
@@ -635,7 +635,7 @@
                                    tracking-wide"
                         >
                             @foreach([
-                                ['Longsleeve', 2],
+                                ['Longsleeves', 2],
                                 ['Bucket Hat', 1],
                                 ['Rubber Boots', 2],
                                 ['Gloves', 1],
@@ -654,7 +654,7 @@
                             @endforeach
 
                             @foreach([
-                                ['Longsleeve', 2],
+                                ['Longsleeves', 2],
                                 ['Bucket Hat', 1],
                                 ['Rubber Boots', 2],
                                 ['Gloves', 1],
@@ -673,7 +673,7 @@
                             @endforeach
 
                             @foreach([
-                                ['Longsleeve', 2],
+                                ['Longsleeves', 2],
                                 ['Bucket Hat', 1],
                                 ['Rubber Boots', 2],
                                 ['Gloves', 1],

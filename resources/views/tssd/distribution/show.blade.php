@@ -71,7 +71,7 @@
                 )
                 ->filter()
                 ->unique('id')
-                ->sortBy(fn ($item) => strtolower($item->item_name . '|' . ($item->label ?? '')))
+                ->sortBy(fn ($item) => \App\Models\Item::displaySortKey($item->item_name, $item->label))
                 ->values();
 
             $purchasedByItem = $purchaseOrder->items

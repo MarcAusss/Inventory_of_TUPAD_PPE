@@ -63,7 +63,7 @@ class ProvinceDistribution extends Model
     {
         return $this->hasMany(
             ProvinceDistributionItem::class
-        );
+        )->orderBy('item_id');
     }
 
     /**

@@ -97,7 +97,7 @@ class SupplyDesignation extends Model
     {
         return $this->hasMany(
             SupplyDesignationItem::class
-        );
+        )->orderBy('item_id');
     }
 
     /*

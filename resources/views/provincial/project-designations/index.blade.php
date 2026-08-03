@@ -259,12 +259,12 @@
                                 Call-Off Number
                             </th>
 
-                            <th class="px-4 py-4 text-center">Longsleeve M</th>
-                            <th class="px-4 py-4 text-center">Longsleeve L</th>
+                            <th class="px-4 py-4 text-center">Longsleeves M</th>
+                            <th class="px-4 py-4 text-center">Longsleeves L</th>
 
                             <th class="bg-[#0284C7]/90
                                        px-4 py-4 text-center">
-                                Total Longsleeve
+                                Total Longsleeves
                             </th>
 
                             <th class="px-4 py-4 text-center">Bucket Hat</th>

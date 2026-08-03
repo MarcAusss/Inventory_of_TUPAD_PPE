@@ -77,9 +77,9 @@
     {{-- =========================================================
         LETTERHEAD
     ========================================================== --}}
-    <div class="flex justify-center pl-28">
+    <div class="flex justify-center pl-8">
         <img src="{{ asset('images/print/dole_logo.webp') }}" alt="DOLE Logo"
-            class="max-h-[85px] w-[120px] object-contain" onerror="this.style.display='none'">
+            class="max-h-[95px] w-[130px] object-contain" onerror="this.style.display='none'">
 
         <div class="text-center">
             <p class="m-0 text-center text-[14px] font-normal">
@@ -116,7 +116,7 @@
             class="max-h-[82px] w-[105px] object-contain " onerror="this.style.display='none'">
 
         <img src="{{ asset('images/print/iso-bureau-veritas.jpg') }}" alt="ISO Bureau Veritas"
-            class="max-h-[78px] w-[150px] object-contain" onerror="this.style.display='none'">
+            class="max-h-[88px] w-[160px] object-contain" onerror="this.style.display='none'">
     </div>
 
     {{-- =========================================================
@@ -184,17 +184,17 @@
                     No. of Days
                 </th>
 
-                <th colspan="8"
+                <th colspan="7"
                     class="print-color-exact border border-[#333] bg-[#0284C7] px-0.5 py-[3px] text-center align-middle font-bold text-white">
                     Beginning Inventory
                 </th>
 
-                <th colspan="8"
+                <th colspan="7"
                     class="print-color-exact border border-[#333] bg-[#0EA5E9] px-0.5 py-[3px] text-center align-middle font-bold text-white">
                     Actual Distribution
                 </th>
 
-                <th colspan="8"
+                <th colspan="7"
                     class="print-color-exact border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center align-middle font-bold text-white">
                     Ending Inventory
                 </th>
@@ -203,7 +203,7 @@
             <tr>
                 <th colspan="2"
                     class="print-color-exact border border-[#333] bg-[#0284C7] px-0.5 py-[3px] text-center font-bold text-white">
-                    Longsleeve</th>
+                    Longsleeves</th>
                 <th rowspan="2"
                     class="print-color-exact border border-[#333] bg-[#0284C7] px-0.5 py-[3px] text-center font-bold text-white">
                     Bucket Hat</th>
@@ -216,13 +216,10 @@
                 <th rowspan="2"
                     class="print-color-exact border border-[#333] bg-[#0284C7] px-0.5 py-[3px] text-center font-bold text-white">
                     Mask</th>
-                <th rowspan="2" title="Beginning inventory subtotal"
-                    class="print-color-exact w-[24px] border border-[#333] bg-[#0284C7] px-0.5 py-[3px] text-center text-[6px] font-extrabold text-white">
-                    Σ</th>
 
                 <th colspan="2"
                     class="print-color-exact border border-[#333] bg-[#0EA5E9] px-0.5 py-[3px] text-center font-bold text-white">
-                    Longsleeve</th>
+                    Longsleeves</th>
                 <th rowspan="2"
                     class="print-color-exact border border-[#333] bg-[#0EA5E9] px-0.5 py-[3px] text-center font-bold text-white">
                     Bucket Hat</th>
@@ -235,13 +232,10 @@
                 <th rowspan="2"
                     class="print-color-exact border border-[#333] bg-[#0EA5E9] px-0.5 py-[3px] text-center font-bold text-white">
                     Mask</th>
-                <th rowspan="2" title="Actual distribution subtotal"
-                    class="print-color-exact w-[24px] border border-[#333] bg-[#0EA5E9] px-0.5 py-[3px] text-center text-[6px] font-extrabold text-white">
-                    Σ</th>
 
                 <th colspan="2"
                     class="print-color-exact border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center font-bold text-white">
-                    Longsleeve</th>
+                    Longsleeves</th>
                 <th rowspan="2"
                     class="print-color-exact border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center font-bold text-white">
                     Bucket Hat</th>
@@ -254,9 +248,6 @@
                 <th rowspan="2"
                     class="print-color-exact border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center font-bold text-white">
                     Mask</th>
-                <th rowspan="2" title="Ending inventory subtotal"
-                    class="print-color-exact w-[24px] border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center text-[6px] font-extrabold text-white">
-                    Σ</th>
             </tr>
 
             <tr>
@@ -307,6 +298,13 @@
 
                     <td class="border border-[#333] px-0.5 py-[3px] text-center align-middle font-bold break-words">
                         {{ $row['delivery_receipt_number'] ?? '—' }}
+                        @if ($row['has_carry_forward'] ?? false)
+                            <span class="mt-0.5 block text-[5.2px] font-normal leading-tight">
+                                +{{ number_format((int) ($row['receipt_quantity_total'] ?? 0)) }} DR
+                                + {{ number_format((int) ($row['previous_ending_total'] ?? 0)) }} previous
+                                = {{ number_format((int) ($row['beginning_total'] ?? 0)) }} beginning
+                            </span>
+                        @endif
                     </td>
 
                     <td class="border border-[#333] px-0.5 py-[3px] text-center align-middle break-words">
@@ -346,11 +344,6 @@
                         </td>
                     @endforeach
 
-                    <td title="Beginning inventory subtotal"
-                        class="print-color-exact w-[24px] border border-[#333] bg-slate-100 px-0.5 py-[3px] text-center align-middle text-[6px] font-extrabold text-black break-words">
-                        {{ number_format((int) ($row['beginning_total'] ?? collect($beginning)->sum())) }}
-                    </td>
-
                     @foreach ($ppeItemIds as $itemId)
                         <td
                             class="print-color-exact border border-[#333] bg-red-50 px-0.5 py-[3px] text-center align-middle font-bold break-words">
@@ -358,26 +351,16 @@
                         </td>
                     @endforeach
 
-                    <td title="Actual distribution subtotal"
-                        class="print-color-exact w-[24px] border border-[#333] bg-red-100 px-0.5 py-[3px] text-center align-middle text-[6px] font-extrabold text-black break-words">
-                        {{ number_format((int) ($row['actual_total'] ?? collect($actual)->sum())) }}
-                    </td>
-
                     @foreach ($ppeItemIds as $itemId)
                         <td
                             class="print-color-exact border border-[#333] bg-neutral-50 px-0.5 py-[3px] text-center align-middle font-bold break-words">
                             {{ number_format((int) ($ending[$itemId] ?? 0)) }}
                         </td>
                     @endforeach
-
-                    <td title="Ending inventory subtotal"
-                        class="print-color-exact w-[24px] border border-[#333] bg-neutral-100 px-0.5 py-[3px] text-center align-middle text-[6px] font-extrabold text-black break-words">
-                        {{ number_format((int) ($row['ending_total'] ?? collect($ending)->sum())) }}
-                    </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="33" class="border border-[#333] px-2 py-6 text-center text-[8px]">
+                    <td colspan="30" class="border border-[#333] px-2 py-6 text-center text-[8px]">
                         No project distribution records were found for this Delivery Receipt.
                     </td>
                 </tr>

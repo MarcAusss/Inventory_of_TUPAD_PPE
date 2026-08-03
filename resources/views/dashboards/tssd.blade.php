@@ -120,7 +120,7 @@
                         </p>
 
                         <p
-                            class="mt-3 text-3xl font-bold text-slate-950"
+                            class="mt-3 text-3xl font-bold text-red-700"
                         >
                             {{ number_format(
                                 $statistics['purchase_orders']
@@ -175,7 +175,7 @@
                         </p>
 
                         <p
-                            class="mt-3 text-3xl font-bold text-slate-950"
+                            class="mt-3 text-3xl font-bold text-red-700"
                         >
                             {{ number_format(
                                 $statistics[
@@ -215,7 +215,7 @@
             </article>
 
             <article
-                class="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                class="rounded-2xl border border-red-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
             >
 
                 <div
@@ -231,7 +231,7 @@
                         </p>
 
                         <p
-                            class="mt-3 text-3xl font-bold text-slate-950"
+                            class="mt-3 text-3xl font-bold text-red-700"
                         >
                             {{ number_format(
                                 $statistics[
@@ -287,7 +287,7 @@
                         </p>
 
                         <p
-                            class="mt-3 text-3xl font-bold text-slate-950"
+                            class="mt-3 text-3xl font-bold text-red-700"
                         >
                             {{ number_format(
                                 $statistics[
@@ -343,7 +343,7 @@
                         </p>
 
                         <p
-                            class="mt-3 text-3xl font-bold text-slate-950"
+                            class="mt-3 text-3xl font-bold text-red-700"
                         >
                             {{ number_format(
                                 $statistics[
@@ -399,7 +399,7 @@
                         </p>
 
                         <p
-                            class="mt-3 text-3xl font-bold text-slate-950"
+                            class="mt-3 text-3xl font-bold text-red-700"
                         >
                             {{ number_format(
                                 $statistics[

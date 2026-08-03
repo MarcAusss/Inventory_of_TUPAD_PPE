@@ -112,7 +112,7 @@
                         'label' => 'Pending Allocations',
                         'value' => $statistics['pending_allocations'] ?? 0,
                         'description' => 'Ready for receiving',
-                        'class' => 'bg-amber-50 text-amber-800',
+                        'class' => 'bg-red-50 text-red-800',
                     ],
                     [
                         'label' => 'Received Deliveries',

@@ -198,8 +198,9 @@
                             <label for="print_total_amount" class="mb-2 block text-sm font-bold text-slate-700">Printed Total PO Amount</label>
                             <div class="relative">
                                 <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 font-bold text-slate-500">₱</span>
-                                <input id="print_total_amount" type="number" name="print_total_amount"
-                                    value="{{ old('print_total_amount') }}" min="0" max="9999999999999.99" step="0.01" required
+                                <input id="print_total_amount" type="text" name="print_total_amount" inputmode="decimal"
+                                    value="{{ old('print_total_amount') !== null && old('print_total_amount') !== '' ? number_format((float) old('print_total_amount'), 2, '.', ',') : '' }}"
+                                    placeholder="0.00" required autocomplete="off"
                                     class="w-full rounded-xl border-slate-300 pl-9 shadow-sm focus:border-[#339DCB] focus:ring-[#339DCB]">
                             </div>
                         </div>
@@ -299,7 +300,7 @@
                         <thead>
                             <tr class="bg-[#2E628D] text-xs font-bold uppercase tracking-wide text-white">
                                 <th class="px-5 py-4 text-left">PPE Item</th>
-                                <th class="px-5 py-4 text-center">Label</th>
+                                <th class="px-5 py-4 text-center">Size / Label</th>
                                 <th class="px-5 py-4 text-center">Available</th>
                                 <th class="px-5 py-4 text-center">Quantity</th>
                             </tr>
@@ -352,6 +353,7 @@
             const distributionSummary = document.getElementById('distributionSummary');
             const distributionsInput = document.getElementById('distributionsInput');
             const submitButton = document.getElementById('submitDistributionButton');
+            const printTotalAmountInput = document.getElementById('print_total_amount');
             const previewButton = document.getElementById('openCallOffLetterPreview');
             const modal = document.getElementById('assignModal');
             const provinceSelect = document.getElementById('provinceSelect');
@@ -601,6 +603,35 @@
                 recalculateRemainingStock();
             }
 
+            function normalizedAmountValue(value) {
+                const normalized = String(value ?? '').replace(/,/g, '').replace(/[^0-9.]/g, '');
+                const parts = normalized.split('.');
+                return parts.length <= 1
+                    ? parts[0]
+                    : `${parts.shift()}.${parts.join('').slice(0, 2)}`;
+            }
+
+            function formatAmountValue(value) {
+                const normalized = normalizedAmountValue(value);
+                if (normalized === '') return '';
+
+                const amount = Number(normalized);
+                if (!Number.isFinite(amount)) return '';
+
+                return amount.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                });
+            }
+
+            function prepareAmountForRequest() {
+                printTotalAmountInput.value = normalizedAmountValue(printTotalAmountInput.value);
+            }
+
+            function restoreFormattedAmount() {
+                printTotalAmountInput.value = formatAmountValue(printTotalAmountInput.value);
+            }
+
             function updateSubmitState() {
                 const enabled = Boolean(selectedPO)
                     && distributions.length > 0
@@ -636,7 +667,7 @@
                 document.getElementById('po_date').value = selectedPO?.po_date ? String(selectedPO.po_date).slice(0, 10) : '';
                 document.getElementById('supplier').value = selectedPO?.supplier?.supplier_name || '';
                 document.getElementById('nefa').value = selectedPO?.nefa_number || '';
-                document.getElementById('print_total_amount').value = selectedPO?.total_amount ?? '';
+                printTotalAmountInput.value = formatAmountValue(selectedPO?.total_amount ?? '');
 
                 if (!selectedPO) {
                     renderPurchaseSummary();
@@ -654,6 +685,11 @@
                 if (data?.errors) return Object.values(data.errors).flat().join('\n');
                 return data?.message || 'The request could not be completed.';
             }
+
+            printTotalAmountInput.addEventListener('input', () => {
+                printTotalAmountInput.value = normalizedAmountValue(printTotalAmountInput.value);
+            });
+            printTotalAmountInput.addEventListener('blur', restoreFormattedAmount);
 
             purchaseOrderSelect.addEventListener('change', selectPurchaseOrder);
             document.getElementById('openModal').addEventListener('click', openModal);
@@ -734,6 +770,7 @@
                 }
 
                 distributionsInput.value = JSON.stringify(distributions);
+                prepareAmountForRequest();
                 const previewForm = document.createElement('form');
                 previewForm.method = 'POST';
                 previewForm.action = previewUrl;
@@ -748,6 +785,7 @@
                     input.value = String(value);
                     previewForm.appendChild(input);
                 });
+                restoreFormattedAmount();
 
                 document.body.appendChild(previewForm);
                 previewForm.submit();
@@ -763,6 +801,10 @@
                 }
 
                 distributionsInput.value = JSON.stringify(distributions);
+                prepareAmountForRequest();
+                const formData = new FormData(form);
+                restoreFormattedAmount();
+
                 submitButton.disabled = true;
                 const originalText = submitButton.textContent;
                 submitButton.textContent = 'Saving...';
@@ -770,7 +812,7 @@
                 try {
                     const response = await fetch(form.action, {
                         method: 'POST',
-                        body: new FormData(form),
+                        body: formData,
                         headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                     });
                     const data = await response.json();
@@ -788,6 +830,7 @@
                 if (event.target === modal) closeModal();
             });
 
+            restoreFormattedAmount();
             renderPurchaseSummary();
             renderDistributionSummary();
 

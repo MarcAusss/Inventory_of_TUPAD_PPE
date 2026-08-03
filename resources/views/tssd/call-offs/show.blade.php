@@ -91,7 +91,7 @@
                             <th rowspan="2" class="border bg-[#339DCB] border-[#2D94BE] px-5 py-4 text-left">Province</th>
                             <th rowspan="2" class="border bg-[#339DCB] border-[#2D94BE] px-4 py-4 text-center">Delivery Date</th>
                             <th rowspan="2" class="border bg-[#339DCB] border-[#2D94BE] px-4 py-4 text-left">Place of Delivery</th>
-                            <th colspan="3" class="border bg-[#339DCB] border-[#2D94BE] px-4 py-3 text-center">Longsleeve</th>
+                            <th colspan="3" class="border bg-[#339DCB] border-[#2D94BE] px-4 py-3 text-center">Longsleeves</th>
                             <th rowspan="2" class="border bg-[#339DCB] border-[#2D94BE] px-4 py-4 text-center">Bucket Hat</th>
                             <th colspan="3" class="border bg-[#339DCB] border-[#2D94BE] px-4 py-3 text-center">Rubber Boots</th>
                             <th rowspan="2" class="border bg-[#339DCB] border-[#2D94BE] px-4 py-4 text-center">Gloves</th>

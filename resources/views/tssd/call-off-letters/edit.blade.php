@@ -303,12 +303,10 @@
                         <input type="text"
                             value="{{ $letterStatus }}"
                             readonly
-                            class="w-full cursor-not-allowed
-                                   rounded-xl border-slate-200
-                                   bg-slate-100
-                                   text-slate-600
-                                   focus:border-slate-200
-                                   focus:ring-0">
+                            class="w-full cursor-not-allowed rounded-xl focus:ring-0
+                                   {{ str_contains(strtolower($letterStatus), 'pending')
+                                       ? 'border-red-200 bg-red-50 font-bold text-red-700 focus:border-red-200'
+                                       : 'border-slate-200 bg-slate-100 text-slate-600 focus:border-slate-200' }}">
 
                     </div>
 

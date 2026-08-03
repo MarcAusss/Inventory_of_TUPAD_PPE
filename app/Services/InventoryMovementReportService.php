@@ -104,10 +104,17 @@ class InventoryMovementReportService
             /*
              * Previous ending + quantities received in this DR = beginning
              * inventory for this receipt cycle.
+             *
+             * Keep both sides of the calculation so the UI can explain a
+             * carry-forward whenever a new Delivery Receipt arrives while the
+             * previous receipt cycle still has stock remaining.
              */
+            $previousEnding = $runningBalance;
+            $receivedThisReceipt = $this->receiptQuantities($receipt);
+
             $runningBalance = $this->add(
-                $runningBalance,
-                $this->receiptQuantities($receipt)
+                $previousEnding,
+                $receivedThisReceipt
             );
 
             /** @var Collection<int, SupplyDesignation> $receiptDesignations */
@@ -127,12 +134,17 @@ class InventoryMovementReportService
                         null,
                         $runningBalance,
                         $this->zeros($runningBalance),
-                        $runningBalance
+                        $runningBalance,
+                        $previousEnding,
+                        $receivedThisReceipt,
+                        true
                     )
                 );
 
                 continue;
             }
+
+            $isFirstReceiptRow = true;
 
             foreach ($receiptDesignations as $designation) {
                 $beginning = $runningBalance;
@@ -146,11 +158,15 @@ class InventoryMovementReportService
                         $designation,
                         $beginning,
                         $actual,
-                        $ending
+                        $ending,
+                        $previousEnding,
+                        $receivedThisReceipt,
+                        $isFirstReceiptRow
                     )
                 );
 
                 $runningBalance = $ending;
+                $isFirstReceiptRow = false;
             }
         }
 
@@ -237,7 +253,10 @@ class InventoryMovementReportService
         ?SupplyDesignation $designation,
         array $beginning,
         array $actual,
-        array $ending
+        array $ending,
+        array $previousEnding,
+        array $receivedThisReceipt,
+        bool $isFirstReceiptRow
     ): array {
         $callOff = $allocation->distributionBatch?->callOff;
         $purchaseOrder = $allocation->distributionBatch?->purchaseOrder;
@@ -272,6 +291,13 @@ class InventoryMovementReportService
             'beginning_total' => array_sum($beginning),
             'actual_total' => array_sum($actual),
             'ending_total' => array_sum($ending),
+            'previous_ending' => $previousEnding,
+            'previous_ending_total' => array_sum($previousEnding),
+            'receipt_quantities' => $receivedThisReceipt,
+            'receipt_quantity_total' => array_sum($receivedThisReceipt),
+            'is_first_receipt_row' => $isFirstReceiptRow,
+            'has_carry_forward' => $isFirstReceiptRow
+                && array_sum($previousEnding) > 0,
             'receipt' => $receipt,
             'designation' => $designation,
             'allocation' => $allocation,

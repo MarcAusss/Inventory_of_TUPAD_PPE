@@ -16,7 +16,7 @@ return new class extends Migration
                 ]
             )
             ->update([
-                'item_name' => 'Longsleeve',
+                'item_name' => 'Longsleeves',
             ]);
     }
 
@@ -26,7 +26,7 @@ return new class extends Migration
             ->whereRaw(
                 "LOWER(REPLACE(REPLACE(item_name, ' ', ''), '-', '')) = ?",
                 [
-                    'longsleeve',
+                    'longsleeves',
                 ]
             )
             ->update([

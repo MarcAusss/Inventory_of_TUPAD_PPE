@@ -14,7 +14,7 @@
                         Provincial Office
                     </span>
                     <span
-                        class="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700 ring-1 ring-inset ring-amber-200">
+                        class="rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-red-700 ring-1 ring-inset ring-red-200">
                         Pending Receipt
                     </span>
                 </div>

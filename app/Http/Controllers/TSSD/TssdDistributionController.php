@@ -65,8 +65,7 @@ class TssdDistributionController extends Controller
 
         $activeItems = Item::query()
             ->where('is_active', true)
-            ->orderBy('item_name')
-            ->orderBy('label')
+            ->orderForDisplay()
             ->get([
                 'id',
                 'item_name',
@@ -141,8 +140,7 @@ class TssdDistributionController extends Controller
 
         $itemColumns = Item::query()
             ->whereIn('id', $itemIds)
-            ->orderBy('item_name')
-            ->orderBy('label')
+            ->orderForDisplay()
             ->get([
                 'id',
                 'item_name',
@@ -442,8 +440,7 @@ class TssdDistributionController extends Controller
 
         $activeItems = Item::query()
             ->where('is_active', true)
-            ->orderBy('item_name')
-            ->orderBy('label')
+            ->orderForDisplay()
             ->get();
 
         $purchased = $activeItems

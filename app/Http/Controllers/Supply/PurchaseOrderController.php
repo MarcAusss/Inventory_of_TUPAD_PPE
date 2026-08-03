@@ -47,8 +47,7 @@ class PurchaseOrderController extends Controller
 
         $items = Item::query()
             ->where('is_active', true)
-            ->orderBy('item_name')
-            ->orderBy('label')
+            ->orderForDisplay()
             ->get();
 
         return view('purchase-orders.create', compact(
@@ -147,8 +146,7 @@ class PurchaseOrderController extends Controller
 
         $items = Item::query()
             ->where('is_active', true)
-            ->orderBy('item_name')
-            ->orderBy('label')
+            ->orderForDisplay()
             ->get();
 
         return view('purchase-orders.edit', compact(

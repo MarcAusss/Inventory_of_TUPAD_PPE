@@ -27,38 +27,92 @@ class Item extends Model
     }
 
     /**
-     * Store every Longsleeve spelling under one canonical item name.
+     * Read and store every Longsleeves spelling under one canonical item name.
      */
     protected function itemName(): Attribute
     {
         return Attribute::make(
-            set: function (mixed $value): string {
-                $itemName = trim((string) $value);
-
-                $normalizedName = strtolower(
-                    str_replace(
-                        [
-                            ' ',
-                            '-',
-                            '_',
-                        ],
-                        '',
-                        $itemName
-                    )
-                );
-
-                return in_array(
-                    $normalizedName,
-                    [
-                        'longsleeve',
-                        'longsleeves',
-                    ],
-                    true
-                )
-                    ? 'Longsleeve'
-                    : $itemName;
-            }
+            get: fn (mixed $value): string => self::canonicalItemName(
+                (string) $value
+            ),
+            set: fn (mixed $value): string => self::canonicalItemName(
+                (string) $value
+            )
         );
+    }
+
+    /**
+     * Return the canonical user-facing PPE item name.
+     */
+    public static function canonicalItemName(string $value): string
+    {
+        $itemName = trim($value);
+
+        $normalizedName = strtolower(
+            str_replace(
+                [
+                    ' ',
+                    '-',
+                    '_',
+                ],
+                '',
+                $itemName
+            )
+        );
+
+        return in_array(
+            $normalizedName,
+            [
+                'longsleeve',
+                'longsleeves',
+            ],
+            true
+        )
+            ? 'Longsleeves'
+            : $itemName;
+    }
+
+    /**
+     * Build a stable display key so paired PPE sizes always appear in the
+     * requested order: Medium before Large and US9 before US10.
+     */
+    public static function displaySortKey(
+        ?string $itemName,
+        ?string $label = null
+    ): string {
+        $canonicalName = self::canonicalItemName((string) $itemName);
+        $normalizedName = strtolower(
+            str_replace(
+                [
+                    ' ',
+                    '-',
+                    '_',
+                ],
+                '',
+                $canonicalName
+            )
+        );
+        $normalizedLabel = strtolower(trim((string) $label));
+
+        $sizeOrder = match ($normalizedName) {
+            'longsleeves' => match ($normalizedLabel) {
+                'medium', 'm' => 10,
+                'large', 'l' => 20,
+                default => 90,
+            },
+            'rubberboots' => match ($normalizedLabel) {
+                'us9', '9' => 10,
+                'us10', '10' => 20,
+                default => 90,
+            },
+            default => 50,
+        };
+
+        return strtolower($canonicalName)
+            . '|'
+            . str_pad((string) $sizeOrder, 2, '0', STR_PAD_LEFT)
+            . '|'
+            . $normalizedLabel;
     }
 
     /*
@@ -107,6 +161,40 @@ class Item extends Model
     | Scopes
     |--------------------------------------------------------------------------
     */
+
+
+    /**
+     * Order PPE items for user-facing lists and tables.
+     */
+    public function scopeOrderForDisplay(Builder $query): Builder
+    {
+        $normalizedName = "LOWER(REPLACE(REPLACE(REPLACE(items.item_name, ' ', ''), '-', ''), '_', ''))";
+
+        return $query
+            ->orderByRaw($normalizedName)
+            ->orderByRaw(
+                "CASE
+                    WHEN {$normalizedName} IN ('longsleeve', 'longsleeves') THEN
+                        CASE LOWER(COALESCE(items.label, ''))
+                            WHEN 'medium' THEN 10
+                            WHEN 'm' THEN 10
+                            WHEN 'large' THEN 20
+                            WHEN 'l' THEN 20
+                            ELSE 90
+                        END
+                    WHEN {$normalizedName} = 'rubberboots' THEN
+                        CASE LOWER(COALESCE(items.label, ''))
+                            WHEN 'us9' THEN 10
+                            WHEN '9' THEN 10
+                            WHEN 'us10' THEN 20
+                            WHEN '10' THEN 20
+                            ELSE 90
+                        END
+                    ELSE 50
+                END"
+            )
+            ->orderByRaw("LOWER(COALESCE(items.label, ''))");
+    }
 
     public function scopeSearch(Builder $query, ?string $search): Builder
     {

@@ -21,12 +21,12 @@
         $ppeColumns = [
             1 => [
                 'short' => 'Medium',
-                'group' => 'Longsleeve',
+                'group' => 'Longsleeves',
             ],
 
             2 => [
                 'short' => 'Large',
-                'group' => 'Longsleeve',
+                'group' => 'Longsleeves',
             ],
 
             3 => [
@@ -585,7 +585,7 @@
                                         Number of Days
                                     </th>
 
-                                    <th colspan="8"
+                                    <th colspan="7"
                                         class="border-r border-white/20
                                            bg-[#0284C7]
                                            px-4 py-4 text-center
@@ -594,7 +594,7 @@
                                         Beginning Inventory
                                     </th>
 
-                                    <th colspan="8"
+                                    <th colspan="7"
                                         class="border-r border-white/20
                                            bg-[#0EA5E9]
                                            px-4 py-4 text-center
@@ -603,7 +603,7 @@
                                         Actual Distribution
                                     </th>
 
-                                    <th colspan="8"
+                                    <th colspan="7"
                                         class="bg-[#075985]
                                            px-4 py-4 text-center
                                            text-sm font-bold uppercase
@@ -622,7 +622,7 @@
                                     <th colspan="2"
                                         class="border-r border-white/20
                                            px-3 py-3 text-center">
-                                        Longsleeve
+                                        Longsleeves
                                     </th>
 
                                     <th rowspan="2"
@@ -650,16 +650,6 @@
                                            border-r border-white/20
                                            px-3 py-3 text-center">
                                         Mask
-                                    </th>
-
-                                    <th rowspan="2"
-                                        class="w-[58px] min-w-[58px]
-                                           border-r border-white/25
-                                           px-1.5 py-3 text-center
-                                           text-[11px] font-extrabold"
-                                        title="Beginning inventory subtotal"
-                                        aria-label="Beginning inventory subtotal">
-                                        Σ
                                     </th>
 
                                     {{-- Actual Distribution --}}
@@ -667,7 +657,7 @@
                                         class="border-r border-white/20
                                            bg-[#0EA5E9]
                                            px-3 py-3 text-center">
-                                        Longsleeve
+                                        Longsleeves
                                     </th>
 
                                     <th rowspan="2"
@@ -699,17 +689,6 @@
                                            bg-[#0EA5E9]
                                            px-3 py-3 text-center">
                                         Mask
-                                    </th>
-
-                                    <th rowspan="2"
-                                        class="w-[58px] min-w-[58px]
-                                           border-r border-white/25
-                                           bg-[#0EA5E9]
-                                           px-1.5 py-3 text-center
-                                           text-[11px] font-extrabold"
-                                        title="Actual distribution subtotal"
-                                        aria-label="Actual distribution subtotal">
-                                        Σ
                                     </th>
 
                                     {{-- Ending Inventory --}}
@@ -717,7 +696,7 @@
                                         class="border-r border-white/20
                                            bg-[#075985]
                                            px-3 py-3 text-center">
-                                        Longsleeve
+                                        Longsleeves
                                     </th>
 
                                     <th rowspan="2"
@@ -749,17 +728,6 @@
                                            bg-[#075985]
                                            px-3 py-3 text-center">
                                         Mask
-                                    </th>
-
-                                    <th rowspan="2"
-                                        class="w-[58px] min-w-[58px]
-                                           border-r border-white/25
-                                           bg-[#075985]
-                                           px-1.5 py-3 text-center
-                                           text-[11px] font-extrabold"
-                                        title="Ending inventory subtotal"
-                                        aria-label="Ending inventory subtotal">
-                                        Σ
                                     </th>
                                 </tr>
 
@@ -925,6 +893,15 @@
                                                font-semibold text-slate-700">
                                                 {{ $row['delivery_receipt_number'] ?? '—' }}
                                             </div>
+
+                                            @if ($row['has_carry_forward'] ?? false)
+                                                <div class="mt-2 rounded-lg border border-[#B7D6E6] bg-[#F2F8FB] px-2.5 py-2 text-[10px] font-semibold leading-4 text-[#244F73]">
+                                                    New beginning:
+                                                    <strong>+{{ number_format((int) ($row['receipt_quantity_total'] ?? 0)) }}</strong> DR
+                                                    + <strong>{{ number_format((int) ($row['previous_ending_total'] ?? 0)) }}</strong> previous ending
+                                                    = <strong>{{ number_format((int) ($row['beginning_total'] ?? 0)) }}</strong>
+                                                </div>
+                                            @endif
                                         </td>
 
                                         <td
@@ -1013,23 +990,6 @@
                                             </td>
                                         @endforeach
 
-                                        <td
-                                            class="w-[58px] min-w-[58px]
-                                               border-r border-slate-200
-                                               bg-slate-100 px-1.5 py-4
-                                               text-center text-[11px]
-                                               font-extrabold text-black"
-                                            title="Beginning inventory subtotal">
-                                            {{
-                                                number_format(
-                                                    (int) (
-                                                        $row['beginning_total']
-                                                        ?? collect($beginning)->sum()
-                                                    )
-                                                )
-                                            }}
-                                        </td>
-
                                         {{-- Actual Distribution --}}
                                         @foreach (array_keys($ppeColumns) as $itemId)
                                             @php
@@ -1047,23 +1007,6 @@
                                             </td>
                                         @endforeach
 
-                                        <td
-                                            class="w-[58px] min-w-[58px]
-                                               border-r border-[#7DD3FC]/40
-                                               bg-[#7DD3FC]/20 px-1.5 py-4
-                                               text-center text-[11px]
-                                               font-extrabold text-black"
-                                            title="Actual distribution subtotal">
-                                            {{
-                                                number_format(
-                                                    (int) (
-                                                        $row['actual_total']
-                                                        ?? collect($actual)->sum()
-                                                    )
-                                                )
-                                            }}
-                                        </td>
-
                                         {{-- Ending Inventory --}}
                                         @foreach (array_keys($ppeColumns) as $itemId)
                                             @php
@@ -1080,23 +1023,6 @@
                                                 {{ number_format($endingQuantity) }}
                                             </td>
                                         @endforeach
-
-                                        <td
-                                            class="w-[58px] min-w-[58px]
-                                               border-r border-slate-200
-                                               bg-slate-100 px-1.5 py-4
-                                               text-center text-[11px]
-                                               font-extrabold text-black"
-                                            title="Ending inventory subtotal">
-                                            {{
-                                                number_format(
-                                                    (int) (
-                                                        $row['ending_total']
-                                                        ?? collect($ending)->sum()
-                                                    )
-                                                )
-                                            }}
-                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -1115,7 +1041,7 @@
                         <div class="flex flex-wrap gap-4">
                             <span>
                                 <strong>Beginning</strong>
-                                = Delivery Receipt balance before project
+                                = previous ending + newly received DR quantity
                             </span>
 
                             <span>
@@ -1126,11 +1052,6 @@
                             <span>
                                 <strong>Ending</strong>
                                 = Beginning − Actual Distribution
-                            </span>
-
-                            <span>
-                                <strong>Σ</strong>
-                                = compact subtotal for that inventory section
                             </span>
                         </div>
 

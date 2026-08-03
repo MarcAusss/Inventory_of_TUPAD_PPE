@@ -212,8 +212,9 @@ class CallOffLetterController extends Controller
             ->pluck('item')
             ->filter()
             ->unique('id')
-            ->sortBy(fn (Item $item): string => strtolower(
-                $item->item_name . '|' . ($item->label ?? '')
+            ->sortBy(fn (Item $item): string => Item::displaySortKey(
+                $item->item_name,
+                $item->label
             ))
             ->values();
 

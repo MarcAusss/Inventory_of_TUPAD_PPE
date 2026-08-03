@@ -121,9 +121,17 @@
 @layer components {
     /*
      * Shared table styling
-     * The first row inside each table header is the main #2E628D header.
-     * Secondary/grouped header rows are styled separately below.
+     * Every table header cell uses the requested #2E628D background,
+     * including grouped/sub-header rows and print-preview tables.
      */
+    table > thead > tr > th {
+        background-color: #2E628D !important;
+        color: #ffffff !important;
+        border-color: rgb(255 255 255 / 0.2) !important;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
     .app-dashboard-shell table > thead > tr:first-child > th {
         background-color: #2E628D !important;
         color: #ffffff !important;
@@ -139,11 +147,10 @@
     }
 
     /*
-     * Secondary/grouped table headers such as M, L, Total, US9, and US10.
-     * The exact requested color is #2e628dde.
+     * Secondary/grouped table headers use the same exact header color.
      */
     .app-dashboard-shell table > thead > tr:not(:first-child) > th {
-        background-color: #2e628dde !important;
+        background-color: #2E628D !important;
         color: #ffffff !important;
         border-color: rgb(255 255 255 / 0.2) !important;
     }

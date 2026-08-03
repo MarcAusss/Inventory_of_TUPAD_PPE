@@ -366,9 +366,9 @@ class StoreDeliveryReceiptRequest extends FormRequest
 
             'dr_number.unique' => 'The Delivery Receipt Number has already been used.',
 
-            'delivery_date.required' => 'Provide the actual delivery date.',
+            'delivery_date.required' => 'Provide the delivery date.',
 
-            'delivery_date.date' => 'Provide a valid actual delivery date.',
+            'delivery_date.date' => 'Provide a valid delivery date.',
 
             'physical_receiver_name.required' => 'Enter the name of the physical receiver.',
 

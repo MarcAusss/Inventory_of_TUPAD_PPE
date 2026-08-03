@@ -121,8 +121,8 @@
                                         </span>
                                     @else
                                         <span
-                                            class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700 ring-1 ring-inset ring-amber-200">
-                                            <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                                            class="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-red-700 ring-1 ring-inset ring-red-200">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>
                                             Pending
                                         </span>
                                     @endif

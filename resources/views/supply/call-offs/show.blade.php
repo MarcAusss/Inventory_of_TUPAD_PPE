@@ -9,7 +9,7 @@
             ->pluck('item')
             ->filter()
             ->unique('id')
-            ->sortBy(fn ($item) => strtolower($item->item_name . '|' . ($item->label ?? '')))
+            ->sortBy(fn ($item) => \App\Models\Item::displaySortKey($item->item_name, $item->label))
             ->values();
 
         $tableMinimumWidth = max(1100, 560 + ($itemColumns->count() * 145));

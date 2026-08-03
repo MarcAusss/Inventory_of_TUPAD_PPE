@@ -3,8 +3,8 @@
 use App\Http\Controllers\TSSD\CallOffController;
 use App\Http\Controllers\TSSD\CallOffLetterController;
 use App\Http\Controllers\TSSD\DashboardController;
-use App\Http\Controllers\TSSD\InventoryLedgerController;
 use App\Http\Controllers\TSSD\PdfTemplateController;
+use App\Http\Controllers\TSSD\PpeTrackingController;
 use App\Http\Controllers\TSSD\TssdDistributionController;
 use App\Http\Controllers\TSSD\UserManagementController;
 use Illuminate\Support\Facades\Route;
@@ -22,10 +22,31 @@ Route::middleware([
             DashboardController::class
         )->name('dashboard');
 
-        Route::get(
-            '/inventory-monitoring',
-            [InventoryLedgerController::class, 'index']
-        )->name('inventory-monitoring.index');
+        /*
+        |--------------------------------------------------------------------------
+        | TSSD PPE Tracking Center
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/inventory-monitoring', function () {
+            return redirect()->route('tssd.tracking.provincial-stock');
+        })->name('inventory-monitoring.index');
+
+        Route::prefix('ppe-tracking')
+            ->name('tracking.')
+            ->group(function (): void {
+                Route::get('/provincial-stock', [PpeTrackingController::class, 'provincialStock'])
+                    ->name('provincial-stock');
+
+                Route::get('/call-off-stock', [PpeTrackingController::class, 'callOffStock'])
+                    ->name('call-off-stock');
+
+                Route::get('/purchase-order-stock', [PpeTrackingController::class, 'purchaseOrderStock'])
+                    ->name('purchase-order-stock');
+
+                Route::get('/project-transactions', [PpeTrackingController::class, 'projectTransactions'])
+                    ->name('project-transactions');
+            });
 
         /*
         |--------------------------------------------------------------------------

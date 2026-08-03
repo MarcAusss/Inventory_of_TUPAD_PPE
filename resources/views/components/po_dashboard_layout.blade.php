@@ -175,14 +175,51 @@
                                 Call-Off Management
                             </a>
 
-                            @if (Route::has('tssd.inventory-monitoring.index'))
-                                <a href="{{ route('tssd.inventory-monitoring.index') }}"
-                                    class="flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition
-                                        {{ request()->routeIs('tssd.inventory-monitoring.*')
-                                            ? 'bg-[#339DCB] text-white shadow'
-                                            : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
-                                    PPE Inventory & Transactions
-                                </a>
+                            @if (Route::has('tssd.tracking.provincial-stock'))
+                                <div class="pt-3">
+                                    <div class="mb-2 flex items-center justify-between px-4">
+                                        <p class="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#5F7D91]">
+                                            PPE Tracking Center
+                                        </p>
+                                        <span class="rounded-full bg-[#2E628D]/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-[#2E628D]">
+                                            TSSD
+                                        </span>
+                                    </div>
+
+                                    <div class="space-y-1 rounded-2xl border border-[#D8EAF3] bg-white/70 p-2 shadow-sm">
+                                        <a href="{{ route('tssd.tracking.provincial-stock') }}"
+                                            class="flex items-center rounded-xl px-3 py-2.5 text-sm font-semibold transition
+                                                {{ request()->routeIs('tssd.tracking.provincial-stock')
+                                                    ? 'bg-[#2E628D] text-white shadow'
+                                                    : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
+                                            Provincial Stock
+                                        </a>
+
+                                        <a href="{{ route('tssd.tracking.call-off-stock') }}"
+                                            class="flex items-center rounded-xl px-3 py-2.5 text-sm font-semibold transition
+                                                {{ request()->routeIs('tssd.tracking.call-off-stock')
+                                                    ? 'bg-[#2E628D] text-white shadow'
+                                                    : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
+                                            Per Call-Off Stock
+                                        </a>
+
+                                        <a href="{{ route('tssd.tracking.purchase-order-stock') }}"
+                                            class="flex items-center rounded-xl px-3 py-2.5 text-sm font-semibold transition
+                                                {{ request()->routeIs('tssd.tracking.purchase-order-stock')
+                                                    ? 'bg-[#2E628D] text-white shadow'
+                                                    : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
+                                            Purchase Order Stock
+                                        </a>
+
+                                        <a href="{{ route('tssd.tracking.project-transactions') }}"
+                                            class="flex items-center rounded-xl px-3 py-2.5 text-sm font-semibold transition
+                                                {{ request()->routeIs('tssd.tracking.project-transactions')
+                                                    ? 'bg-[#2E628D] text-white shadow'
+                                                    : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
+                                            Project Transactions
+                                        </a>
+                                    </div>
+                                </div>
                             @endif
                             <a href="{{ route('tssd.call-off-letters.index') }}"
                                 class="group flex items-center gap-3 rounded-xl px-4 py-3

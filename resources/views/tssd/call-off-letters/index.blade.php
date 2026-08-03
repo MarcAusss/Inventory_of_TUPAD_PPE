@@ -98,7 +98,7 @@
                                 $statusClasses = match (strtolower($statusLabel)) {
                                     'approved' => 'bg-emerald-50 text-emerald-700 ring-emerald-200',
                                     'rejected' => 'bg-red-50 text-red-700 ring-red-200',
-                                    default => 'bg-amber-50 text-amber-700 ring-amber-200',
+                                    default => 'bg-red-50 text-red-700 ring-red-200',
                                 };
                             @endphp
 

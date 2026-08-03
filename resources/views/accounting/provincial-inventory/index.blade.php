@@ -123,7 +123,7 @@
                     class="text-xs font-bold uppercase
                            tracking-[0.14em] text-slate-500">
 
-                    Longsleeve
+                    Longsleeves
 
                 </p>
 
@@ -293,7 +293,7 @@
                                 class="border border-white/20
                                        px-4 py-3 text-center">
 
-                                Longsleeve
+                                Longsleeves
 
                             </th>
 
@@ -517,9 +517,9 @@
 
                                 {{-- Size totals are intentionally hidden here.
                                      The grouped Longsleeve total is shown only once. --}}
-                                <td class="px-4 py-4 text-center" aria-label="Included in Longsleeve total"></td>
+                                <td class="px-4 py-4 text-center" aria-label="Included in Longsleeves total"></td>
 
-                                <td class="px-4 py-4 text-center" aria-label="Included in Longsleeve total"></td>
+                                <td class="px-4 py-4 text-center" aria-label="Included in Longsleeves total"></td>
 
                                 <td class="px-4 py-4 text-center">
                                     {{ number_format(

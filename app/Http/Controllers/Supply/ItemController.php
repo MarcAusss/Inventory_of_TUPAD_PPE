@@ -69,8 +69,7 @@ class ItemController extends Controller
                     $query->where('is_active', false)
             )
             ->orderByDesc('is_active')
-            ->orderBy('item_name')
-            ->orderBy('label')
+            ->orderForDisplay()
             ->paginate(15)
             ->withQueryString();
 

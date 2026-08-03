@@ -275,6 +275,7 @@
             left: 0;
             z-index: 20;
             width: 100%;
+            border-top: 1px solid #94a3b8;
             line-height: 0;
         }
 
@@ -295,7 +296,7 @@
 
         .letterhead {
             display: grid;
-            grid-template-columns: 75px minmax(0, 1fr) 75px;
+            grid-template-columns: 140px minmax(0, 1fr) 260px;
             align-items: center;
             border-bottom: 1px solid #94a3b8;
             padding-bottom: 10px;
@@ -461,8 +462,8 @@
         }
 
         .details-table th {
-            background: #8EAADB;
-            color: black;
+            background: #2E628D;
+            color: #ffffff;
             font-size: 6.4pt;
             font-weight: 600;
             text-align: center;
@@ -471,7 +472,8 @@
         }
 
         .details-table thead tr:nth-child(2) th {
-            background: #8EAADB;
+            background: #2E628D;
+            color: #ffffff;
         }
 
         .details-table td {
@@ -745,9 +747,9 @@
                 {{-- Letterhead --}}
                 <header class="letterhead border-b border-slate-400 pb-[10px] relative">
 
-                    <div class="letterhead-side relative left-[70px]">
+                    <div class="letterhead-side flex items-center justify-start">
                         <img src="{{ asset('images/print/dole_logo.webp') }}" alt="DOLE Logo"
-                            class="max-h-[55px] w-[120px] object-contain" onerror="this.style.display='none'">
+                            class="max-h-[65px] w-[130px] object-contain" onerror="this.style.display='none'">
                     </div>
 
                     <div class="letterhead-center">
@@ -786,7 +788,7 @@
                             class="max-h-[55px] mr-4 w-[65px] object-contain" onerror="this.style.display='none'">
 
                         <img src="{{ asset('images/print/iso-bureau-veritas.jpg') }}" alt="ISO Bureau Veritas"
-                            class="max-h-[90px] w-[170px] object-contain" onerror="this.style.display='none'">
+                            class="max-h-[100px] w-[180px] object-contain" onerror="this.style.display='none'">
                     </div>
 
                 </header>
@@ -864,7 +866,46 @@
 
                     {{-- Provincial distribution table --}}
                     @php
-                        $itemColumns = collect($itemColumns ?? []);
+                        $itemColumns = collect($itemColumns ?? [])
+                            ->sortBy(fn ($item) => \App\Models\Item::displaySortKey(
+                                $item->item_name,
+                                $item->label
+                            ))
+                            ->values();
+
+                        $headerGroups = $itemColumns
+                            ->groupBy(function ($item): string {
+                                $canonicalName = \App\Models\Item::canonicalItemName(
+                                    (string) $item->item_name
+                                );
+                                $normalizedName = strtolower(
+                                    str_replace([' ', '-', '_'], '', $canonicalName)
+                                );
+
+                                return match ($normalizedName) {
+                                    'longsleeves' => 'group-longsleeves',
+                                    'rubberboots' => 'group-rubberboots',
+                                    default => 'item-' . $item->id,
+                                };
+                            })
+                            ->map(function ($items, string $key): array {
+                                $items = collect($items)->values();
+                                $first = $items->first();
+                                $isGrouped = str_starts_with($key, 'group-');
+
+                                return [
+                                    'grouped' => $isGrouped,
+                                    'name' => \App\Models\Item::canonicalItemName(
+                                        (string) $first->item_name
+                                    ),
+                                    'items' => $items,
+                                ];
+                            })
+                            ->values();
+
+                        $hasGroupedHeaders = $headerGroups
+                            ->contains(fn (array $group): bool => $group['grouped']);
+
                         $quantityWidth = $itemColumns->isEmpty()
                             ? 12
                             : max(5.5, min(11, 51 / $itemColumns->count()));
@@ -883,21 +924,42 @@
 
                             <thead>
                                 <tr>
-                                    <th>PROVINCE</th>
-                                    <th>PLACE OF DELIVERY</th>
-                                    <th>DATE OF DELIVERY</th>
+                                    <th rowspan="{{ $hasGroupedHeaders ? 2 : 1 }}">PROVINCE</th>
+                                    <th rowspan="{{ $hasGroupedHeaders ? 2 : 1 }}">PLACE OF DELIVERY</th>
+                                    <th rowspan="{{ $hasGroupedHeaders ? 2 : 1 }}">DATE OF DELIVERY</th>
 
-                                    @foreach ($itemColumns as $item)
-                                        <th>
-                                            {{ strtoupper($item->item_name) }}
-                                            @if ($item->label)
-                                                <span style="display:block; margin-top:2px; font-size:5.7pt;">
-                                                    {{ strtoupper($item->label) }}
-                                                </span>
-                                            @endif
-                                        </th>
+                                    @foreach ($headerGroups as $group)
+                                        @if ($group['grouped'])
+                                            <th colspan="{{ $group['items']->count() }}">
+                                                {{ strtoupper($group['name']) }}
+                                            </th>
+                                        @else
+                                            @php($item = $group['items']->first())
+                                            <th rowspan="{{ $hasGroupedHeaders ? 2 : 1 }}">
+                                                {{ strtoupper($group['name']) }}
+                                                @if ($item->label)
+                                                    <span style="display:block; margin-top:2px; font-size:5.7pt;">
+                                                        {{ strtoupper($item->label) }}
+                                                    </span>
+                                                @endif
+                                            </th>
+                                        @endif
                                     @endforeach
                                 </tr>
+
+                                @if ($hasGroupedHeaders)
+                                    <tr>
+                                        @foreach ($headerGroups as $group)
+                                            @if ($group['grouped'])
+                                                @foreach ($group['items'] as $item)
+                                                    <th>
+                                                        {{ strtoupper($item->label ?: '—') }}
+                                                    </th>
+                                                @endforeach
+                                            @endif
+                                        @endforeach
+                                    </tr>
+                                @endif
                             </thead>
 
                             <tbody>

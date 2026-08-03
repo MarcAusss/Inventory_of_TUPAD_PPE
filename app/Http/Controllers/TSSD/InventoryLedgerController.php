@@ -282,8 +282,19 @@ class InventoryLedgerController extends Controller
                 'items.is_active',
                 true
             )
-            ->orderBy('items.id')
-            ->get();
+            ->get()
+            ->map(function ($inventoryRow) {
+                $inventoryRow->item_name = Item::canonicalItemName(
+                    (string) $inventoryRow->item_name
+                );
+
+                return $inventoryRow;
+            })
+            ->sortBy(fn ($inventoryRow): string => Item::displaySortKey(
+                $inventoryRow->item_name,
+                $inventoryRow->label
+            ))
+            ->values();
 
         $supplyInventoryTotal = (int) $supplyInventory
             ->sum('quantity');
@@ -310,9 +321,21 @@ class InventoryLedgerController extends Controller
                 $provinceId,
                 fn ($query) => $query->where('provinces.id', $provinceId)
             )
-            ->orderBy('provinces.name')
-            ->orderBy('items.id')
-            ->get();
+            ->get()
+            ->map(function ($inventoryRow) {
+                $inventoryRow->item_name = Item::canonicalItemName(
+                    (string) $inventoryRow->item_name
+                );
+
+                return $inventoryRow;
+            })
+            ->sortBy(fn ($inventoryRow): string => strtolower(
+                (string) $inventoryRow->province_name
+            ) . '|' . Item::displaySortKey(
+                $inventoryRow->item_name,
+                $inventoryRow->label
+            ))
+            ->values();
 
         $provincialInventoryTotal = (int) $provincialInventories->sum('quantity');
 

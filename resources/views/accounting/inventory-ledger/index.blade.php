@@ -14,12 +14,12 @@
         $ppeColumns = [
             1 => [
                 'short' => 'Medium',
-                'group' => 'Longsleeve',
+                'group' => 'Longsleeves',
             ],
 
             2 => [
                 'short' => 'Large',
-                'group' => 'Longsleeve',
+                'group' => 'Longsleeves',
             ],
 
             3 => [
@@ -525,7 +525,7 @@
                                 colspan="3"
                                 class="border border-[#4F8DB8] bg-[#2E628D] px-4 py-4 text-center font-bold"
                             >
-                                Longsleeve
+                                Longsleeves
                             </th>
 
                             <th
@@ -636,9 +636,9 @@
 
                             {{-- Size totals are intentionally hidden here.
                                  The grouped Longsleeve total is shown only once. --}}
-                            <td class="border border-[#B7D6E6] px-4 py-4 text-center font-bold" aria-label="Included in Longsleeve total"></td>
+                            <td class="border border-[#B7D6E6] px-4 py-4 text-center font-bold" aria-label="Included in Longsleeves total"></td>
 
-                            <td class="border border-[#B7D6E6] px-4 py-4 text-center font-bold" aria-label="Included in Longsleeve total"></td>
+                            <td class="border border-[#B7D6E6] px-4 py-4 text-center font-bold" aria-label="Included in Longsleeves total"></td>
 
                             <td class="border border-[#B7D6E6] bg-[#EAF6FC] px-4 py-4 text-center font-bold">
                                 {{ number_format($provincialInventoryByProvince->sum('long_sleeve_total')) }}
@@ -1312,7 +1312,7 @@
                                 </th>
 
                                 <th
-                                    colspan="8"
+                                    colspan="7"
                                     class="border-r border-white/20
                                            bg-[#2E628D]
                                            px-4 py-4 text-center
@@ -1323,7 +1323,7 @@
                                 </th>
 
                                 <th
-                                    colspan="8"
+                                    colspan="7"
                                     class="border-r border-white/20
                                            bg-[#3B82C4]
                                            px-4 py-4 text-center
@@ -1334,7 +1334,7 @@
                                 </th>
 
                                 <th
-                                    colspan="8"
+                                    colspan="7"
                                     class="bg-[#244E70]
                                            px-4 py-4 text-center
                                            font-bold uppercase
@@ -1359,7 +1359,7 @@
                                         style="background-color:
                                             {{ $sectionColor }}"
                                     >
-                                        Longsleeve
+                                        Longsleeves
                                     </th>
 
                                     <th
@@ -1407,20 +1407,6 @@
                                             {{ $sectionColor }}"
                                     >
                                         Mask
-                                    </th>
-
-                                    <th
-                                        rowspan="2"
-                                        class="w-[58px] min-w-[58px]
-                                               border-r border-white/25
-                                               px-1.5 py-3 text-center
-                                               text-[11px] font-extrabold"
-                                        style="background-color:
-                                            {{ $sectionColor }}"
-                                        title="Section subtotal"
-                                        aria-label="Section subtotal"
-                                    >
-                                        Σ
                                     </th>
                                 @endforeach
                             </tr>
@@ -1641,6 +1627,15 @@
                                                 ?? '—'
                                             }}
                                         </span>
+
+                                        @if ($row['has_carry_forward'] ?? false)
+                                            <div class="mt-2 rounded-lg border border-[#B7D6E6] bg-[#F2F8FB] px-2.5 py-2 text-[10px] font-semibold leading-4 text-[#244F73]">
+                                                New beginning:
+                                                <strong>+{{ number_format((int) ($row['receipt_quantity_total'] ?? 0)) }}</strong> DR
+                                                + <strong>{{ number_format((int) ($row['previous_ending_total'] ?? 0)) }}</strong> previous ending
+                                                = <strong>{{ number_format((int) ($row['beginning_total'] ?? 0)) }}</strong>
+                                            </div>
+                                        @endif
                                     </td>
 
                                     {{-- Delivery Date --}}
@@ -1788,24 +1783,6 @@
                                         </td>
                                     @endforeach
 
-                                    <td
-                                        class="w-[58px] min-w-[58px]
-                                               border-r border-slate-200
-                                               bg-slate-100 px-1.5 py-4
-                                               text-center text-[11px]
-                                               font-extrabold text-black"
-                                        title="Beginning inventory subtotal"
-                                    >
-                                        {{
-                                            number_format(
-                                                (int) (
-                                                    $row['beginning_total']
-                                                    ?? collect($beginning)->sum()
-                                                )
-                                            )
-                                        }}
-                                    </td>
-
                                     {{-- Actual distribution --}}
                                     @foreach(
                                         array_keys($ppeColumns)
@@ -1841,24 +1818,6 @@
                                         </td>
                                     @endforeach
 
-                                    <td
-                                        class="w-[58px] min-w-[58px]
-                                               border-r border-[#B8D9EE]/40
-                                               bg-[#B8D9EE]/20 px-1.5 py-4
-                                               text-center text-[11px]
-                                               font-extrabold text-black"
-                                        title="Actual distribution subtotal"
-                                    >
-                                        {{
-                                            number_format(
-                                                (int) (
-                                                    $row['actual_total']
-                                                    ?? collect($actual)->sum()
-                                                )
-                                            )
-                                        }}
-                                    </td>
-
                                     {{-- Ending inventory --}}
                                     @foreach(
                                         array_keys($ppeColumns)
@@ -1893,24 +1852,6 @@
                                             }}
                                         </td>
                                     @endforeach
-
-                                    <td
-                                        class="w-[58px] min-w-[58px]
-                                               border-r border-slate-200
-                                               bg-slate-100 px-1.5 py-4
-                                               text-center text-[11px]
-                                               font-extrabold text-black"
-                                        title="Ending inventory subtotal"
-                                    >
-                                        {{
-                                            number_format(
-                                                (int) (
-                                                    $row['ending_total']
-                                                    ?? collect($ending)->sum()
-                                                )
-                                            )
-                                        }}
-                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -1929,7 +1870,7 @@
                     <div class="flex flex-wrap gap-4">
                         <span>
                             <strong>Beginning</strong>
-                            = balance before the current project
+                            = previous ending + newly received DR quantity
                         </span>
 
                         <span>
@@ -1940,11 +1881,6 @@
                         <span>
                             <strong>Ending</strong>
                             = Beginning − Actual Distribution
-                        </span>
-
-                        <span>
-                            <strong>Σ</strong>
-                            = compact subtotal for that inventory section
                         </span>
                     </div>
 

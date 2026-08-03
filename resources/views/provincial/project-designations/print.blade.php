@@ -196,10 +196,10 @@
     </div>
 
     {{-- DOLE Letterhead --}}
-    <div class="flex items-center justify-center gap-4 pl-24">
+    <div class="flex items-center justify-center gap-4 pl-8">
 
         <img src="{{ asset('images/print/dole_logo.webp') }}" alt="DOLE Logo"
-            class="max-h-[70px] w-[120px] object-contain" onerror="this.style.display='none'">
+            class="max-h-[80px] w-[130px] object-contain" onerror="this.style.display='none'">
 
         <div class="min-w-[300px] text-center">
 
@@ -237,7 +237,7 @@
             class="max-h-[72px] w-[105px] object-contain" onerror="this.style.display='none'">
 
         <img src="{{ asset('images/print/iso-bureau-veritas.jpg') }}" alt="ISO Bureau Veritas"
-            class="max-h-[70px] w-[150px] object-contain" onerror="this.style.display='none'">
+            class="max-h-[80px] w-[160px] object-contain" onerror="this.style.display='none'">
 
     </div>
 
@@ -306,7 +306,7 @@
                 </th>
 
                 <th colspan="3" class="bg-[#0284C7] text-white">
-                    Longsleeve
+                    Longsleeves
                 </th>
 
                 <th rowspan="2" class="bg-[#0284C7] text-white">

@@ -131,8 +131,7 @@ class RebuildSupplyInventory extends Command
 
             $rows = Item::query()
                 ->with('inventory')
-                ->orderBy('item_name')
-                ->orderBy('label')
+                ->orderForDisplay()
                 ->get()
                 ->map(function (Item $item): array {
                     return [

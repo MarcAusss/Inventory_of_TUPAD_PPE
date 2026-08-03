@@ -48,7 +48,7 @@
 
             <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">In Progress</p>
-                <p class="mt-3 text-3xl font-extrabold text-amber-600">{{ number_format($pendingCount) }}</p>
+                <p class="mt-3 text-3xl font-extrabold text-red-700">{{ number_format($pendingCount) }}</p>
             </div>
         </section>
 
@@ -117,10 +117,10 @@
 
                                 $statusClasses = match ($distribution->status) {
                                     'Received' => 'bg-green-100 text-green-800 ring-green-200',
+                                    'Pending' => 'bg-red-100 text-red-800 ring-red-200',
                                     'Partially Received',
                                     'For Delivery',
-                                    'Approved',
-                                    'Pending'
+                                    'Approved'
                                         => 'bg-amber-100 text-amber-800 ring-amber-200',
                                     'Cancelled' => 'bg-red-100 text-red-800 ring-red-200',
                                     default => 'bg-slate-100 text-slate-700 ring-slate-200',

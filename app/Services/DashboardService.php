@@ -67,7 +67,7 @@ class DashboardService extends BaseService
                 '
             CASE
                 WHEN LOWER(REPLACE(items.item_name, " ", "")) IN ("longsleeve", "longsleeves")
-                    THEN "Longsleeve"
+                    THEN "Longsleeves"
                 WHEN items.item_name = "Bucket Hat"
                     THEN "Bucket Hat"
                 WHEN items.item_name = "Rubber Boots"
@@ -314,7 +314,7 @@ class DashboardService extends BaseService
                 'is_active',
                 true
             )
-            ->orderBy('id')
+            ->orderForDisplay()
             ->get()
             ->map(
                 function (Item $item) use ($purchased, $distributed): object {
@@ -369,7 +369,7 @@ class DashboardService extends BaseService
                 '
             CASE
                 WHEN LOWER(REPLACE(items.item_name, " ", "")) IN ("longsleeve", "longsleeves")
-                    THEN "Longsleeve"
+                    THEN "Longsleeves"
                 WHEN items.item_name = "Bucket Hat"
                     THEN "Bucket Hat"
                 WHEN items.item_name = "Rubber Boots"
@@ -742,7 +742,7 @@ class DashboardService extends BaseService
 
             'datasets' => [
                 [
-                    'label' => 'Longsleeve',
+                    'label' => 'Longsleeves',
 
                     'data' => $this->chartValues(
                         $provinces,

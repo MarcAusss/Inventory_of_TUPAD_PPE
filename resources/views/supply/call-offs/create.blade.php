@@ -140,7 +140,7 @@
                         Status
                     </p>
 
-                    <p class="mt-1 font-semibold text-[#36566E]">
+                    <p class="mt-1 font-semibold {{ $callOff->status === 'Pending' ? 'text-red-700' : 'text-[#36566E]' }}">
                         {{ $callOff->status }}
                     </p>
 
