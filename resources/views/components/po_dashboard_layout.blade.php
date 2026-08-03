@@ -187,6 +187,14 @@
                                     </div>
 
                                     <div class="space-y-1 rounded-2xl border border-[#D8EAF3] bg-white/70 p-2 shadow-sm">
+                                        <a href="{{ route('tssd.tracking.summary') }}"
+                                            class="flex items-center rounded-xl px-3 py-2.5 text-sm font-semibold transition
+                                                {{ request()->routeIs('tssd.tracking.summary')
+                                                    ? 'bg-[#2E628D] text-white shadow'
+                                                    : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
+                                            PPE Summary
+                                        </a>
+
                                         <a href="{{ route('tssd.tracking.provincial-stock') }}"
                                             class="flex items-center rounded-xl px-3 py-2.5 text-sm font-semibold transition
                                                 {{ request()->routeIs('tssd.tracking.provincial-stock')
@@ -203,13 +211,13 @@
                                             Per Call-Off Stock
                                         </a>
 
-                                        <a href="{{ route('tssd.tracking.purchase-order-stock') }}"
+                                        {{-- <a href="{{ route('tssd.tracking.purchase-order-stock') }}"
                                             class="flex items-center rounded-xl px-3 py-2.5 text-sm font-semibold transition
                                                 {{ request()->routeIs('tssd.tracking.purchase-order-stock')
                                                     ? 'bg-[#2E628D] text-white shadow'
                                                     : 'text-[#36566E] hover:bg-[#B7D6E6]/35 hover:text-[#143A52]' }}">
                                             Purchase Order Stock
-                                        </a>
+                                        </a> --}}
 
                                         <a href="{{ route('tssd.tracking.project-transactions') }}"
                                             class="flex items-center rounded-xl px-3 py-2.5 text-sm font-semibold transition

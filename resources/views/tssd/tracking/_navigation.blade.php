@@ -1,5 +1,12 @@
+@include('tssd.tracking._table-styles')
+
 @php
     $trackingLinks = [
+        [
+            'route' => 'tssd.tracking.summary',
+            'label' => 'PPE Summary',
+            'description' => 'PO → Call-Off → DR → project stock flow',
+        ],
         [
             'route' => 'tssd.tracking.provincial-stock',
             'label' => 'Provincial Stock',
@@ -10,11 +17,11 @@
             'label' => 'Per Call-Off Stock',
             'description' => 'Allocation, receipts, distributions, and balance',
         ],
-        [
-            'route' => 'tssd.tracking.purchase-order-stock',
-            'label' => 'Purchase Order Stock',
-            'description' => 'Supply PO quantities remaining for allocation',
-        ],
+        // [
+        //     'route' => 'tssd.tracking.purchase-order-stock',
+        //     'label' => 'Purchase Order Stock',
+        //     'description' => 'Supply PO quantities remaining for allocation',
+        // ],
         [
             'route' => 'tssd.tracking.project-transactions',
             'label' => 'Project Transactions',
@@ -23,7 +30,7 @@
     ];
 @endphp
 
-<section class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+<section class="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
     @foreach ($trackingLinks as $trackingLink)
         @php($isActive = request()->routeIs($trackingLink['route']))
         <a href="{{ route($trackingLink['route']) }}"

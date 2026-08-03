@@ -59,7 +59,7 @@
                     ->values();
             @endphp
             <div class="overflow-x-auto">
-                <table class="min-w-full text-sm">
+                <table class="ppe-tracking-table min-w-full text-sm">
                     <thead>
                         <tr>
                             <th rowspan="2" class="min-w-52 px-5 py-4 text-left">Provincial Office</th>

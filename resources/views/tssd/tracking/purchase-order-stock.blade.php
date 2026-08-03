@@ -69,7 +69,7 @@
                     ->values();
             @endphp
             <div class="overflow-x-auto">
-                <table class="min-w-max w-full text-sm">
+                <table class="ppe-tracking-table min-w-max w-full text-sm">
                     <thead>
                         <tr>
                             <th rowspan="2" class="min-w-44 px-5 py-4 text-left">Purchase Order</th>

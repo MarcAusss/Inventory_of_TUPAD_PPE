@@ -35,6 +35,9 @@ Route::middleware([
         Route::prefix('ppe-tracking')
             ->name('tracking.')
             ->group(function (): void {
+                Route::get('/summary', [PpeTrackingController::class, 'summary'])
+                    ->name('summary');
+
                 Route::get('/provincial-stock', [PpeTrackingController::class, 'provincialStock'])
                     ->name('provincial-stock');
 
