@@ -242,49 +242,32 @@
             <div class="overflow-x-auto">
                 <table class="min-w-[2500px] w-full
                            border-separate border-spacing-0">
-                    <thead class="bg-slate-900 text-white">
-                        <tr class="text-xs font-bold uppercase
-                                   tracking-wide">
-                            <th class="px-4 py-4 text-center">No.</th>
-                            <th class="px-4 py-4 text-left">Project Code</th>
-                            <th class="px-4 py-4 text-left">Project Title</th>
-                            <th class="px-4 py-4 text-left">Location</th>
-                            <th class="px-4 py-4 text-center">Beneficiaries</th>
-                            <th class="px-4 py-4 text-center">Workdays</th>
-                            <th class="px-4 py-4 text-left">Supplier</th>
-                            <th class="px-4 py-4 text-left">Delivery Receipt</th>
-
-                            <th class="bg-[#0284C7]
-                                       px-4 py-4 text-left">
-                                Call-Off Number
-                            </th>
-
-                            <th class="px-4 py-4 text-center">Longsleeves M</th>
-                            <th class="px-4 py-4 text-center">Longsleeves L</th>
-
-                            <th class="bg-[#0284C7]/90
-                                       px-4 py-4 text-center">
-                                Total Longsleeves
-                            </th>
-
-                            <th class="px-4 py-4 text-center">Bucket Hat</th>
-                            <th class="px-4 py-4 text-center">Boots US9</th>
-                            <th class="px-4 py-4 text-center">Boots US10</th>
-
-                            <th class="bg-[#0284C7]/90
-                                       px-4 py-4 text-center">
-                                Total Rubber Boots
-                            </th>
-
-                            <th class="px-4 py-4 text-center">Gloves</th>
-                            <th class="px-4 py-4 text-center">Mask</th>
-
-                            <th class="bg-[#075985]
-                                       px-4 py-4 text-center">
-                                Total PPE
-                            </th>
-
-                            <th class="px-4 py-4 text-center">Action</th>
+                    <thead class="bg-[#2E628D] text-white">
+                        <tr class="text-xs font-bold uppercase tracking-wide">
+                            <th rowspan="2" class="px-4 py-4 text-center">No.</th>
+                            <th rowspan="2" class="px-4 py-4 text-left">Project Code</th>
+                            <th rowspan="2" class="px-4 py-4 text-left">Project Title</th>
+                            <th rowspan="2" class="px-4 py-4 text-left">Location</th>
+                            <th rowspan="2" class="px-4 py-4 text-center">Beneficiaries</th>
+                            <th rowspan="2" class="px-4 py-4 text-center">Workdays</th>
+                            <th rowspan="2" class="px-4 py-4 text-left">Supplier</th>
+                            <th rowspan="2" class="px-4 py-4 text-left">Delivery Receipt</th>
+                            <th rowspan="2" class="px-4 py-4 text-left">Call-Off Number</th>
+                            <th colspan="3" class="px-4 py-4 text-center">Longsleeves</th>
+                            <th rowspan="2" class="px-4 py-4 text-center">Bucket Hat</th>
+                            <th colspan="3" class="px-4 py-4 text-center">Rubber Boots</th>
+                            <th rowspan="2" class="px-4 py-4 text-center">Gloves</th>
+                            <th rowspan="2" class="px-4 py-4 text-center">Mask</th>
+                            <th rowspan="2" class="px-4 py-4 text-center">Total PPE</th>
+                            <th rowspan="2" class="px-4 py-4 text-center">Action</th>
+                        </tr>
+                        <tr class="bg-[#2E628D] text-[11px] font-bold uppercase tracking-wide text-white">
+                            <th class="px-4 py-3 text-center">Medium</th>
+                            <th class="px-4 py-3 text-center">Large</th>
+                            <th class="px-4 py-3 text-center">Total</th>
+                            <th class="px-4 py-3 text-center">US9</th>
+                            <th class="px-4 py-3 text-center">US10</th>
+                            <th class="px-4 py-3 text-center">Total</th>
                         </tr>
                     </thead>
 

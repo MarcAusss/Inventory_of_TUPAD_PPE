@@ -585,7 +585,7 @@
                                         Number of Days
                                     </th>
 
-                                    <th colspan="7"
+                                    <th colspan="9"
                                         class="border-r border-white/20
                                            bg-[#0284C7]
                                            px-4 py-4 text-center
@@ -594,7 +594,7 @@
                                         Beginning Inventory
                                     </th>
 
-                                    <th colspan="7"
+                                    <th colspan="9"
                                         class="border-r border-white/20
                                            bg-[#0EA5E9]
                                            px-4 py-4 text-center
@@ -603,7 +603,7 @@
                                         Actual Distribution
                                     </th>
 
-                                    <th colspan="7"
+                                    <th colspan="9"
                                         class="bg-[#075985]
                                            px-4 py-4 text-center
                                            text-sm font-bold uppercase
@@ -619,7 +619,7 @@
                                     class="border-b border-white/20
                                        bg-[#0284C7] text-white">
                                     {{-- Beginning Inventory --}}
-                                    <th colspan="2"
+                                    <th colspan="3"
                                         class="border-r border-white/20
                                            px-3 py-3 text-center">
                                         Longsleeves
@@ -632,7 +632,7 @@
                                         Bucket Hat
                                     </th>
 
-                                    <th colspan="2"
+                                    <th colspan="3"
                                         class="border-r border-white/20
                                            px-3 py-3 text-center">
                                         Rubber Boots
@@ -653,7 +653,7 @@
                                     </th>
 
                                     {{-- Actual Distribution --}}
-                                    <th colspan="2"
+                                    <th colspan="3"
                                         class="border-r border-white/20
                                            bg-[#0EA5E9]
                                            px-3 py-3 text-center">
@@ -668,7 +668,7 @@
                                         Bucket Hat
                                     </th>
 
-                                    <th colspan="2"
+                                    <th colspan="3"
                                         class="border-r border-white/20
                                            bg-[#0EA5E9]
                                            px-3 py-3 text-center">
@@ -692,7 +692,7 @@
                                     </th>
 
                                     {{-- Ending Inventory --}}
-                                    <th colspan="2"
+                                    <th colspan="3"
                                         class="border-r border-white/20
                                            bg-[#075985]
                                            px-3 py-3 text-center">
@@ -707,7 +707,7 @@
                                         Bucket Hat
                                     </th>
 
-                                    <th colspan="2"
+                                    <th colspan="3"
                                         class="border-r border-white/20
                                            bg-[#075985]
                                            px-3 py-3 text-center">
@@ -741,66 +741,45 @@
                                         Medium
                                     </th>
 
-                                    <th
-                                        class="border-r
-                                           border-[#0284C7]/20
-                                           px-3 py-2 text-center">
-                                        Large
-                                    </th>
+                                    <th class="px-3 py-2 text-center">Large</th>
+                                    <th class="border-r border-[#0284C7]/20 px-3 py-2 text-center font-black">Total</th>
 
                                     <th class="px-3 py-2 text-center">
                                         US9
                                     </th>
 
-                                    <th
-                                        class="border-r
-                                           border-[#0284C7]/20
-                                           px-3 py-2 text-center">
-                                        US10
-                                    </th>
+                                    <th class="px-3 py-2 text-center">US10</th>
+                                    <th class="border-r border-[#0284C7]/20 px-3 py-2 text-center font-black">Total</th>
 
                                     {{-- Actual sizes --}}
                                     <th class="px-3 py-2 text-center">
                                         Medium
                                     </th>
 
-                                    <th
-                                        class="border-r
-                                           border-[#0284C7]/20
-                                           px-3 py-2 text-center">
-                                        Large
-                                    </th>
+                                    <th class="px-3 py-2 text-center">Large</th>
+                                    <th class="border-r border-[#0284C7]/20 px-3 py-2 text-center font-black">Total</th>
 
                                     <th class="px-3 py-2 text-center">
                                         US9
                                     </th>
 
-                                    <th
-                                        class="border-r
-                                           border-[#0284C7]/20
-                                           px-3 py-2 text-center">
-                                        US10
-                                    </th>
+                                    <th class="px-3 py-2 text-center">US10</th>
+                                    <th class="border-r border-[#0284C7]/20 px-3 py-2 text-center font-black">Total</th>
 
                                     {{-- Ending sizes --}}
                                     <th class="px-3 py-2 text-center">
                                         Medium
                                     </th>
 
-                                    <th
-                                        class="border-r
-                                           border-[#0284C7]/20
-                                           px-3 py-2 text-center">
-                                        Large
-                                    </th>
+                                    <th class="px-3 py-2 text-center">Large</th>
+                                    <th class="border-r border-[#0284C7]/20 px-3 py-2 text-center font-black">Total</th>
 
                                     <th class="px-3 py-2 text-center">
                                         US9
                                     </th>
 
-                                    <th class="px-3 py-2 text-center">
-                                        US10
-                                    </th>
+                                    <th class="px-3 py-2 text-center">US10</th>
+                                    <th class="px-3 py-2 text-center font-black">Total</th>
                                 </tr>
                             </thead>
 
@@ -894,14 +873,6 @@
                                                 {{ $row['delivery_receipt_number'] ?? '—' }}
                                             </div>
 
-                                            @if ($row['has_carry_forward'] ?? false)
-                                                <div class="mt-2 rounded-lg border border-[#B7D6E6] bg-[#F2F8FB] px-2.5 py-2 text-[10px] font-semibold leading-4 text-[#244F73]">
-                                                    New beginning:
-                                                    <strong>+{{ number_format((int) ($row['receipt_quantity_total'] ?? 0)) }}</strong> DR
-                                                    + <strong>{{ number_format((int) ($row['previous_ending_total'] ?? 0)) }}</strong> previous ending
-                                                    = <strong>{{ number_format((int) ($row['beginning_total'] ?? 0)) }}</strong>
-                                                </div>
-                                            @endif
                                         </td>
 
                                         <td
@@ -986,8 +957,27 @@
                                                    text-center
                                                    font-semibold
                                                    text-slate-800">
-                                                {{ number_format($beginningQuantity) }}
+                                                <div class="text-base font-black">{{ number_format($beginningQuantity) }}</div>
+                                                @if ($row['has_carry_forward'] ?? false)
+                                                    @php
+                                                        $receiptPpe = (int) (($row['receipt_quantities'] ?? [])[$itemId] ?? 0);
+                                                        $previousPpe = (int) (($row['previous_ending'] ?? [])[$itemId] ?? 0);
+                                                    @endphp
+                                                    <div class="mt-2 rounded-md border border-[#B7D6E6] bg-white/80 px-1.5 py-1 text-[9px] font-semibold leading-3 text-[#244F73]">
+                                                        New beginning:<br>
+                                                        +{{ number_format($receiptPpe) }} DR + {{ number_format($previousPpe) }} previous ending = {{ number_format($beginningQuantity) }}
+                                                    </div>
+                                                @endif
                                             </td>
+                                            @if ($itemId === 2)
+                                                <td class="border-r border-slate-100 bg-slate-100 text-[#075985] px-3 py-4 text-center font-black">
+                                                    {{ number_format((int) ($beginning[1] ?? 0) + (int) ($beginning[2] ?? 0)) }}
+                                                </td>
+                                            @elseif ($itemId === 5)
+                                                <td class="border-r border-slate-100 bg-slate-100 text-[#075985] px-3 py-4 text-center font-black">
+                                                    {{ number_format((int) ($beginning[4] ?? 0) + (int) ($beginning[5] ?? 0)) }}
+                                                </td>
+                                            @endif
                                         @endforeach
 
                                         {{-- Actual Distribution --}}
@@ -1005,6 +995,15 @@
                                                    {{ $actualQuantity > 0 ? 'text-[#0EA5E9]' : 'text-slate-400' }}">
                                                 {{ number_format($actualQuantity) }}
                                             </td>
+                                            @if ($itemId === 2)
+                                                <td class="border-r border-slate-100 bg-[#E0F2FE] text-[#075985] px-3 py-4 text-center font-black">
+                                                    {{ number_format((int) ($actual[1] ?? 0) + (int) ($actual[2] ?? 0)) }}
+                                                </td>
+                                            @elseif ($itemId === 5)
+                                                <td class="border-r border-slate-100 bg-[#E0F2FE] text-[#075985] px-3 py-4 text-center font-black">
+                                                    {{ number_format((int) ($actual[4] ?? 0) + (int) ($actual[5] ?? 0)) }}
+                                                </td>
+                                            @endif
                                         @endforeach
 
                                         {{-- Ending Inventory --}}
@@ -1022,6 +1021,15 @@
                                                    {{ $endingQuantity <= 0 ? 'text-red-700' : 'text-[#075985]' }}">
                                                 {{ number_format($endingQuantity) }}
                                             </td>
+                                            @if ($itemId === 2)
+                                                <td class="border-r border-slate-100 bg-[#E0F2FE] text-[#075985] px-3 py-4 text-center font-black">
+                                                    {{ number_format((int) ($ending[1] ?? 0) + (int) ($ending[2] ?? 0)) }}
+                                                </td>
+                                            @elseif ($itemId === 5)
+                                                <td class="border-r border-slate-100 bg-[#E0F2FE] text-[#075985] px-3 py-4 text-center font-black">
+                                                    {{ number_format((int) ($ending[4] ?? 0) + (int) ($ending[5] ?? 0)) }}
+                                                </td>
+                                            @endif
                                         @endforeach
                                     </tr>
                                 @endforeach

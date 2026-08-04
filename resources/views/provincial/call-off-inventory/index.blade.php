@@ -383,7 +383,7 @@
                             </th>
 
                             <th
-                                colspan="7"
+                                colspan="9"
                                 class="border-b border-r
                                        border-slate-700
                                        bg-[#0284C7]
@@ -393,7 +393,7 @@
                             </th>
 
                             <th
-                                colspan="7"
+                                colspan="9"
                                 class="border-b border-slate-700
                                        bg-[#075985]
                                        px-4 py-4 text-center"
@@ -416,9 +416,9 @@
                             class="text-[11px] font-bold uppercase"
                         >
                             @foreach([
-                                ['Longsleeves', 2],
+                                ['Longsleeves', 3],
                                 ['Bucket Hat', 1],
-                                ['Rubber Boots', 2],
+                                ['Rubber Boots', 3],
                                 ['Gloves', 1],
                                 ['Mask', 1],
                             ] as [$group, $span])
@@ -434,9 +434,9 @@
                             @endforeach
 
                             @foreach([
-                                ['Longsleeves', 2],
+                                ['Longsleeves', 3],
                                 ['Bucket Hat', 1],
-                                ['Rubber Boots', 2],
+                                ['Rubber Boots', 3],
                                 ['Gloves', 1],
                                 ['Mask', 1],
                             ] as [$group, $span])
@@ -458,9 +458,11 @@
                             @foreach([
                                 'Medium',
                                 'Large',
+                                'Total',
                                 '—',
                                 'US9',
                                 'US10',
+                                'Total',
                                 '—',
                                 '—',
                             ] as $label)
@@ -477,9 +479,11 @@
                             @foreach([
                                 'Medium',
                                 'Large',
+                                'Total',
                                 '—',
                                 'US9',
                                 'US10',
+                                'Total',
                                 '—',
                                 '—',
                             ] as $label)
@@ -609,51 +613,40 @@
                                     </span>
                                 </td>
 
-                                @foreach(
-                                    array_keys($ppeColumns)
-                                    as $itemId
-                                )
-                                    <td
-                                        class="border-b border-r
-                                               border-slate-200
-                                               bg-[#7DD3FC]/10
-                                               px-3 py-4 text-center
-                                               text-lg font-bold
-                                               text-[#0284C7]"
-                                    >
-                                        {{
-                                            number_format(
-                                                $balances[
-                                                    $itemId
-                                                ][
-                                                    'call_off_available'
-                                                ] ?? 0
-                                            )
-                                        }}
+                                @foreach(array_keys($ppeColumns) as $itemId)
+                                    @php
+                                        $value = (int) ($balances[$itemId]['call_off_available'] ?? 0);
+                                    @endphp
+                                    <td class="border-b border-r border-slate-200 bg-[#7DD3FC]/10 px-3 py-4 text-center text-lg font-bold text-[#0284C7]">
+                                        {{ number_format($value) }}
                                     </td>
+                                    @if ($itemId === 2)
+                                        <td class="border-b border-r border-slate-200 bg-[#E0F2FE] px-3 py-4 text-center text-lg font-black text-[#075985]">
+                                            {{ number_format((int) ($balances[1]['call_off_available'] ?? 0) + (int) ($balances[2]['call_off_available'] ?? 0)) }}
+                                        </td>
+                                    @elseif ($itemId === 5)
+                                        <td class="border-b border-r border-slate-200 bg-[#E0F2FE] px-3 py-4 text-center text-lg font-black text-[#075985]">
+                                            {{ number_format((int) ($balances[4]['call_off_available'] ?? 0) + (int) ($balances[5]['call_off_available'] ?? 0)) }}
+                                        </td>
+                                    @endif
                                 @endforeach
 
-                                @foreach(
-                                    array_keys($ppeColumns)
-                                    as $itemId
-                                )
-                                    <td
-                                        class="border-b border-r
-                                               border-slate-200
-                                               px-3 py-4 text-center
-                                               font-bold
-                                               text-green-700"
-                                    >
-                                        {{
-                                            number_format(
-                                                $balances[
-                                                    $itemId
-                                                ][
-                                                    'available_for_projects'
-                                                ] ?? 0
-                                            )
-                                        }}
+                                @foreach(array_keys($ppeColumns) as $itemId)
+                                    @php
+                                        $value = (int) ($balances[$itemId]['available_for_projects'] ?? 0);
+                                    @endphp
+                                    <td class="border-b border-r border-slate-200 px-3 py-4 text-center font-bold text-green-700">
+                                        {{ number_format($value) }}
                                     </td>
+                                    @if ($itemId === 2)
+                                        <td class="border-b border-r border-slate-200 bg-emerald-50 px-3 py-4 text-center font-black text-emerald-800">
+                                            {{ number_format((int) ($balances[1]['available_for_projects'] ?? 0) + (int) ($balances[2]['available_for_projects'] ?? 0)) }}
+                                        </td>
+                                    @elseif ($itemId === 5)
+                                        <td class="border-b border-r border-slate-200 bg-emerald-50 px-3 py-4 text-center font-black text-emerald-800">
+                                            {{ number_format((int) ($balances[4]['available_for_projects'] ?? 0) + (int) ($balances[5]['available_for_projects'] ?? 0)) }}
+                                        </td>
+                                    @endif
                                 @endforeach
 
                                 <td
@@ -674,7 +667,7 @@
                         @empty
                             <tr>
                                 <td
-                                    colspan="20"
+                                    colspan="24"
                                     class="px-6 py-16 text-center
                                            text-slate-500"
                                 >

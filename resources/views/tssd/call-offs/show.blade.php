@@ -98,8 +98,8 @@
                             <th rowspan="2" class="border bg-[#339DCB] border-[#2D94BE] px-4 py-4 text-center">Mask</th>
                         </tr>
                         <tr class="text-xs font-bold uppercase tracking-wide">
-                            <th class="border border-[#2D94BE] bg-[#C4ECFE] px-4 py-3 text-center text-black">M</th>
-                            <th class="border border-[#C4ECFE] bg-[#C4ECFE] px-4 py-3 text-center text-black">L</th>
+                            <th class="border border-[#2D94BE] bg-[#C4ECFE] px-4 py-3 text-center text-black">Medium</th>
+                            <th class="border border-[#C4ECFE] bg-[#C4ECFE] px-4 py-3 text-center text-black">Large</th>
                             <th class="border border-[#C4ECFE] bg-[#C4ECFE] px-4 py-3 text-center text-black">Total</th>
                             <th class="border border-[#C4ECFE] bg-[#C4ECFE] px-4 py-3 text-center text-black">US9</th>
                             <th class="border border-[#C4ECFE] bg-[#C4ECFE] px-4 py-3 text-center text-black">US10</th>

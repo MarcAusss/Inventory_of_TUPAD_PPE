@@ -565,8 +565,8 @@
                         </tr>
 
                         <tr class="bg-[#B8D9EE] text-[#244E70]">
-                            <th class="border border-[#8ECDF2] px-4 py-3 text-center font-bold">M</th>
-                            <th class="border border-[#8ECDF2] px-4 py-3 text-center font-bold">L</th>
+                            <th class="border border-[#8ECDF2] px-4 py-3 text-center font-bold">Medium</th>
+                            <th class="border border-[#8ECDF2] px-4 py-3 text-center font-bold">Large</th>
                             <th class="border border-[#8ECDF2] px-4 py-3 text-center font-bold">Total</th>
                             <th class="border border-[#8ECDF2] px-4 py-3 text-center font-bold">US9</th>
                             <th class="border border-[#8ECDF2] px-4 py-3 text-center font-bold">US10</th>
@@ -1312,7 +1312,7 @@
                                 </th>
 
                                 <th
-                                    colspan="7"
+                                    colspan="9"
                                     class="border-r border-white/20
                                            bg-[#2E628D]
                                            px-4 py-4 text-center
@@ -1323,7 +1323,7 @@
                                 </th>
 
                                 <th
-                                    colspan="7"
+                                    colspan="9"
                                     class="border-r border-white/20
                                            bg-[#3B82C4]
                                            px-4 py-4 text-center
@@ -1334,7 +1334,7 @@
                                 </th>
 
                                 <th
-                                    colspan="7"
+                                    colspan="9"
                                     class="bg-[#244E70]
                                            px-4 py-4 text-center
                                            font-bold uppercase
@@ -1352,7 +1352,7 @@
                                     '#244E70',
                                 ] as $sectionColor)
                                     <th
-                                        colspan="2"
+                                        colspan="3"
                                         class="border-r
                                                border-white/20
                                                px-3 py-3 text-center"
@@ -1375,7 +1375,7 @@
                                     </th>
 
                                     <th
-                                        colspan="2"
+                                        colspan="3"
                                         class="border-r
                                                border-white/20
                                                px-3 py-3 text-center"
@@ -1428,14 +1428,8 @@
                                         Medium
                                     </th>
 
-                                    <th
-                                        class="border-r
-                                               border-[#2E628D]/20
-                                               px-3 py-2
-                                               text-center"
-                                    >
-                                        Large
-                                    </th>
+                                    <th class="px-3 py-2 text-center">Large</th>
+                                    <th class="border-r border-[#2E628D]/20 px-3 py-2 text-center font-black">Total</th>
 
                                     <th
                                         class="px-3 py-2
@@ -1444,14 +1438,8 @@
                                         US9
                                     </th>
 
-                                    <th
-                                        class="border-r
-                                               border-[#2E628D]/20
-                                               px-3 py-2
-                                               text-center"
-                                    >
-                                        US10
-                                    </th>
+                                    <th class="px-3 py-2 text-center">US10</th>
+                                    <th class="border-r border-[#2E628D]/20 px-3 py-2 text-center font-black">Total</th>
                                 @endfor
                             </tr>
                         </thead>
@@ -1781,6 +1769,15 @@
                                                 )
                                             }}
                                         </td>
+                                        @if ($itemId === 2)
+                                            <td class="border-r border-slate-100 bg-slate-100 text-[#244E70] px-3 py-4 text-center font-black">
+                                                {{ number_format((int) ($beginning[1] ?? 0) + (int) ($beginning[2] ?? 0)) }}
+                                            </td>
+                                        @elseif ($itemId === 5)
+                                            <td class="border-r border-slate-100 bg-slate-100 text-[#244E70] px-3 py-4 text-center font-black">
+                                                {{ number_format((int) ($beginning[4] ?? 0) + (int) ($beginning[5] ?? 0)) }}
+                                            </td>
+                                        @endif
                                     @endforeach
 
                                     {{-- Actual distribution --}}
@@ -1816,6 +1813,15 @@
                                                 )
                                             }}
                                         </td>
+                                        @if ($itemId === 2)
+                                            <td class="border-r border-slate-100 bg-[#EAF6FC] text-[#2E628D] px-3 py-4 text-center font-black">
+                                                {{ number_format((int) ($actual[1] ?? 0) + (int) ($actual[2] ?? 0)) }}
+                                            </td>
+                                        @elseif ($itemId === 5)
+                                            <td class="border-r border-slate-100 bg-[#EAF6FC] text-[#2E628D] px-3 py-4 text-center font-black">
+                                                {{ number_format((int) ($actual[4] ?? 0) + (int) ($actual[5] ?? 0)) }}
+                                            </td>
+                                        @endif
                                     @endforeach
 
                                     {{-- Ending inventory --}}
@@ -1851,6 +1857,15 @@
                                                 )
                                             }}
                                         </td>
+                                        @if ($itemId === 2)
+                                            <td class="border-r border-slate-100 bg-[#EAF6FC] text-[#244E70] px-3 py-4 text-center font-black">
+                                                {{ number_format((int) ($ending[1] ?? 0) + (int) ($ending[2] ?? 0)) }}
+                                            </td>
+                                        @elseif ($itemId === 5)
+                                            <td class="border-r border-slate-100 bg-[#EAF6FC] text-[#244E70] px-3 py-4 text-center font-black">
+                                                {{ number_format((int) ($ending[4] ?? 0) + (int) ($ending[5] ?? 0)) }}
+                                            </td>
+                                        @endif
                                     @endforeach
                                 </tr>
                             @endforeach

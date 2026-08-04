@@ -184,30 +184,30 @@
                     No. of Days
                 </th>
 
-                <th colspan="7"
+                <th colspan="9"
                     class="print-color-exact border border-[#333] bg-[#0284C7] px-0.5 py-[3px] text-center align-middle font-bold text-white">
                     Beginning Inventory
                 </th>
 
-                <th colspan="7"
+                <th colspan="9"
                     class="print-color-exact border border-[#333] bg-[#0EA5E9] px-0.5 py-[3px] text-center align-middle font-bold text-white">
                     Actual Distribution
                 </th>
 
-                <th colspan="7"
+                <th colspan="9"
                     class="print-color-exact border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center align-middle font-bold text-white">
                     Ending Inventory
                 </th>
             </tr>
 
             <tr>
-                <th colspan="2"
+                <th colspan="3"
                     class="print-color-exact border border-[#333] bg-[#0284C7] px-0.5 py-[3px] text-center font-bold text-white">
                     Longsleeves</th>
                 <th rowspan="2"
                     class="print-color-exact border border-[#333] bg-[#0284C7] px-0.5 py-[3px] text-center font-bold text-white">
                     Bucket Hat</th>
-                <th colspan="2"
+                <th colspan="3"
                     class="print-color-exact border border-[#333] bg-[#0284C7] px-0.5 py-[3px] text-center font-bold text-white">
                     Rubber Boots</th>
                 <th rowspan="2"
@@ -217,13 +217,13 @@
                     class="print-color-exact border border-[#333] bg-[#0284C7] px-0.5 py-[3px] text-center font-bold text-white">
                     Mask</th>
 
-                <th colspan="2"
+                <th colspan="3"
                     class="print-color-exact border border-[#333] bg-[#0EA5E9] px-0.5 py-[3px] text-center font-bold text-white">
                     Longsleeves</th>
                 <th rowspan="2"
                     class="print-color-exact border border-[#333] bg-[#0EA5E9] px-0.5 py-[3px] text-center font-bold text-white">
                     Bucket Hat</th>
-                <th colspan="2"
+                <th colspan="3"
                     class="print-color-exact border border-[#333] bg-[#0EA5E9] px-0.5 py-[3px] text-center font-bold text-white">
                     Rubber Boots</th>
                 <th rowspan="2"
@@ -233,13 +233,13 @@
                     class="print-color-exact border border-[#333] bg-[#0EA5E9] px-0.5 py-[3px] text-center font-bold text-white">
                     Mask</th>
 
-                <th colspan="2"
+                <th colspan="3"
                     class="print-color-exact border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center font-bold text-white">
                     Longsleeves</th>
                 <th rowspan="2"
                     class="print-color-exact border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center font-bold text-white">
                     Bucket Hat</th>
-                <th colspan="2"
+                <th colspan="3"
                     class="print-color-exact border border-[#333] bg-[#075985] px-0.5 py-[3px] text-center font-bold text-white">
                     Rubber Boots</th>
                 <th rowspan="2"
@@ -251,21 +251,21 @@
             </tr>
 
             <tr>
-                @foreach (['Medium', 'Large', 'US9', 'US10'] as $label)
+                @foreach (['Medium', 'Large', 'Total', 'US9', 'US10', 'Total'] as $label)
                     <th
                         class="print-color-exact border border-[#333] bg-[#7DD3FC] px-0.5 py-[3px] text-center font-bold text-[#075985]">
                         {{ $label }}
                     </th>
                 @endforeach
 
-                @foreach (['Medium', 'Large', 'US9', 'US10'] as $label)
+                @foreach (['Medium', 'Large', 'Total', 'US9', 'US10', 'Total'] as $label)
                     <th
                         class="print-color-exact border border-[#333] bg-[#7DD3FC] px-0.5 py-[3px] text-center font-bold text-[#075985]">
                         {{ $label }}
                     </th>
                 @endforeach
 
-                @foreach (['Medium', 'Large', 'US9', 'US10'] as $label)
+                @foreach (['Medium', 'Large', 'Total', 'US9', 'US10', 'Total'] as $label)
                     <th
                         class="print-color-exact border border-[#333] bg-[#7DD3FC] px-0.5 py-[3px] text-center font-bold text-[#075985]">
                         {{ $label }}
@@ -298,13 +298,6 @@
 
                     <td class="border border-[#333] px-0.5 py-[3px] text-center align-middle font-bold break-words">
                         {{ $row['delivery_receipt_number'] ?? '—' }}
-                        @if ($row['has_carry_forward'] ?? false)
-                            <span class="mt-0.5 block text-[5.2px] font-normal leading-tight">
-                                +{{ number_format((int) ($row['receipt_quantity_total'] ?? 0)) }} DR
-                                + {{ number_format((int) ($row['previous_ending_total'] ?? 0)) }} previous
-                                = {{ number_format((int) ($row['beginning_total'] ?? 0)) }} beginning
-                            </span>
-                        @endif
                     </td>
 
                     <td class="border border-[#333] px-0.5 py-[3px] text-center align-middle break-words">
@@ -340,8 +333,27 @@
                     @foreach ($ppeItemIds as $itemId)
                         <td
                             class="print-color-exact border border-[#333] bg-slate-50 px-0.5 py-[3px] text-center align-middle break-words">
-                            {{ number_format((int) ($beginning[$itemId] ?? 0)) }}
+                            @php
+                                $beginningQuantity = (int) ($beginning[$itemId] ?? 0);
+                                $receiptPpe = (int) (($row['receipt_quantities'] ?? [])[$itemId] ?? 0);
+                                $previousPpe = (int) (($row['previous_ending'] ?? [])[$itemId] ?? 0);
+                            @endphp
+                            <strong>{{ number_format($beginningQuantity) }}</strong>
+                            @if ($row['has_carry_forward'] ?? false)
+                                <span class="mt-0.5 block text-[4.7px] font-normal leading-tight">
+                                    New beginning: +{{ number_format($receiptPpe) }} DR + {{ number_format($previousPpe) }} previous ending = {{ number_format($beginningQuantity) }}
+                                </span>
+                            @endif
                         </td>
+                        @if ($itemId === 2)
+                            <td class="print-color-exact border border-[#333] bg-[#E0F2FE] px-0.5 py-[3px] text-center align-middle font-bold break-words">
+                                {{ number_format((int) ($beginning[1] ?? 0) + (int) ($beginning[2] ?? 0)) }}
+                            </td>
+                        @elseif ($itemId === 5)
+                            <td class="print-color-exact border border-[#333] bg-[#E0F2FE] px-0.5 py-[3px] text-center align-middle font-bold break-words">
+                                {{ number_format((int) ($beginning[4] ?? 0) + (int) ($beginning[5] ?? 0)) }}
+                            </td>
+                        @endif
                     @endforeach
 
                     @foreach ($ppeItemIds as $itemId)
@@ -349,6 +361,15 @@
                             class="print-color-exact border border-[#333] bg-red-50 px-0.5 py-[3px] text-center align-middle font-bold break-words">
                             {{ number_format((int) ($actual[$itemId] ?? 0)) }}
                         </td>
+                        @if ($itemId === 2)
+                            <td class="print-color-exact border border-[#333] bg-[#E0F2FE] px-0.5 py-[3px] text-center align-middle font-bold break-words">
+                                {{ number_format((int) ($actual[1] ?? 0) + (int) ($actual[2] ?? 0)) }}
+                            </td>
+                        @elseif ($itemId === 5)
+                            <td class="print-color-exact border border-[#333] bg-[#E0F2FE] px-0.5 py-[3px] text-center align-middle font-bold break-words">
+                                {{ number_format((int) ($actual[4] ?? 0) + (int) ($actual[5] ?? 0)) }}
+                            </td>
+                        @endif
                     @endforeach
 
                     @foreach ($ppeItemIds as $itemId)
@@ -356,11 +377,20 @@
                             class="print-color-exact border border-[#333] bg-neutral-50 px-0.5 py-[3px] text-center align-middle font-bold break-words">
                             {{ number_format((int) ($ending[$itemId] ?? 0)) }}
                         </td>
+                        @if ($itemId === 2)
+                            <td class="print-color-exact border border-[#333] bg-[#E0F2FE] px-0.5 py-[3px] text-center align-middle font-bold break-words">
+                                {{ number_format((int) ($ending[1] ?? 0) + (int) ($ending[2] ?? 0)) }}
+                            </td>
+                        @elseif ($itemId === 5)
+                            <td class="print-color-exact border border-[#333] bg-[#E0F2FE] px-0.5 py-[3px] text-center align-middle font-bold break-words">
+                                {{ number_format((int) ($ending[4] ?? 0) + (int) ($ending[5] ?? 0)) }}
+                            </td>
+                        @endif
                     @endforeach
                 </tr>
             @empty
                 <tr>
-                    <td colspan="30" class="border border-[#333] px-2 py-6 text-center text-[8px]">
+                    <td colspan="36" class="border border-[#333] px-2 py-6 text-center text-[8px]">
                         No project distribution records were found for this Delivery Receipt.
                     </td>
                 </tr>

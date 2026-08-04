@@ -2,67 +2,34 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Item;
+use Illuminate\Database\Seeder;
 
 class ItemSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        Item::insert([
+        $items = [
+            ['item_name' => 'Longsleeves', 'label' => 'Medium', 'unit_of_measurement' => 'Piece'],
+            ['item_name' => 'Longsleeves', 'label' => 'Large', 'unit_of_measurement' => 'Piece'],
+            ['item_name' => 'Bucket Hat', 'label' => null, 'unit_of_measurement' => 'Piece'],
+            ['item_name' => 'Rubber Boots', 'label' => 'US9', 'unit_of_measurement' => 'Pair'],
+            ['item_name' => 'Rubber Boots', 'label' => 'US10', 'unit_of_measurement' => 'Pair'],
+            ['item_name' => 'Hand Gloves', 'label' => null, 'unit_of_measurement' => 'Pair'],
+            ['item_name' => 'Mask', 'label' => null, 'unit_of_measurement' => 'Box'],
+        ];
 
-            [
-                'item_name' => 'Longsleeves',
-                'label' => 'Medium',
-                'unit_of_measurement' => 'Piece',
-                'is_active' => true,
-            ],
-
-            [
-                'item_name' => 'Longsleeves',
-                'label' => 'Large',
-                'unit_of_measurement' => 'Piece',
-                'is_active' => true,
-            ],
-
-            [
-                'item_name' => 'Bucket Hat',
-                'label' => null,
-                'unit_of_measurement' => 'Piece',
-                'is_active' => true,
-            ],
-
-            [
-                'item_name' => 'Rubber Boots',
-                'label' => 'US9',
-                'unit_of_measurement' => 'Pair',
-                'is_active' => true,
-            ],
-
-            [
-                'item_name' => 'Rubber Boots',
-                'label' => 'US10',
-                'unit_of_measurement' => 'Pair',
-                'is_active' => true,
-            ],
-
-            [
-                'item_name' => 'Hand Gloves',
-                'label' => null,
-                'unit_of_measurement' => 'Pair',
-                'is_active' => true,
-            ],
-
-            [
-                'item_name' => 'Mask',
-                'label' => null,
-                'unit_of_measurement' => 'Box',
-                'is_active' => true,
-            ],
-
-        ]);
+        foreach ($items as $item) {
+            Item::query()->updateOrCreate(
+                [
+                    'item_name' => $item['item_name'],
+                    'label' => $item['label'],
+                ],
+                [
+                    'unit_of_measurement' => $item['unit_of_measurement'],
+                    'is_active' => true,
+                ]
+            );
+        }
     }
 }

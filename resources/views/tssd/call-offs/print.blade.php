@@ -237,8 +237,8 @@
             </tr>
 
             <tr>
-                <th class="bg-[#E9FFFF] text-black">M</th>
-                <th class="bg-[#E9FFFF] text-black">L</th>
+                <th class="bg-[#E9FFFF] text-black">Medium</th>
+                <th class="bg-[#E9FFFF] text-black">Large</th>
                 <th class="bg-[#E9FFFF] text-black">Total</th>
 
                 <th class="bg-[#E9FFFF] text-black">US9</th>

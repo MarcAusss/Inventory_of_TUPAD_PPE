@@ -7,12 +7,25 @@ use Illuminate\Database\Seeder;
 
 class ProvinceSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $provinces = [
+        foreach ($this->provinces() as $province) {
+            Province::query()->updateOrCreate(
+                ['name' => $province['name']],
+                [
+                    'office_name' => $province['office_name'],
+                    'delivery_address' => $province['delivery_address'],
+                ]
+            );
+        }
+    }
+
+    /**
+     * @return array<int, array{name:string,office_name:string,delivery_address:string}>
+     */
+    public function provinces(): array
+    {
+        return [
             [
                 'name' => 'Albay',
                 'office_name' => 'DOLE Albay Provincial Office',
@@ -26,12 +39,12 @@ class ProvinceSeeder extends Seeder
             [
                 'name' => 'Camarines Sur',
                 'office_name' => 'DOLE Camarines Sur Provincial Office',
-                'delivery_address' => 'DOLE bldg., City Hall Compound, Camarines Sur',
+                'delivery_address' => 'DOLE Bldg., City Hall Compound, Camarines Sur',
             ],
             [
                 'name' => 'Catanduanes',
                 'office_name' => 'DOLE Catanduanes Provincial Office',
-                'delivery_address' => 'Llantino Bldg., Conception, Virac, Catanduanes',
+                'delivery_address' => 'Llantino Bldg., Concepcion, Virac, Catanduanes',
             ],
             [
                 'name' => 'Masbate',
@@ -41,20 +54,8 @@ class ProvinceSeeder extends Seeder
             [
                 'name' => 'Sorsogon',
                 'office_name' => 'DOLE Sorsogon Provincial Office',
-                'delivery_address' => 'DOLE bldg., City Hall Complex, Cabid-an, Sorsogon City, Sorsogon',
+                'delivery_address' => 'DOLE Bldg., City Hall Complex, Cabid-an, Sorsogon City, Sorsogon',
             ],
         ];
-
-        foreach ($provinces as $province) {
-            Province::updateOrCreate(
-                [
-                    'name' => $province['name'],
-                ],
-                [
-                    'office_name' => $province['office_name'],
-                    'delivery_address' => $province['delivery_address'],
-                ]
-            );
-        }
     }
 }

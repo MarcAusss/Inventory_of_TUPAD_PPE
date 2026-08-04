@@ -350,13 +350,13 @@
                             <th
                                 class="border border-white/20
                                        px-4 py-3 text-center">
-                                M
+                                Medium
                             </th>
 
                             <th
                                 class="border border-white/20
                                        px-4 py-3 text-center">
-                                L
+                                Large
                             </th>
 
                             <th

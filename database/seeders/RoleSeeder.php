@@ -7,28 +7,32 @@ use Illuminate\Database\Seeder;
 
 class RoleSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        Role::insert([
+        $roles = [
             [
                 'name' => 'Supply Unit',
-                'description' => 'Supply Office',
+                'description' => 'Creates Purchase Orders and reviews/approves Call-Off requests.',
             ],
             [
                 'name' => 'TSSD Unit',
-                'description' => 'Distribution',
+                'description' => 'Allocates PPE to Provincial Offices and monitors PPE movement system-wide.',
             ],
             [
                 'name' => 'Provincial Office',
-                'description' => 'Province User',
+                'description' => 'Receives PPE through Delivery Receipts and distributes available PPE to projects.',
             ],
             [
                 'name' => 'Accounting Unit',
-                'description' => 'Read Only',
+                'description' => 'Read-only monitoring and reporting access.',
             ],
-        ]);
+        ];
+
+        foreach ($roles as $role) {
+            Role::query()->updateOrCreate(
+                ['name' => $role['name']],
+                ['description' => $role['description']]
+            );
+        }
     }
 }

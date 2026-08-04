@@ -82,12 +82,12 @@
                             <th rowspan="2" class="px-5 py-4 text-left">Call-Off / PO</th>
                             <th rowspan="2" class="px-5 py-4 text-left">Supplier</th>
                             <th rowspan="2" class="px-5 py-4 text-center">Status</th>
-                            <th rowspan="2" class="px-5 py-4 text-center">Allocated</th>
-                            <th rowspan="2" class="px-5 py-4 text-center">Received</th>
-                            <th rowspan="2" class="px-5 py-4 text-center">Project Issued</th>
+                            {{-- <th rowspan="2" class="px-5 py-4 text-center">Allocated</th> --}}
+                            {{-- <th rowspan="2" class="px-5 py-4 text-center">Received</th> --}}
+                            {{-- <th rowspan="2" class="px-5 py-4 text-center">Project Issued</th> --}}
                             @foreach ($ppeHeaderGroups as $group)
                                 @if ($group['grouped'])
-                                    <th colspan="{{ $group['items']->count() }}" class="min-w-28 px-4 py-4 text-center">{{ $group['name'] }}</th>
+                                    <th colspan="{{ $group['items']->count() + 1 }}" class="min-w-28 px-4 py-4 text-center">{{ $group['name'] }}</th>
                                 @else
                                     <th rowspan="2" class="min-w-28 px-4 py-4 text-center">
                                         {{ $group['name'] }}
@@ -97,7 +97,7 @@
                                     </th>
                                 @endif
                             @endforeach
-                            <th rowspan="2" class="px-5 py-4 text-center">Remaining Total</th>
+                            {{-- <th rowspan="2" class="px-5 py-4 text-center">Remaining Total</th> --}}
                         </tr>
                         <tr>
                             @foreach ($ppeHeaderGroups as $group)
@@ -105,6 +105,7 @@
                                     @foreach ($group['items'] as $item)
                                         <th class="min-w-24 px-4 py-3 text-center">{{ $item->label ?: '—' }}</th>
                                     @endforeach
+                                    <th class="min-w-24 px-4 py-3 text-center font-black">Total</th>
                                 @endif
                             @endforeach
                         </tr>
@@ -136,21 +137,44 @@
                                 <td class="px-5 py-4 text-center">
                                     <span class="inline-flex rounded-full px-3 py-1 text-xs font-bold ring-1 {{ $statusClass }}">{{ $allocation->status ?: 'Pending' }}</span>
                                 </td>
-                                <td class="px-5 py-4 text-center font-bold">{{ number_format((int) $allocation->tracking_allocated_total) }}</td>
-                                <td class="px-5 py-4 text-center font-bold">{{ number_format((int) $allocation->tracking_received_total) }}</td>
-                                <td class="px-5 py-4 text-center font-bold">{{ number_format((int) $allocation->tracking_distributed_total) }}</td>
-                                @foreach ($items as $item)
-                                    @php($quantity = (int) ($allocation->tracking_quantities[$item->id] ?? 0))
-                                    <td class="px-4 py-4 text-center font-bold {{ $quantity <= 0 ? 'text-red-700' : 'text-slate-900' }}">
-                                        {{ number_format($quantity) }}
-                                    </td>
+                                {{-- <td class="px-5 py-4 text-center font-bold">{{ number_format((int) $allocation->tracking_allocated_total) }}</td> --}}
+                                {{-- <td class="px-5 py-4 text-center font-bold">{{ number_format((int) $allocation->tracking_received_total) }}</td> --}}
+                                {{-- <td class="px-5 py-4 text-center font-bold">{{ number_format((int) $allocation->tracking_distributed_total) }}</td> --}}
+                                @foreach ($ppeHeaderGroups as $group)
+                                    @if ($group['grouped'])
+                                        @php
+                                            $groupTotal = 0;
+                                        @endphp
+                                        @foreach ($group['items'] as $item)
+                                            @php
+                                                $quantity = (int) ($allocation->tracking_quantities[$item->id] ?? 0);
+                                            @endphp
+                                            @php
+                                                $groupTotal += $quantity;
+                                            @endphp
+                                            <td class="px-4 py-4 text-center font-bold {{ $quantity <= 0 ? 'text-red-700' : 'text-slate-900' }}">
+                                                {{ number_format($quantity) }}
+                                            </td>
+                                        @endforeach
+                                        <td class="bg-[#F2F8FB] px-4 py-4 text-center font-black text-[#2E628D]">{{ number_format($groupTotal) }}</td>
+                                    @else
+                                        @php
+                                            $item = $group['items']->first();
+                                        @endphp
+                                        @php
+                                            $quantity = (int) ($allocation->tracking_quantities[$item->id] ?? 0);
+                                        @endphp
+                                        <td class="px-4 py-4 text-center font-bold {{ $quantity <= 0 ? 'text-red-700' : 'text-slate-900' }}">
+                                            {{ number_format($quantity) }}
+                                        </td>
+                                    @endif
                                 @endforeach
-                                <td class="px-5 py-4 text-center text-base font-black {{ (int) $allocation->tracking_remaining_total <= 0 ? 'text-red-700' : 'text-emerald-700' }}">
+                                {{-- <td class="px-5 py-4 text-center text-base font-black {{ (int) $allocation->tracking_remaining_total <= 0 ? 'text-red-700' : 'text-emerald-700' }}">
                                     {{ number_format((int) $allocation->tracking_remaining_total) }}
-                                </td>
+                                </td> --}}
                             </tr>
                         @empty
-                            <tr><td colspan="{{ $items->count() + 8 }}" class="px-6 py-14 text-center text-slate-500">No Call-Off stock records matched the current filter.</td></tr>
+                            <tr><td colspan="{{ $items->count() + $ppeHeaderGroups->where('grouped', true)->count() + 8 }}" class="px-6 py-14 text-center text-slate-500">No Call-Off stock records matched the current filter.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

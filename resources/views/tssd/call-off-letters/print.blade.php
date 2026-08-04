@@ -906,9 +906,15 @@
                         $hasGroupedHeaders = $headerGroups
                             ->contains(fn (array $group): bool => $group['grouped']);
 
-                        $quantityWidth = $itemColumns->isEmpty()
+                        $groupTotalColumns = $headerGroups
+                            ->where('grouped', true)
+                            ->count();
+
+                        $effectiveQuantityColumns = $itemColumns->count() + $groupTotalColumns;
+
+                        $quantityWidth = $effectiveQuantityColumns === 0
                             ? 12
-                            : max(5.5, min(11, 51 / $itemColumns->count()));
+                            : max(5.5, min(11, 51 / $effectiveQuantityColumns));
                     @endphp
 
                     <div class="table-wrapper mt-3.5 overflow-hidden rounded-lg border border-slate-300">
@@ -917,8 +923,15 @@
                                 <col class="province-column">
                                 <col class="place-column">
                                 <col class="date-column">
-                                @foreach ($itemColumns as $item)
-                                    <col style="width: {{ $quantityWidth }}%">
+                                @foreach ($headerGroups as $group)
+                                    @if ($group['grouped'])
+                                        @foreach ($group['items'] as $item)
+                                            <col style="width: {{ $quantityWidth }}%">
+                                        @endforeach
+                                        <col style="width: {{ $quantityWidth }}%">
+                                    @else
+                                        <col style="width: {{ $quantityWidth }}%">
+                                    @endif
                                 @endforeach
                             </colgroup>
 
@@ -930,11 +943,13 @@
 
                                     @foreach ($headerGroups as $group)
                                         @if ($group['grouped'])
-                                            <th colspan="{{ $group['items']->count() }}">
+                                            <th colspan="{{ $group['items']->count() + 1 }}">
                                                 {{ strtoupper($group['name']) }}
                                             </th>
                                         @else
-                                            @php($item = $group['items']->first())
+                                            @php
+                                                $item = $group['items']->first();
+                                            @endphp
                                             <th rowspan="{{ $hasGroupedHeaders ? 2 : 1 }}">
                                                 {{ strtoupper($group['name']) }}
                                                 @if ($item->label)
@@ -956,6 +971,7 @@
                                                         {{ strtoupper($item->label ?: '—') }}
                                                     </th>
                                                 @endforeach
+                                                <th>TOTAL</th>
                                             @endif
                                         @endforeach
                                     </tr>
@@ -975,15 +991,36 @@
                                             @endif
                                         </td>
 
-                                        @foreach ($itemColumns as $item)
-                                            <td class="quantity-cell">
-                                                {{ number_format((int) ($row['items'][$item->id] ?? 0)) }}
-                                            </td>
+                                        @foreach ($headerGroups as $group)
+                                            @if ($group['grouped'])
+                                                @php
+                                                    $groupRowTotal = 0;
+                                                @endphp
+                                                @foreach ($group['items'] as $item)
+                                                    @php
+                                                        $itemQuantity = (int) ($row['items'][$item->id] ?? 0);
+                                                        $groupRowTotal += $itemQuantity;
+                                                    @endphp
+                                                    <td class="quantity-cell">
+                                                        {{ number_format($itemQuantity) }}
+                                                    </td>
+                                                @endforeach
+                                                <td class="quantity-cell font-bold bg-sky-50">
+                                                    {{ number_format($groupRowTotal) }}
+                                                </td>
+                                            @else
+                                                @php
+                                                    $item = $group['items']->first();
+                                                @endphp
+                                                <td class="quantity-cell">
+                                                    {{ number_format((int) ($row['items'][$item->id] ?? 0)) }}
+                                                </td>
+                                            @endif
                                         @endforeach
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="{{ 3 + $itemColumns->count() }}" class="empty-table-cell">
+                                        <td colspan="{{ 3 + $effectiveQuantityColumns }}" class="empty-table-cell">
                                             No provincial allocations were found for this request letter.
                                         </td>
                                     </tr>
@@ -991,8 +1028,25 @@
 
                                 <tr class="total-row bg-sky-100 text-[#075985]">
                                     <td colspan="3">TOTAL</td>
-                                    @foreach ($itemColumns as $item)
-                                        <td>{{ number_format((int) ($totals[$item->id] ?? 0)) }}</td>
+                                    @foreach ($headerGroups as $group)
+                                        @if ($group['grouped'])
+                                            @php
+                                                $groupGrandTotal = 0;
+                                            @endphp
+                                            @foreach ($group['items'] as $item)
+                                                @php
+                                                    $itemGrandTotal = (int) ($totals[$item->id] ?? 0);
+                                                    $groupGrandTotal += $itemGrandTotal;
+                                                @endphp
+                                                <td>{{ number_format($itemGrandTotal) }}</td>
+                                            @endforeach
+                                            <td class="font-bold">{{ number_format($groupGrandTotal) }}</td>
+                                        @else
+                                            @php
+                                                $item = $group['items']->first();
+                                            @endphp
+                                            <td>{{ number_format((int) ($totals[$item->id] ?? 0)) }}</td>
+                                        @endif
                                     @endforeach
                                 </tr>
                             </tbody>

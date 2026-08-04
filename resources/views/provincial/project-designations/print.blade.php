@@ -332,11 +332,11 @@
 
             <tr>
                 <th class="bg-[#F0F9FF] text-black">
-                    M
+                    Medium
                 </th>
 
                 <th class="bg-[#F0F9FF] text-black">
-                    L
+                    Large
                 </th>
 
                 <th class="bg-[#F0F9FF] text-black">

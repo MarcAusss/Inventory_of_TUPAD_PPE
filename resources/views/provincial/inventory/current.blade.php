@@ -601,7 +601,7 @@
                             </th>
 
                             <th
-                                colspan="7"
+                                colspan="9"
                                 class="border-b border-r
                                        border-slate-300
                                        bg-[#7DD3FC] px-4 py-4
@@ -611,7 +611,7 @@
                             </th>
 
                             <th
-                                colspan="7"
+                                colspan="9"
                                 class="border-b border-r
                                        border-slate-300
                                        bg-[#38BDF8] px-4 py-4
@@ -621,7 +621,7 @@
                             </th>
 
                             <th
-                                colspan="7"
+                                colspan="9"
                                 class="border-b border-slate-300
                                        bg-[#075985] px-4 py-4
                                        text-center text-white"
@@ -635,9 +635,9 @@
                                    tracking-wide"
                         >
                             @foreach([
-                                ['Longsleeves', 2],
+                                ['Longsleeves', 3],
                                 ['Bucket Hat', 1],
-                                ['Rubber Boots', 2],
+                                ['Rubber Boots', 3],
                                 ['Gloves', 1],
                                 ['Mask', 1],
                             ] as [$group, $span])
@@ -654,9 +654,9 @@
                             @endforeach
 
                             @foreach([
-                                ['Longsleeves', 2],
+                                ['Longsleeves', 3],
                                 ['Bucket Hat', 1],
-                                ['Rubber Boots', 2],
+                                ['Rubber Boots', 3],
                                 ['Gloves', 1],
                                 ['Mask', 1],
                             ] as [$group, $span])
@@ -673,9 +673,9 @@
                             @endforeach
 
                             @foreach([
-                                ['Longsleeves', 2],
+                                ['Longsleeves', 3],
                                 ['Bucket Hat', 1],
-                                ['Rubber Boots', 2],
+                                ['Rubber Boots', 3],
                                 ['Gloves', 1],
                                 ['Mask', 1],
                             ] as [$group, $span])
@@ -699,9 +699,11 @@
                             @foreach([
                                 'Medium',
                                 'Large',
+                                'Total',
                                 '—',
                                 'US9',
                                 'US10',
+                                'Total',
                                 '—',
                                 '—',
                             ] as $subLabel)
@@ -719,9 +721,11 @@
                             @foreach([
                                 'Medium',
                                 'Large',
+                                'Total',
                                 '—',
                                 'US9',
                                 'US10',
+                                'Total',
                                 '—',
                                 '—',
                             ] as $subLabel)
@@ -739,9 +743,11 @@
                             @foreach([
                                 'Medium',
                                 'Large',
+                                'Total',
                                 '—',
                                 'US9',
                                 'US10',
+                                'Total',
                                 '—',
                                 '—',
                             ] as $subLabel)
@@ -904,59 +910,63 @@
                                 </td>
 
                                 @foreach(array_keys($ppeLabels) as $key)
-                                    <td
-                                        class="border-b border-r
-                                               border-slate-200
-                                               bg-[#7DD3FC]/5
-                                               px-3 py-4 text-center
-                                               font-semibold
-                                               text-slate-800"
-                                    >
-                                        {{ number_format(
-                                            $allocationData[$key] ?? 0
-                                        ) }}
+                                    @php
+                                        $value = (int) ($allocationData[$key] ?? 0);
+                                    @endphp
+                                    <td class="border-b border-r border-slate-200 bg-[#7DD3FC]/5 px-3 py-4 text-center font-semibold text-slate-800">
+                                        {{ number_format($value) }}
                                     </td>
-                                @endforeach
-
-                                @foreach(array_keys($ppeLabels) as $key)
-                                    <td
-                                        class="border-b border-r
-                                               border-slate-200
-                                               bg-[#38BDF8]/5
-                                               px-3 py-4 text-center
-                                               font-bold
-                                               text-[#0284C7]"
-                                    >
-                                        {{ number_format(
-                                            $actualData[$key] ?? 0
-                                        ) }}
-                                    </td>
+                                    @if ($key === 'long_sleeve_large')
+                                        <td class="border-b border-r border-slate-200 bg-[#E0F2FE] px-3 py-4 text-center font-black text-[#075985]">
+                                            {{ number_format((int) ($allocationData['long_sleeve_medium'] ?? 0) + (int) ($allocationData['long_sleeve_large'] ?? 0)) }}
+                                        </td>
+                                    @elseif ($key === 'rubber_boots_us10')
+                                        <td class="border-b border-r border-slate-200 bg-[#E0F2FE] px-3 py-4 text-center font-black text-[#075985]">
+                                            {{ number_format((int) ($allocationData['rubber_boots_us9'] ?? 0) + (int) ($allocationData['rubber_boots_us10'] ?? 0)) }}
+                                        </td>
+                                    @endif
                                 @endforeach
 
                                 @foreach(array_keys($ppeLabels) as $key)
                                     @php
-                                        $remainingValue =
-                                            (int) (
-                                                $remainingData[$key]
-                                                ?? 0
-                                            );
+                                        $value = (int) ($actualData[$key] ?? 0);
                                     @endphp
-
-                                    <td
-                                        class="border-b border-r
-                                               border-slate-200
-                                               px-3 py-4 text-center
-                                               font-bold
-                                               {{
-                                                   $remainingValue > 0
-                                                       ? 'bg-amber-50 text-amber-700'
-                                                       : 'bg-green-50 text-green-700'
-                                               }}"
-                                    >
-                                        {{ number_format(
-                                            $remainingValue
-                                        ) }}
+                                    <td class="border-b border-r border-slate-200 bg-[#38BDF8]/5 px-3 py-4 text-center font-bold text-[#0284C7]">
+                                        {{ number_format($value) }}
                                     </td>
+                                    @if ($key === 'long_sleeve_large')
+                                        <td class="border-b border-r border-slate-200 bg-[#E0F2FE] px-3 py-4 text-center font-black text-[#075985]">
+                                            {{ number_format((int) ($actualData['long_sleeve_medium'] ?? 0) + (int) ($actualData['long_sleeve_large'] ?? 0)) }}
+                                        </td>
+                                    @elseif ($key === 'rubber_boots_us10')
+                                        <td class="border-b border-r border-slate-200 bg-[#E0F2FE] px-3 py-4 text-center font-black text-[#075985]">
+                                            {{ number_format((int) ($actualData['rubber_boots_us9'] ?? 0) + (int) ($actualData['rubber_boots_us10'] ?? 0)) }}
+                                        </td>
+                                    @endif
+                                @endforeach
+
+                                @foreach(array_keys($ppeLabels) as $key)
+                                    @php
+                                        $remainingValue = (int) ($remainingData[$key] ?? 0);
+                                    @endphp
+                                    <td class="border-b border-r border-slate-200 px-3 py-4 text-center font-bold {{ $remainingValue > 0 ? 'bg-amber-50 text-amber-700' : 'bg-green-50 text-green-700' }}">
+                                        {{ number_format($remainingValue) }}
+                                    </td>
+                                    @if ($key === 'long_sleeve_large')
+                                        @php
+                                            $groupTotal = (int) ($remainingData['long_sleeve_medium'] ?? 0) + (int) ($remainingData['long_sleeve_large'] ?? 0);
+                                        @endphp
+                                        <td class="border-b border-r border-slate-200 px-3 py-4 text-center font-black {{ $groupTotal > 0 ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800' }}">
+                                            {{ number_format($groupTotal) }}
+                                        </td>
+                                    @elseif ($key === 'rubber_boots_us10')
+                                        @php
+                                            $groupTotal = (int) ($remainingData['rubber_boots_us9'] ?? 0) + (int) ($remainingData['rubber_boots_us10'] ?? 0);
+                                        @endphp
+                                        <td class="border-b border-r border-slate-200 px-3 py-4 text-center font-black {{ $groupTotal > 0 ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800' }}">
+                                            {{ number_format($groupTotal) }}
+                                        </td>
+                                    @endif
                                 @endforeach
                             </tr>
 
@@ -964,7 +974,7 @@
                             @if($allocation->deliveryReceipts->isNotEmpty())
                                 <tr>
                                     <td
-                                        colspan="27"
+                                        colspan="33"
                                         class="border-b border-slate-200
                                                bg-slate-50 px-5 py-4"
                                     >
@@ -1193,7 +1203,7 @@
                         @empty
                             <tr>
                                 <td
-                                    colspan="27"
+                                    colspan="33"
                                     class="px-6 py-12 text-center
                                            text-sm text-slate-500"
                                 >

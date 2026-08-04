@@ -27,7 +27,7 @@ class PpeTrackingController extends Controller
         $items = $this->activeItems();
 
         $provinces = Province::query()
-            ->orderBy('name')
+            ->orderByRaw($this->provinceOrderSql('id'))
             ->get();
 
         $visibleProvinces = Province::query()
@@ -36,7 +36,7 @@ class PpeTrackingController extends Controller
                 $search !== '',
                 fn (Builder $query) => $query->where('name', 'like', "%{$search}%")
             )
-            ->orderBy('name')
+            ->orderByRaw($this->provinceOrderSql('id'))
             ->paginate(15)
             ->withQueryString();
 
@@ -70,9 +70,14 @@ class PpeTrackingController extends Controller
             )
             ->pluck('id');
 
-        $totalAvailable = (int) ProvincialInventory::query()
+        $itemTotals = ProvincialInventory::query()
             ->whereIn('province_id', $filteredProvinceIds)
-            ->sum('quantity');
+            ->selectRaw('item_id, SUM(quantity) AS total_quantity')
+            ->groupBy('item_id')
+            ->pluck('total_quantity', 'item_id')
+            ->map(fn ($quantity): int => max(0, (int) $quantity));
+
+        $totalAvailable = (int) $itemTotals->sum();
 
         return view('tssd.tracking.provincial-stock', [
             'search' => $search,
@@ -81,6 +86,7 @@ class PpeTrackingController extends Controller
             'visibleProvinces' => $visibleProvinces,
             'items' => $items,
             'totalAvailable' => $totalAvailable,
+            'itemTotals' => $itemTotals,
             'trackedProvinceCount' => $filteredProvinceIds->count(),
         ]);
     }
@@ -166,7 +172,7 @@ class PpeTrackingController extends Controller
         });
 
         $pageRows = $allocations->getCollection();
-        $provinces = Province::query()->orderBy('name')->get();
+        $provinces = Province::query()->orderByRaw($this->provinceOrderSql('id'))->get();
         $statuses = ProvinceDistribution::query()
             ->whereHas('distributionBatch.callOff')
             ->whereNotNull('status')
@@ -438,9 +444,16 @@ class PpeTrackingController extends Controller
             })
             ->sum('quantity');
 
+        $purchaseOrderIdOrder = \App\Models\TssdDistributionBatch::query()
+            ->select('purchase_order_id')
+            ->whereColumn('tssd_distribution_batches.id', 'province_distributions.tssd_distribution_batch_id')
+            ->limit(1);
+
         $allocations = (clone $baseQuery)
-            ->orderByDesc('scheduled_delivery_date')
-            ->orderByDesc('id')
+            ->orderByDesc($purchaseOrderIdOrder)
+            ->orderByDesc('tssd_distribution_batch_id')
+            ->orderByRaw($this->provinceOrderSql('province_id'))
+            ->orderBy('id')
             ->paginate(10)
             ->withQueryString();
 
@@ -496,6 +509,8 @@ class PpeTrackingController extends Controller
 
             foreach ($validReceipts as $receipt) {
                 $receiptItems = [];
+                $receiptReceivedByItem = [];
+                $receiptRemainingByItem = [];
                 $receiptReceivedTotal = 0;
                 $receiptProjectUsedTotal = 0;
                 $receiptRemainingTotal = 0;
@@ -505,8 +520,10 @@ class PpeTrackingController extends Controller
                     $receivedQuantity = (int) $receipt->items
                         ->where('item_id', $itemId)
                         ->sum('received_quantity');
+                    $receiptReceivedByItem[$itemId] = max(0, $receivedQuantity);
 
                     if ($receivedQuantity <= 0) {
+                        $receiptRemainingByItem[$itemId] = 0;
                         continue;
                     }
 
@@ -529,6 +546,7 @@ class PpeTrackingController extends Controller
                     $receiptReceivedTotal += $receivedQuantity;
                     $receiptProjectUsedTotal += $projectUsed;
                     $receiptRemainingTotal += $remainingQuantity;
+                    $receiptRemainingByItem[$itemId] = $remainingQuantity;
 
                     $receiptItems[] = [
                         'name' => Item::canonicalItemName((string) $item->item_name),
@@ -551,6 +569,8 @@ class PpeTrackingController extends Controller
                     'received_total' => $receiptReceivedTotal,
                     'project_used_total' => $receiptProjectUsedTotal,
                     'remaining_total' => $receiptRemainingTotal,
+                    'received_by_item' => $receiptReceivedByItem,
+                    'remaining_by_item' => $receiptRemainingByItem,
                 ];
 
                 $receiptSummaries[] = $summary;
@@ -639,7 +659,7 @@ class PpeTrackingController extends Controller
             return $allocation;
         });
 
-        $provinces = Province::query()->orderBy('name')->get();
+        $provinces = Province::query()->orderByRaw($this->provinceOrderSql('id'))->get();
         $statuses = ProvinceDistribution::query()
             ->whereHas('distributionBatch.callOff')
             ->whereNotNull('status')
@@ -664,6 +684,39 @@ class PpeTrackingController extends Controller
             'totalCallOffRemaining' => max(0, $totalAllocated - $totalProjectIssued),
             'totalAvailableNow' => max(0, $totalReceived - $totalProjectIssued),
         ]);
+    }
+
+    /**
+     * Operational province order used by TSSD tracking tables.
+     */
+    private function provinceOrderSql(string $column): string
+    {
+        $names = [
+            'Albay',
+            'Camarines Norte',
+            'Camarines Sur',
+            'Catanduanes',
+            'Masbate',
+            'Sorsogon',
+        ];
+
+        $ids = Province::query()
+            ->whereIn('name', $names)
+            ->pluck('id', 'name');
+
+        $parts = [];
+        foreach ($names as $position => $name) {
+            $id = (int) ($ids[$name] ?? 0);
+            if ($id > 0) {
+                $parts[] = 'WHEN '.$id.' THEN '.($position + 1);
+            }
+        }
+
+        if ($parts === []) {
+            return '999';
+        }
+
+        return 'CASE '.$column.' '.implode(' ', $parts).' ELSE 999 END';
     }
 
     private function activeItems(): Collection
