@@ -141,7 +141,7 @@
 
     {{-- DOLE letterhead --}}
    <div class="flex items-center justify-center pl-8">
-        <img src="{{ asset('images/print/dole_logo.webp') }}" alt="DOLE Logo"
+        <img src="{{ asset('images/print/mainlogo.png') }}" alt="DOLE Logo"
             class="max-h-[95px] w-[130px] object-contain" onerror="this.style.display='none'">
 
         <div class="min-w-[320px] text-center">

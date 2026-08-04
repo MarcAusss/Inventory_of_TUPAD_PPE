@@ -78,8 +78,8 @@
                 <table class="ppe-tracking-table min-w-max w-full text-sm">
                     <thead>
                         <tr>
-                            <th rowspan="2" class="px-5 py-4 text-left">Delivery / Project Date</th>
                             <th rowspan="2" class="px-5 py-4 text-left">Provincial Office</th>
+                            <th rowspan="2" class="px-5 py-4 text-left">Delivery / Project Date</th>
                             <th rowspan="2" class="px-5 py-4 text-left">Project</th>
                             <th rowspan="2" class="px-5 py-4 text-left">Source</th>
                             <th rowspan="2" class="px-5 py-4 text-left">Location</th>
@@ -128,8 +128,8 @@
                                     };
                             @endphp
                             <tr class="align-top hover:bg-[#F7FBFD]">
-                                <td class="px-5 py-4 whitespace-nowrap font-semibold text-slate-700">{{ $transaction->designation_date?->format('M d, Y') ?? '—' }}</td>
                                 <td class="px-5 py-4 font-bold text-slate-900">{{ $province?->name ?? '—' }}</td>
+                                <td class="px-5 py-4 whitespace-nowrap font-semibold text-slate-700">{{ $transaction->designation_date?->format('M d, Y') ?? '—' }}</td>
                                 <td class="px-5 py-4">
                                     <p class="font-extrabold text-slate-900">{{ $transaction->project_code ?: $transaction->designation_number ?: '—' }}</p>
                                     <p class="mt-1 text-xs leading-5 text-slate-500">{{ $transaction->project_title ?: $transaction->project_name ?: 'Untitled project' }}</p>

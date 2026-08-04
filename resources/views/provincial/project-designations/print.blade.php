@@ -198,7 +198,7 @@
     {{-- DOLE Letterhead --}}
     <div class="flex items-center justify-center gap-4 pl-8">
 
-        <img src="{{ asset('images/print/dole_logo.webp') }}" alt="DOLE Logo"
+        <img src="{{ asset('images/print/mainlogo.png') }}" alt="DOLE Logo"
             class="max-h-[80px] w-[130px] object-contain" onerror="this.style.display='none'">
 
         <div class="min-w-[300px] text-center">
@@ -405,7 +405,7 @@
                         {{ $index + 1 }}
                     </td>
 
-                    <td class="text-left font-bold text-[#075985]">
+                    <td class="text-left font-bold text-black">
                         {{ $designation->project_code }}
                     </td>
 
@@ -433,7 +433,7 @@
                         {{ $deliveryReceipt?->dr_number ?? '—' }}
                     </td>
 
-                    <td class="font-bold text-[#075985]">
+                    <td class="text-black">
                         {{ $callOff?->call_off_number ?? '—' }}
                     </td>
 
@@ -445,8 +445,8 @@
                         {{ number_format($ppe['long_sleeve_large']) }}
                     </td>
 
-                    <td class="bg-[#F0F9FF] font-extrabold
-                            text-[#075985] print-exact">
+                    <td class="bg-[#F0F9FF]
+                            text-black print-exact">
                         {{ number_format($ppe['total_long_sleeve']) }}
                     </td>
 
@@ -462,8 +462,8 @@
                         {{ number_format($ppe['rubber_boots_us10']) }}
                     </td>
 
-                    <td class="bg-[#F0F9FF] font-extrabold
-                            text-[#075985] print-exact">
+                    <td class="bg-[#F0F9FF]
+                            text-black print-exact">
                         {{ number_format($ppe['total_rubber_boots']) }}
                     </td>
 

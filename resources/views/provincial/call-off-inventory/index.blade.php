@@ -38,33 +38,24 @@
             ],
         ];
 
-        $statusOptions = [
-            'Pending',
-            'Approved',
-            'For Delivery',
-            'Partially Received',
-            'Received',
-            'Cancelled',
-        ];
+        $statusOptions = ['Pending', 'Approved', 'For Delivery', 'Partially Received', 'Received', 'Cancelled'];
     @endphp
 
     <div class="mx-auto max-w-[1900px] space-y-6">
 
         <section
             class="relative overflow-hidden rounded-3xl
-                   border border-slate-200 bg-white shadow-sm"
-        >
+                   border border-slate-200 bg-white shadow-sm">
             <div
                 class="absolute inset-y-0 left-0 w-2
                        bg-gradient-to-b from-[#075985]
-                       via-[#0284C7] to-[#38BDF8]"
-            ></div>
+                       via-[#0284C7] to-[#38BDF8]">
+            </div>
 
             <div
                 class="flex flex-col gap-6 px-6 py-7
                        sm:px-8 lg:flex-row
-                       lg:items-center lg:justify-between"
-            >
+                       lg:items-center lg:justify-between">
                 <div>
                     <div class="flex flex-wrap items-center gap-3">
                         <span
@@ -72,8 +63,7 @@
                                    px-3 py-1 text-xs font-bold
                                    uppercase tracking-[0.16em]
                                    text-[#0284C7]
-                                   ring-1 ring-[#7DD3FC]"
-                        >
+                                   ring-1 ring-[#7DD3FC]">
                             Provincial Office
                         </span>
 
@@ -81,8 +71,7 @@
                             class="rounded-full bg-slate-100
                                    px-3 py-1 text-xs font-semibold
                                    text-slate-700 ring-1
-                                   ring-slate-200"
-                        >
+                                   ring-slate-200">
                             Call-Off Inventory
                         </span>
                     </div>
@@ -90,15 +79,12 @@
                     <h1
                         class="mt-4 text-2xl font-bold
                                tracking-tight text-slate-950
-                               sm:text-3xl"
-                    >
+                               sm:text-3xl">
                         Remaining PPE Stock per Call-Off
                     </h1>
 
-                    <p
-                        class="mt-2 max-w-4xl text-sm
-                               leading-6 text-slate-600"
-                    >
+                    <p class="mt-2 max-w-4xl text-sm
+                               leading-6 text-slate-600">
                         View the remaining PPE inventory belonging to
                         each individual Call-Off after completed
                         project distributions have been deducted.
@@ -106,38 +92,28 @@
                 </div>
 
                 <div class="flex flex-wrap gap-3">
-                    <a
-                        href="{{ route(
-                            'provincial.current-inventory.index'
-                        ) }}"
+                    <a href="{{ route('provincial.current-inventory.index') }}"
                         class="inline-flex items-center justify-center
                                rounded-xl border border-slate-300
                                bg-white px-5 py-3 text-sm font-bold
                                text-slate-700 transition
-                               hover:bg-slate-50"
-                    >
+                               hover:bg-slate-50">
                         Provincial Inventory
                     </a>
 
-                    <a
-                        href="{{ route(
-                            'provincial.inventory-ledger.index'
-                        ) }}"
+                    <a href="{{ route('provincial.inventory-ledger.index') }}"
                         class="inline-flex items-center justify-center
                                rounded-xl bg-[#0284C7] px-5 py-3
                                text-sm font-bold text-white
-                               transition hover:bg-[#075985]"
-                    >
+                               transition hover:bg-[#075985]">
                         Movement History
                     </a>
                 </div>
             </div>
         </section>
 
-        <section
-            class="grid grid-cols-1 gap-4
-                   sm:grid-cols-2 xl:grid-cols-5"
-        >
+        <section class="grid grid-cols-1 gap-4
+                   sm:grid-cols-2 xl:grid-cols-5">
             @php
                 $cards = [
                     [
@@ -172,150 +148,108 @@
                 ];
             @endphp
 
-            @foreach($cards as $card)
+            @foreach ($cards as $card)
                 <article
                     class="group rounded-2xl border
                            border-slate-200 bg-white p-5
                            shadow-sm transition
-                           hover:-translate-y-1 hover:shadow-md"
-                >
+                           hover:-translate-y-1 hover:shadow-md">
                     <div
                         class="mb-4 h-1 w-10 rounded-full
                                bg-[#0284C7] transition-all
-                               group-hover:w-16"
-                    ></div>
+                               group-hover:w-16">
+                    </div>
 
-                    <p
-                        class="text-xs font-bold uppercase
-                               tracking-wider text-slate-400"
-                    >
+                    <p class="text-xs font-bold uppercase
+                               tracking-wider text-slate-400">
                         {{ $card['label'] }}
                     </p>
 
-                    <p
-                        class="mt-3 text-3xl font-bold
-                               {{ $card['class'] }}"
-                    >
+                    <p class="mt-3 text-3xl font-bold
+                               {{ $card['class'] }}">
                         {{ number_format($card['value']) }}
                     </p>
                 </article>
             @endforeach
         </section>
 
-        <section
-            class="rounded-3xl border border-slate-200
-                   bg-white p-5 shadow-sm sm:p-6"
-        >
-            <form
-                method="GET"
-                action="{{ route(
-                    'provincial.call-off-inventory.index'
-                ) }}"
+        <section class="rounded-3xl border border-slate-200
+                   bg-white p-5 shadow-sm sm:p-6">
+            <form method="GET"
+                action="{{ route('provincial.call-off-inventory.index') }}"
                 class="grid grid-cols-1 gap-4
-                       md:grid-cols-2 xl:grid-cols-12"
-            >
+                       md:grid-cols-2 xl:grid-cols-12">
                 <div class="xl:col-span-7">
-                    <label
-                        for="search"
+                    <label for="search"
                         class="mb-2 block text-xs font-bold
                                uppercase tracking-wider
-                               text-slate-500"
-                    >
+                               text-slate-500">
                         Search
                     </label>
 
-                    <input
-                        type="search"
-                        id="search"
-                        name="search"
-                        value="{{ $search }}"
+                    <input type="search" id="search" name="search" value="{{ $search }}"
                         placeholder="Search Call-Off, Purchase Order, or supplier..."
                         class="w-full rounded-xl border-slate-300
                                focus:border-[#0284C7]
-                               focus:ring-[#0284C7]"
-                    >
+                               focus:ring-[#0284C7]">
                 </div>
 
                 <div class="xl:col-span-3">
-                    <label
-                        for="status"
+                    <label for="status"
                         class="mb-2 block text-xs font-bold
                                uppercase tracking-wider
-                               text-slate-500"
-                    >
+                               text-slate-500">
                         Status
                     </label>
 
-                    <select
-                        id="status"
-                        name="status"
+                    <select id="status" name="status"
                         class="w-full rounded-xl border-slate-300
                                focus:border-[#0284C7]
-                               focus:ring-[#0284C7]"
-                    >
+                               focus:ring-[#0284C7]">
                         <option value="">
                             All Statuses
                         </option>
 
-                        @foreach($statusOptions as $option)
-                            <option
-                                value="{{ $option }}"
-                                @selected($status === $option)
-                            >
+                        @foreach ($statusOptions as $option)
+                            <option value="{{ $option }}" @selected($status === $option)>
                                 {{ $option }}
                             </option>
                         @endforeach
                     </select>
                 </div>
 
-                <div
-                    class="flex items-end gap-2
-                           xl:col-span-2"
-                >
-                    <button
-                        type="submit"
+                <div class="flex items-end gap-2
+                           xl:col-span-2">
+                    <button type="submit"
                         class="flex-1 rounded-xl
                                bg-[#0284C7] px-5 py-2.5
                                text-sm font-bold text-white
-                               transition hover:bg-[#075985]"
-                    >
+                               transition hover:bg-[#075985]">
                         Apply
                     </button>
 
-                    <a
-                        href="{{ route(
-                            'provincial.call-off-inventory.index'
-                        ) }}"
+                    <a href="{{ route('provincial.call-off-inventory.index') }}"
                         class="rounded-xl border border-slate-300
                                bg-white px-5 py-2.5 text-sm
                                font-bold text-slate-700
-                               transition hover:bg-slate-50"
-                    >
+                               transition hover:bg-slate-50">
                         Reset
                     </a>
                 </div>
             </form>
         </section>
 
-        <section
-            class="overflow-hidden rounded-3xl
-                   border border-slate-200 bg-white shadow-sm"
-        >
-            <div
-                class="border-b border-slate-200
-                       px-6 py-5 sm:px-7"
-            >
-                <p
-                    class="text-xs font-bold uppercase
-                           tracking-[0.16em] text-[#0284C7]"
-                >
+        <section class="overflow-hidden rounded-3xl
+                   border border-slate-200 bg-white shadow-sm">
+            <div class="border-b border-slate-200
+                       px-6 py-5 sm:px-7">
+                <p class="text-xs font-bold uppercase
+                           tracking-[0.16em] text-[#0284C7]">
                     Remaining stock by source
                 </p>
 
-                <h2
-                    class="mt-1 text-xl font-bold
-                           text-slate-950"
-                >
+                <h2 class="mt-1 text-xl font-bold
+                           text-slate-950">
                     Per Call-Off PPE Inventory
                 </h2>
 
@@ -326,173 +260,104 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table
-                    class="min-w-[2200px] w-full
-                           border-separate border-spacing-0"
-                >
+                <table class="min-w-[2200px] w-full
+                           border-separate border-spacing-0">
                     <thead class="bg-slate-900 text-white">
-                        <tr
-                            class="text-xs font-bold uppercase
-                                   tracking-wide"
-                        >
-                            <th
-                                rowspan="3"
+                        <tr class="text-xs font-bold uppercase
+                                   tracking-wide">
+                            <th rowspan="3"
                                 class="sticky left-0 z-30 min-w-16
                                        border-b border-r
                                        border-slate-700 bg-slate-900
-                                       px-4 py-4 text-center"
-                            >
+                                       px-4 py-4 text-center">
                                 No.
                             </th>
 
-                            <th
-                                rowspan="3"
+                            <th rowspan="3"
                                 class="sticky left-16 z-30 min-w-44
                                        border-b border-r
                                        border-slate-700 bg-slate-900
-                                       px-4 py-4 text-left"
-                            >
+                                       px-4 py-4 text-left">
                                 Call-Off Number
                             </th>
 
-                            <th
-                                rowspan="3"
+                            <th rowspan="3"
                                 class="min-w-40 border-b border-r
                                        border-slate-700
-                                       px-4 py-4 text-left"
-                            >
+                                       px-4 py-4 text-left">
                                 Purchase Order
                             </th>
 
-                            <th
-                                rowspan="3"
+                            <th rowspan="3"
                                 class="min-w-56 border-b border-r
                                        border-slate-700
-                                       px-4 py-4 text-left"
-                            >
+                                       px-4 py-4 text-left">
                                 Supplier
                             </th>
 
-                            <th
-                                rowspan="3"
+                            <th rowspan="3"
                                 class="min-w-32 border-b border-r
                                        border-slate-700
-                                       px-4 py-4 text-center"
-                            >
+                                       px-4 py-4 text-center">
                                 Status
                             </th>
 
-                            <th
-                                colspan="9"
+                            <th colspan="9"
                                 class="border-b border-r
                                        border-slate-700
                                        bg-[#0284C7]
-                                       px-4 py-4 text-center"
-                            >
+                                       px-4 py-4 text-center">
                                 Delivery Receipts with Available PPEs
                             </th>
 
-                            <th
-                                colspan="9"
+                            <th colspan="9"
                                 class="border-b border-slate-700
                                        bg-[#075985]
-                                       px-4 py-4 text-center"
-                            >
+                                       px-4 py-4 text-center">
                                 Safe Available Now
                             </th>
 
-                            <th
-                                rowspan="3"
-                                class="min-w-32 border-b
-                                       border-slate-700
-                                       bg-slate-900
-                                       px-4 py-4 text-center"
-                            >
-                                Remaining Total
-                            </th>
                         </tr>
 
-                        <tr
-                            class="text-[11px] font-bold uppercase"
-                        >
-                            @foreach([
-                                ['Longsleeves', 3],
-                                ['Bucket Hat', 1],
-                                ['Rubber Boots', 3],
-                                ['Gloves', 1],
-                                ['Mask', 1],
-                            ] as [$group, $span])
-                                <th
-                                    colspan="{{ $span }}"
+                        <tr class="text-[11px] font-bold uppercase">
+                            @foreach ([['Longsleeves', 3], ['Bucket Hat', 1], ['Rubber Boots', 3], ['Gloves', 1], ['Mask', 1]] as [$group, $span])
+                                <th colspan="{{ $span }}"
                                     class="border-b border-r
                                            border-[#7DD3FC]/40
                                            bg-[#0EA5E9]
-                                           px-3 py-3 text-center"
-                                >
+                                           px-3 py-3 text-center">
                                     {{ $group }}
                                 </th>
                             @endforeach
 
-                            @foreach([
-                                ['Longsleeves', 3],
-                                ['Bucket Hat', 1],
-                                ['Rubber Boots', 3],
-                                ['Gloves', 1],
-                                ['Mask', 1],
-                            ] as [$group, $span])
-                                <th
-                                    colspan="{{ $span }}"
+                            @foreach ([['Longsleeves', 3], ['Bucket Hat', 1], ['Rubber Boots', 3], ['Gloves', 1], ['Mask', 1]] as [$group, $span])
+                                <th colspan="{{ $span }}"
                                     class="border-b border-r
                                            border-[#7DD3FC]/30
                                            bg-[#075985]
-                                           px-3 py-3 text-center"
-                                >
+                                           px-3 py-3 text-center">
                                     {{ $group }}
                                 </th>
                             @endforeach
                         </tr>
 
-                        <tr
-                            class="text-[10px] font-bold uppercase"
-                        >
-                            @foreach([
-                                'Medium',
-                                'Large',
-                                'Total',
-                                '—',
-                                'US9',
-                                'US10',
-                                'Total',
-                                '—',
-                                '—',
-                            ] as $label)
+                        <tr class="text-[10px] font-bold uppercase">
+                            @foreach (['Medium', 'Large', 'Total', '—', 'US9', 'US10', 'Total', '—', '—'] as $label)
                                 <th
                                     class="min-w-20 border-b border-r
                                            border-[#7DD3FC]/40
                                            bg-[#38BDF8]
-                                           px-3 py-3 text-center"
-                                >
+                                           px-3 py-3 text-center">
                                     {{ $label }}
                                 </th>
                             @endforeach
 
-                            @foreach([
-                                'Medium',
-                                'Large',
-                                'Total',
-                                '—',
-                                'US9',
-                                'US10',
-                                'Total',
-                                '—',
-                                '—',
-                            ] as $label)
+                            @foreach (['Medium', 'Large', 'Total', '—', 'US9', 'US10', 'Total', '—', '—'] as $label)
                                 <th
                                     class="min-w-20 border-b border-r
                                            border-[#7DD3FC]/30
                                            bg-[#0284C7]
-                                           px-3 py-3 text-center"
-                                >
+                                           px-3 py-3 text-center">
                                     {{ $label }}
                                 </th>
                             @endforeach
@@ -502,47 +367,30 @@
                     <tbody>
                         @forelse($allocations as $allocation)
                             @php
-                                $batch =
-                                    $allocation
-                                        ->distributionBatch;
+                                $batch = $allocation->distributionBatch;
 
-                                $callOff =
-                                    $batch?->callOff;
+                                $callOff = $batch?->callOff;
 
-                                $purchaseOrder =
-                                    $batch?->purchaseOrder;
+                                $purchaseOrder = $batch?->purchaseOrder;
 
-                                $supplier =
-                                    $purchaseOrder?->supplier;
+                                $supplier = $purchaseOrder?->supplier;
 
-                                $balances =
-                                    $allocation
-                                        ->call_off_balances
-                                    ?? [];
+                                $balances = $allocation->call_off_balances ?? [];
 
-                                $statusClass = match(
-                                    $allocation->status
-                                ) {
-                                    'Received' =>
-                                        'bg-green-100 text-green-800',
+                                $statusClass = match ($allocation->status) {
+                                    'Received' => 'bg-green-100 text-green-800',
 
-                                    'Partially Received' =>
-                                        'bg-amber-100 text-amber-800',
+                                    'Partially Received' => 'bg-amber-100 text-amber-800',
 
-                                    'For Delivery' =>
-                                        'bg-blue-100 text-blue-800',
+                                    'For Delivery' => 'bg-blue-100 text-blue-800',
 
-                                    'Approved' =>
-                                        'bg-indigo-100 text-indigo-800',
+                                    'Approved' => 'bg-indigo-100 text-indigo-800',
 
-                                    'Pending' =>
-                                        'bg-red-100 text-red-800',
+                                    'Pending' => 'bg-red-100 text-red-800',
 
-                                    'Cancelled' =>
-                                        'bg-slate-200 text-slate-700',
+                                    'Cancelled' => 'bg-slate-200 text-slate-700',
 
-                                    default =>
-                                        'bg-slate-100 text-slate-700',
+                                    default => 'bg-slate-100 text-slate-700',
                                 };
                             @endphp
 
@@ -553,12 +401,8 @@
                                            border-slate-200 bg-white
                                            px-4 py-4 text-center
                                            text-slate-500
-                                           group-hover:bg-slate-50"
-                                >
-                                    {{
-                                        $allocations->firstItem()
-                                        + $loop->index
-                                    }}
+                                           group-hover:bg-slate-50">
+                                    {{ $allocations->firstItem() + $loop->index }}
                                 </td>
 
                                 <td
@@ -567,110 +411,86 @@
                                            border-slate-200 bg-white
                                            px-4 py-4 font-bold
                                            text-[#075985]
-                                           group-hover:bg-slate-50"
-                                >
-                                    {{
-                                        $callOff?->call_off_number
-                                        ?? '—'
-                                    }}
+                                           group-hover:bg-slate-50">
+                                    {{ $callOff?->call_off_number ?? '—' }}
                                 </td>
 
                                 <td
                                     class="border-b border-r
                                            border-slate-200
                                            px-4 py-4 font-semibold
-                                           text-slate-800"
-                                >
-                                    {{
-                                        $purchaseOrder?->po_number
-                                        ?? '—'
-                                    }}
+                                           text-slate-800">
+                                    {{ $purchaseOrder?->po_number ?? '—' }}
                                 </td>
 
                                 <td
                                     class="border-b border-r
                                            border-slate-200
-                                           px-4 py-4 text-slate-600"
-                                >
-                                    {{
-                                        $supplier?->supplier_name
-                                        ?? '—'
-                                    }}
+                                           px-4 py-4 text-slate-600">
+                                    {{ $supplier?->supplier_name ?? '—' }}
                                 </td>
 
                                 <td
                                     class="border-b border-r
                                            border-slate-200
-                                           px-4 py-4 text-center"
-                                >
+                                           px-4 py-4 text-center">
                                     <span
                                         class="inline-flex rounded-full
                                                px-3 py-1 text-xs
                                                font-bold
-                                               {{ $statusClass }}"
-                                    >
+                                               {{ $statusClass }}">
                                         {{ $allocation->status }}
                                     </span>
                                 </td>
 
-                                @foreach(array_keys($ppeColumns) as $itemId)
+                                @foreach (array_keys($ppeColumns) as $itemId)
                                     @php
                                         $value = (int) ($balances[$itemId]['call_off_available'] ?? 0);
                                     @endphp
-                                    <td class="border-b border-r border-slate-200 bg-[#7DD3FC]/10 px-3 py-4 text-center text-lg font-bold text-[#0284C7]">
+                                    <td
+                                        class="border-b border-r border-slate-200 bg-[#7DD3FC]/10 px-3 py-4 text-center text-lg font-bold text-[#0284C7]">
                                         {{ number_format($value) }}
                                     </td>
                                     @if ($itemId === 2)
-                                        <td class="border-b border-r border-slate-200 bg-[#E0F2FE] px-3 py-4 text-center text-lg font-black text-[#075985]">
+                                        <td
+                                            class="border-b border-r border-slate-200 bg-[#E0F2FE] px-3 py-4 text-center text-lg font-black text-[#075985]">
                                             {{ number_format((int) ($balances[1]['call_off_available'] ?? 0) + (int) ($balances[2]['call_off_available'] ?? 0)) }}
                                         </td>
                                     @elseif ($itemId === 5)
-                                        <td class="border-b border-r border-slate-200 bg-[#E0F2FE] px-3 py-4 text-center text-lg font-black text-[#075985]">
+                                        <td
+                                            class="border-b border-r border-slate-200 bg-[#E0F2FE] px-3 py-4 text-center text-lg font-black text-[#075985]">
                                             {{ number_format((int) ($balances[4]['call_off_available'] ?? 0) + (int) ($balances[5]['call_off_available'] ?? 0)) }}
                                         </td>
                                     @endif
                                 @endforeach
 
-                                @foreach(array_keys($ppeColumns) as $itemId)
+                                @foreach (array_keys($ppeColumns) as $itemId)
                                     @php
                                         $value = (int) ($balances[$itemId]['available_for_projects'] ?? 0);
                                     @endphp
-                                    <td class="border-b border-r border-slate-200 px-3 py-4 text-center font-bold text-green-700">
+                                    <td
+                                        class="border-b border-r border-slate-200 px-3 py-4 text-center font-bold text-green-700">
                                         {{ number_format($value) }}
                                     </td>
                                     @if ($itemId === 2)
-                                        <td class="border-b border-r border-slate-200 bg-emerald-50 px-3 py-4 text-center font-black text-emerald-800">
+                                        <td
+                                            class="border-b border-r border-slate-200 bg-emerald-50 px-3 py-4 text-center font-black text-emerald-800">
                                             {{ number_format((int) ($balances[1]['available_for_projects'] ?? 0) + (int) ($balances[2]['available_for_projects'] ?? 0)) }}
                                         </td>
                                     @elseif ($itemId === 5)
-                                        <td class="border-b border-r border-slate-200 bg-emerald-50 px-3 py-4 text-center font-black text-emerald-800">
+                                        <td
+                                            class="border-b border-r border-slate-200 bg-emerald-50 px-3 py-4 text-center font-black text-emerald-800">
                                             {{ number_format((int) ($balances[4]['available_for_projects'] ?? 0) + (int) ($balances[5]['available_for_projects'] ?? 0)) }}
                                         </td>
                                     @endif
                                 @endforeach
-
-                                <td
-                                    class="border-b border-slate-200
-                                           px-4 py-4 text-center
-                                           text-lg font-bold
-                                           text-[#075985]"
-                                >
-                                    {{
-                                        number_format(
-                                            $allocation
-                                                ->remaining_total
-                                        )
-                                    }}
-                                </td>
                             </tr>
 
                         @empty
                             <tr>
-                                <td
-                                    colspan="24"
+                                <td colspan="24"
                                     class="px-6 py-16 text-center
-                                           text-slate-500"
-                                >
+                                           text-slate-500">
                                     No Call-Off inventory records
                                     match the selected filters.
                                 </td>
@@ -680,27 +500,19 @@
                 </table>
             </div>
 
-            @if($allocations->hasPages())
-                <div
-                    class="border-t border-slate-200
-                           px-6 py-4"
-                >
+            @if ($allocations->hasPages())
+                <div class="border-t border-slate-200
+                           px-6 py-4">
                     {{ $allocations->links() }}
                 </div>
             @endif
         </section>
 
-        <section
-            class="grid grid-cols-1 gap-4 lg:grid-cols-2"
-        >
-            <article
-                class="rounded-2xl border border-slate-200
-                       bg-white p-5 shadow-sm"
-            >
-                <p
-                    class="text-xs font-bold uppercase
-                           tracking-wider text-[#0284C7]"
-                >
+        <section class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <article class="rounded-2xl border border-slate-200
+                       bg-white p-5 shadow-sm">
+                <p class="text-xs font-bold uppercase
+                           tracking-wider text-[#0284C7]">
                     Remaining PPE per Call-Off
                 </p>
 
@@ -711,14 +523,10 @@
                 </p>
             </article>
 
-            <article
-                class="rounded-2xl border border-amber-200
-                       bg-amber-50 p-5"
-            >
-                <p
-                    class="text-xs font-bold uppercase
-                           tracking-wider text-amber-800"
-                >
+            <article class="rounded-2xl border border-amber-200
+                       bg-amber-50 p-5">
+                <p class="text-xs font-bold uppercase
+                           tracking-wider text-amber-800">
                     Safe Available Now
                 </p>
 

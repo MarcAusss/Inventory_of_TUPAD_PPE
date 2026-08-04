@@ -31,10 +31,10 @@ class PpeTrackingController extends Controller
             ->get();
 
         $visibleProvinces = Province::query()
-            ->when($provinceId, fn (Builder $query) => $query->whereKey($provinceId))
+            ->when($provinceId, fn(Builder $query) => $query->whereKey($provinceId))
             ->when(
                 $search !== '',
-                fn (Builder $query) => $query->where('name', 'like', "%{$search}%")
+                fn(Builder $query) => $query->where('name', 'like', "%{$search}%")
             )
             ->orderByRaw($this->provinceOrderSql('id'))
             ->paginate(15)
@@ -63,10 +63,10 @@ class PpeTrackingController extends Controller
         });
 
         $filteredProvinceIds = Province::query()
-            ->when($provinceId, fn (Builder $query) => $query->whereKey($provinceId))
+            ->when($provinceId, fn(Builder $query) => $query->whereKey($provinceId))
             ->when(
                 $search !== '',
-                fn (Builder $query) => $query->where('name', 'like', "%{$search}%")
+                fn(Builder $query) => $query->where('name', 'like', "%{$search}%")
             )
             ->pluck('id');
 
@@ -75,7 +75,7 @@ class PpeTrackingController extends Controller
             ->selectRaw('item_id, SUM(quantity) AS total_quantity')
             ->groupBy('item_id')
             ->pluck('total_quantity', 'item_id')
-            ->map(fn ($quantity): int => max(0, (int) $quantity));
+            ->map(fn($quantity): int => max(0, (int) $quantity));
 
         $totalAvailable = (int) $itemTotals->sum();
 
@@ -111,19 +111,31 @@ class PpeTrackingController extends Controller
                 'supplyDesignations.items.item',
             ])
             ->whereHas('distributionBatch.callOff')
-            ->when($provinceId, fn (Builder $query) => $query->where('province_id', $provinceId))
-            ->when($status !== '', fn (Builder $query) => $query->where('status', $status))
+            ->when($provinceId, fn(Builder $query) => $query->where('province_id', $provinceId))
+            ->when($status !== '', fn(Builder $query) => $query->where('status', $status))
             ->when($search !== '', function (Builder $query) use ($search): void {
                 $query->where(function (Builder $query) use ($search): void {
                     $query
-                        ->whereHas('province', fn (Builder $q) => $q->where('name', 'like', "%{$search}%"))
-                        ->orWhereHas('distributionBatch.callOff', fn (Builder $q) => $q->where('call_off_number', 'like', "%{$search}%"))
-                        ->orWhereHas('distributionBatch.purchaseOrder', fn (Builder $q) => $q->where('po_number', 'like', "%{$search}%"))
-                        ->orWhereHas('distributionBatch.purchaseOrder.supplier', fn (Builder $q) => $q->where('supplier_name', 'like', "%{$search}%"));
+                        ->whereHas('province', fn(Builder $q) => $q->where('name', 'like', "%{$search}%"))
+                        ->orWhereHas('distributionBatch.callOff', fn(Builder $q) => $q->where('call_off_number', 'like', "%{$search}%"))
+                        ->orWhereHas('distributionBatch.purchaseOrder', fn(Builder $q) => $q->where('po_number', 'like', "%{$search}%"))
+                        ->orWhereHas('distributionBatch.purchaseOrder.supplier', fn(Builder $q) => $q->where('supplier_name', 'like', "%{$search}%"));
                 });
             });
 
         $allocations = (clone $baseQuery)
+            // Keep records grouped by Call-Off first.
+            ->orderByDesc('tssd_distribution_batch_id')
+
+            // Province order:
+            // Albay
+            // Camarines Norte
+            // Camarines Sur
+            // Catanduanes
+            // Masbate
+            // Sorsogon
+            ->orderByRaw($this->provinceOrderSql('province_id'))
+
             ->orderByDesc('scheduled_delivery_date')
             ->orderByDesc('id')
             ->paginate(15)
@@ -148,11 +160,11 @@ class PpeTrackingController extends Controller
                         'remaining' => max(0, (int) ($balance['available_for_projects'] ?? 0)),
                     ];
                 })
-                ->sortBy(fn (array $row): string => Item::displaySortKey($row['name'], $row['label']))
+                ->sortBy(fn(array $row): string => Item::displaySortKey($row['name'], $row['label']))
                 ->values();
 
             $remainingByItem = $detailRows
-                ->mapWithKeys(fn (array $row): array => [
+                ->mapWithKeys(fn(array $row): array => [
                     (int) $row['item_id'] => (int) $row['remaining'],
                 ]);
 
@@ -209,13 +221,13 @@ class PpeTrackingController extends Controller
                 'tssdDistributions',
                 'distributionBatches.provinceDistributions.items',
             ])
-            ->when($status !== '', fn (Builder $query) => $query->where('status', $status))
+            ->when($status !== '', fn(Builder $query) => $query->where('status', $status))
             ->when($search !== '', function (Builder $query) use ($search): void {
                 $query->where(function (Builder $query) use ($search): void {
                     $query
                         ->where('po_number', 'like', "%{$search}%")
                         ->orWhere('nefa_number', 'like', "%{$search}%")
-                        ->orWhereHas('supplier', fn (Builder $q) => $q->where('supplier_name', 'like', "%{$search}%"));
+                        ->orWhereHas('supplier', fn(Builder $q) => $q->where('supplier_name', 'like', "%{$search}%"));
                 });
             });
 
@@ -228,19 +240,19 @@ class PpeTrackingController extends Controller
         $purchaseOrders->through(function (PurchaseOrder $purchaseOrder) use ($items): PurchaseOrder {
             $purchased = $purchaseOrder->items
                 ->groupBy('item_id')
-                ->map(fn (Collection $rows): int => (int) $rows->sum('quantity'));
+                ->map(fn(Collection $rows): int => (int) $rows->sum('quantity'));
 
             $legacyAllocated = $purchaseOrder->tssdDistributions
                 ->groupBy('item_id')
-                ->map(fn (Collection $rows): int => (int) $rows->sum('quantity'));
+                ->map(fn(Collection $rows): int => (int) $rows->sum('quantity'));
 
             $normalizedAllocated = $purchaseOrder->distributionBatches
                 ->where('status', '!=', 'Cancelled')
-                ->flatMap(fn ($batch) => $batch->provinceDistributions)
-                ->filter(fn (ProvinceDistribution $distribution): bool => $distribution->status !== 'Cancelled')
-                ->flatMap(fn (ProvinceDistribution $distribution) => $distribution->items)
+                ->flatMap(fn($batch) => $batch->provinceDistributions)
+                ->filter(fn(ProvinceDistribution $distribution): bool => $distribution->status !== 'Cancelled')
+                ->flatMap(fn(ProvinceDistribution $distribution) => $distribution->items)
                 ->groupBy('item_id')
-                ->map(fn (Collection $rows): int => (int) $rows->sum('quantity'));
+                ->map(fn(Collection $rows): int => (int) $rows->sum('quantity'));
 
             $quantities = [];
 
@@ -306,10 +318,10 @@ class PpeTrackingController extends Controller
                 $query->where(function (Builder $query) use ($provinceId): void {
                     $query
                         ->where('province_id', $provinceId)
-                        ->orWhereHas('provinceDistribution', fn (Builder $q) => $q->where('province_id', $provinceId));
+                        ->orWhereHas('provinceDistribution', fn(Builder $q) => $q->where('province_id', $provinceId));
                 });
             })
-            ->when($status !== '', fn (Builder $query) => $query->where('status', $status))
+            ->when($status !== '', fn(Builder $query) => $query->where('status', $status))
             ->when($search !== '', function (Builder $query) use ($search): void {
                 $query->where(function (Builder $query) use ($search): void {
                     $query
@@ -318,14 +330,43 @@ class PpeTrackingController extends Controller
                         ->orWhere('project_title', 'like', "%{$search}%")
                         ->orWhere('project_name', 'like', "%{$search}%")
                         ->orWhere('location', 'like', "%{$search}%")
-                        ->orWhereHas('province', fn (Builder $q) => $q->where('name', 'like', "%{$search}%"))
-                        ->orWhereHas('provinceDistribution.distributionBatch.callOff', fn (Builder $q) => $q->where('call_off_number', 'like', "%{$search}%"))
-                        ->orWhereHas('provinceDistribution.distributionBatch.purchaseOrder', fn (Builder $q) => $q->where('po_number', 'like', "%{$search}%"));
+                        ->orWhereHas('province', fn(Builder $q) => $q->where('name', 'like', "%{$search}%"))
+                        ->orWhereHas('provinceDistribution.distributionBatch.callOff', fn(Builder $q) => $q->where('call_off_number', 'like', "%{$search}%"))
+                        ->orWhereHas('provinceDistribution.distributionBatch.purchaseOrder', fn(Builder $q) => $q->where('po_number', 'like', "%{$search}%"));
                 });
             });
 
         $transactions = (clone $baseQuery)
+
+            // Keep projects from the same Call-Off together.
+            ->orderByDesc(
+                ProvinceDistribution::query()
+                    ->select('tssd_distribution_batch_id')
+                    ->whereColumn(
+                        'province_distributions.id',
+                        'supply_designations.province_distribution_id'
+                    )
+                    ->limit(1)
+            )
+
+            // Keep the project/distribution date grouping.
             ->orderByDesc('designation_date')
+
+            // Albay first, Sorsogon last.
+            ->orderByRaw(
+                $this->provinceOrderSql(
+                    "COALESCE(
+                province_id,
+                (
+                    SELECT pd.province_id
+                    FROM province_distributions pd
+                    WHERE pd.id = supply_designations.province_distribution_id
+                    LIMIT 1
+                )
+            )"
+                )
+            )
+
             ->orderByDesc('id')
             ->paginate(15)
             ->withQueryString();
@@ -343,12 +384,12 @@ class PpeTrackingController extends Controller
                         'quantity' => (int) $designationItem->quantity,
                     ];
                 })
-                ->sortBy(fn (array $row): string => Item::displaySortKey($row['name'], $row['label']))
+                ->sortBy(fn(array $row): string => Item::displaySortKey($row['name'], $row['label']))
                 ->values();
 
             $quantityByItem = $designation->items
                 ->groupBy('item_id')
-                ->map(fn (Collection $rows): int => (int) $rows->sum('quantity'));
+                ->map(fn(Collection $rows): int => (int) $rows->sum('quantity'));
 
             $quantities = [];
             foreach ($items as $item) {
@@ -362,7 +403,9 @@ class PpeTrackingController extends Controller
             return $designation;
         });
 
-        $provinces = Province::query()->orderBy('name')->get();
+        $provinces = Province::query()
+            ->orderByRaw($this->provinceOrderSql('id'))
+            ->get();
         $statuses = SupplyDesignation::query()
             ->whereNotNull('status')
             ->where('status', '!=', '')
@@ -406,19 +449,19 @@ class PpeTrackingController extends Controller
                 'supplyDesignations.items.item',
             ])
             ->whereHas('distributionBatch.callOff')
-            ->when($provinceId, fn (Builder $query) => $query->where('province_id', $provinceId))
-            ->when($status !== '', fn (Builder $query) => $query->where('status', $status))
+            ->when($provinceId, fn(Builder $query) => $query->where('province_id', $provinceId))
+            ->when($status !== '', fn(Builder $query) => $query->where('status', $status))
             ->when($search !== '', function (Builder $query) use ($search): void {
                 $query->where(function (Builder $query) use ($search): void {
                     $query
-                        ->whereHas('province', fn (Builder $q) => $q->where('name', 'like', "%{$search}%"))
-                        ->orWhereHas('distributionBatch.callOff', fn (Builder $q) => $q->where('call_off_number', 'like', "%{$search}%"))
+                        ->whereHas('province', fn(Builder $q) => $q->where('name', 'like', "%{$search}%"))
+                        ->orWhereHas('distributionBatch.callOff', fn(Builder $q) => $q->where('call_off_number', 'like', "%{$search}%"))
                         ->orWhereHas('distributionBatch.purchaseOrder', function (Builder $q) use ($search): void {
                             $q->where('po_number', 'like', "%{$search}%")
                                 ->orWhere('nefa_number', 'like', "%{$search}%");
                         })
-                        ->orWhereHas('distributionBatch.purchaseOrder.supplier', fn (Builder $q) => $q->where('supplier_name', 'like', "%{$search}%"))
-                        ->orWhereHas('deliveryReceipts', fn (Builder $q) => $q->where('dr_number', 'like', "%{$search}%"));
+                        ->orWhereHas('distributionBatch.purchaseOrder.supplier', fn(Builder $q) => $q->where('supplier_name', 'like', "%{$search}%"))
+                        ->orWhereHas('deliveryReceipts', fn(Builder $q) => $q->where('dr_number', 'like', "%{$search}%"));
                 });
             });
 
@@ -462,11 +505,11 @@ class PpeTrackingController extends Controller
         $allocations->through(function (ProvinceDistribution $allocation) use ($items, &$receiptModalData): ProvinceDistribution {
             $allocatedByItem = $allocation->items
                 ->groupBy('item_id')
-                ->map(fn (Collection $rows): int => (int) $rows->sum('quantity'));
+                ->map(fn(Collection $rows): int => (int) $rows->sum('quantity'));
 
             $validReceipts = $allocation->deliveryReceipts
-                ->filter(fn ($receipt): bool => strcasecmp(trim((string) $receipt->status), 'Received') === 0)
-                ->sortBy(fn ($receipt): string => sprintf(
+                ->filter(fn($receipt): bool => strcasecmp(trim((string) $receipt->status), 'Received') === 0)
+                ->sortBy(fn($receipt): string => sprintf(
                     '%s-%010d',
                     $receipt->delivery_date?->format('Y-m-d') ?? '9999-12-31',
                     (int) $receipt->id
@@ -474,18 +517,18 @@ class PpeTrackingController extends Controller
                 ->values();
 
             $receivedByItem = $validReceipts
-                ->flatMap(fn ($receipt) => $receipt->items)
+                ->flatMap(fn($receipt) => $receipt->items)
                 ->groupBy('item_id')
-                ->map(fn (Collection $rows): int => (int) $rows->sum('received_quantity'));
+                ->map(fn(Collection $rows): int => (int) $rows->sum('received_quantity'));
 
             $activeDesignations = $allocation->supplyDesignations
-                ->filter(fn ($designation): bool => strcasecmp(trim((string) $designation->status), 'Cancelled') !== 0)
+                ->filter(fn($designation): bool => strcasecmp(trim((string) $designation->status), 'Cancelled') !== 0)
                 ->values();
 
             $projectByItem = $activeDesignations
-                ->flatMap(fn ($designation) => $designation->items)
+                ->flatMap(fn($designation) => $designation->items)
                 ->groupBy('item_id')
-                ->map(fn (Collection $rows): int => (int) $rows->sum('quantity'));
+                ->map(fn(Collection $rows): int => (int) $rows->sum('quantity'));
 
             $directProjectUse = [];
             $unlinkedProjectUse = [];
@@ -576,7 +619,7 @@ class PpeTrackingController extends Controller
                 $receiptSummaries[] = $summary;
 
                 $receiptDocuments = $receipt->documents
-                    ->map(fn ($document): array => [
+                    ->map(fn($document): array => [
                         'name' => $document->original_name ?: 'Delivery Receipt document',
                         'url' => route('documents.receipt-documents', $document),
                     ])
@@ -689,6 +732,9 @@ class PpeTrackingController extends Controller
     /**
      * Operational province order used by TSSD tracking tables.
      */
+    /**
+     * Standard province display order for TSSD PPE Tracking Center.
+     */
     private function provinceOrderSql(string $column): string
     {
         $names = [
@@ -705,10 +751,12 @@ class PpeTrackingController extends Controller
             ->pluck('id', 'name');
 
         $parts = [];
+
         foreach ($names as $position => $name) {
             $id = (int) ($ids[$name] ?? 0);
+
             if ($id > 0) {
-                $parts[] = 'WHEN '.$id.' THEN '.($position + 1);
+                $parts[] = 'WHEN ' . $id . ' THEN ' . ($position + 1);
             }
         }
 
@@ -716,7 +764,9 @@ class PpeTrackingController extends Controller
             return '999';
         }
 
-        return 'CASE '.$column.' '.implode(' ', $parts).' ELSE 999 END';
+        return 'CASE ' . $column . ' '
+            . implode(' ', $parts)
+            . ' ELSE 999 END';
     }
 
     private function activeItems(): Collection
@@ -726,4 +776,5 @@ class PpeTrackingController extends Controller
             ->orderForDisplay()
             ->get();
     }
+
 }

@@ -748,7 +748,7 @@
                 <header class="letterhead border-b border-slate-400 pb-[10px] relative">
 
                     <div class="letterhead-side flex items-center justify-start">
-                        <img src="{{ asset('images/print/dole_logo.webp') }}" alt="DOLE Logo"
+                        <img src="{{ asset('images/print/mainlogo.png') }}" alt="DOLE Logo"
                             class="max-h-[65px] w-[130px] object-contain" onerror="this.style.display='none'">
                     </div>
 

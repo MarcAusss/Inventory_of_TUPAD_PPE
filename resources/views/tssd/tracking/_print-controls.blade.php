@@ -12,7 +12,7 @@
 <div class="tracking-print-only hidden">
     <div class="mb-4 border-b-2 border-[#2E628D] pb-3">
         <div class="flex items-start justify-center gap-4">
-            <img src="{{ asset('images/print/dole_logo.webp') }}" alt="DOLE Logo"
+            <img src="{{ asset('images/print/mainlogo.png') }}" alt="DOLE Logo"
                 class="h-[82px] w-[118px] object-contain" onerror="this.style.display='none'">
 
             <div class="min-w-[300px] text-center text-black">
