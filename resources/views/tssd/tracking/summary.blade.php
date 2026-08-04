@@ -86,14 +86,66 @@
             </div>
 
             @php
-                $ppeHeaderGroups = $items
+                /*
+                 * Standard PPE display order for the PPE Distribution Summary:
+                 * 1. Longsleeves (Medium, Large, Total)
+                 * 2. Bucket Hat
+                 * 3. Rubber Boots (US9, US10, Total)
+                 * 4. Hand Gloves
+                 * 5. Mask
+                 * 6. Any additional PPE items alphabetically
+                 */
+                $orderedItems = $items
+                    ->sortBy(function ($item): string {
+                        $canonicalName = \App\Models\Item::canonicalItemName((string) ($item->item_name ?? ''));
+                        $name = strtolower(str_replace([' ', '-', '_'], '', $canonicalName));
+                        $label = strtolower(trim((string) ($item->label ?? '')));
+
+                        $itemOrder = match (true) {
+                            in_array($name, ['longsleeve', 'longsleeves'], true) => 10,
+                            in_array($name, ['buckethat', 'buckethats'], true) => 20,
+                            in_array($name, ['rubberboot', 'rubberboots'], true) => 30,
+                            in_array($name, ['handglove', 'handgloves', 'glove', 'gloves'], true) => 40,
+                            in_array($name, ['mask', 'masks'], true) => 50,
+                            default => 100,
+                        };
+
+                        $labelOrder = match (true) {
+                            in_array($name, ['longsleeve', 'longsleeves'], true)
+                                && in_array($label, ['medium', 'm'], true) => 10,
+                            in_array($name, ['longsleeve', 'longsleeves'], true)
+                                && in_array($label, ['large', 'l'], true) => 20,
+                            in_array($name, ['rubberboot', 'rubberboots'], true)
+                                && in_array($label, ['us9', 'us 9', '9'], true) => 10,
+                            in_array($name, ['rubberboot', 'rubberboots'], true)
+                                && in_array($label, ['us10', 'us 10', '10'], true) => 20,
+                            default => 50,
+                        };
+
+                        // Additional PPEs share itemOrder 100, so $name sorts them alphabetically.
+                        return sprintf(
+                            '%03d-%03d-%s-%s-%010d',
+                            $itemOrder,
+                            $labelOrder,
+                            $name,
+                            $label,
+                            (int) $item->id,
+                        );
+                    })
+                    ->values();
+
+                /*
+                 * Longsleeves and Rubber Boots are grouped because both need
+                 * their own variant columns plus a Total column.
+                 */
+                $ppeHeaderGroups = $orderedItems
                     ->groupBy(function ($item): string {
                         $name = \App\Models\Item::canonicalItemName((string) $item->item_name);
                         $normalized = strtolower(str_replace([' ', '-', '_'], '', $name));
 
-                        return match ($normalized) {
-                            'longsleeves' => 'longsleeves',
-                            'rubberboots' => 'rubberboots',
+                        return match (true) {
+                            in_array($normalized, ['longsleeve', 'longsleeves'], true) => 'longsleeves',
+                            in_array($normalized, ['rubberboot', 'rubberboots'], true) => 'rubberboots',
                             default => 'item-' . $item->id,
                         };
                     })
@@ -139,7 +191,7 @@
                                 Ending Balance
                             </th>
 
-                            {{-- <th rowspan="3" class="min-w-28 px-4 py-4 text-center">To Receive</th> --}}        
+                            {{-- <th rowspan="3" class="min-w-28 px-4 py-4 text-center">To Receive</th> --}}
                         </tr>
 
                         <tr>
@@ -209,23 +261,23 @@
                                 $hasReceipts = $receipts->isNotEmpty();
                                 $segmentClass = 'min-h-[104px]';
 
-                                // Totals are per Call-Off + Provincial Office allocation across all of its Delivery Receipts.
-                                $purchaseTotalsByItem = $items->mapWithKeys(function ($item) use ($receipts): array {
+                                // Per-item Call-Off totals across every Delivery Receipt for this province allocation.
+                                $purchaseTotalsByItem = $orderedItems->mapWithKeys(function ($item) use (
+                                    $receipts,
+                                ): array {
                                     return [
                                         (int) $item->id => (int) $receipts->sum(
-                                            fn(array $receipt): int => (int) (($receipt['received_by_item'] ?? [])[
-                                                $item->id
-                                            ] ?? 0),
+                                            fn(array $receipt): int => (int) (($receipt['received_by_item'] ?? [])[$item->id] ?? 0),
                                         ),
                                     ];
                                 });
 
-                                $endingTotalsByItem = $items->mapWithKeys(function ($item) use ($receipts): array {
+                                $endingTotalsByItem = $orderedItems->mapWithKeys(function ($item) use (
+                                    $receipts,
+                                ): array {
                                     return [
                                         (int) $item->id => (int) $receipts->sum(
-                                            fn(array $receipt): int => (int) (($receipt['remaining_by_item'] ?? [])[
-                                                $item->id
-                                            ] ?? 0),
+                                            fn(array $receipt): int => (int) (($receipt['remaining_by_item'] ?? [])[$item->id] ?? 0),
                                         ),
                                     ];
                                 });
@@ -708,126 +760,136 @@
                     </div>
                 </div>
             </div>
-        @push('scripts')
-            <script>
-                (() => {
-                    const initPpeSummaryStickyTable = () => {
-                        const scrollViewport = document.getElementById('ppe-summary-scroll');
-                        const sourceTable = document.getElementById('ppe-summary-table');
-                        const stickyViewport = document.getElementById('ppe-summary-sticky-header');
+            @push('scripts')
+                <script>
+                    (() => {
+                        const initPpeSummaryStickyTable = () => {
+                            const scrollViewport = document.getElementById('ppe-summary-scroll');
+                            const sourceTable = document.getElementById('ppe-summary-table');
+                            const stickyViewport = document.getElementById('ppe-summary-sticky-header');
 
-                        if (!scrollViewport || !sourceTable || !stickyViewport || stickyViewport.dataset.ready === '1') {
-                            return;
-                        }
-
-                        const sourceHead = sourceTable.querySelector('thead');
-                        if (!sourceHead) {
-                            return;
-                        }
-
-                        stickyViewport.dataset.ready = '1';
-
-                        const stickyTable = document.createElement('table');
-                        stickyTable.className = sourceTable.className;
-                        stickyTable.setAttribute('aria-hidden', 'true');
-                        stickyTable.appendChild(sourceHead.cloneNode(true));
-                        stickyViewport.replaceChildren(stickyTable);
-
-                        const appHeader = document.querySelector('header.sticky');
-                        let ticking = false;
-
-                        const syncColumnWidths = () => {
-                            const firstBodyRow = sourceTable.querySelector('tbody tr');
-                            if (!firstBodyRow) {
+                            if (!scrollViewport || !sourceTable || !stickyViewport || stickyViewport.dataset.ready === '1') {
                                 return;
                             }
 
-                            const cells = Array.from(firstBodyRow.children);
-                            if (!cells.length) {
+                            const sourceHead = sourceTable.querySelector('thead');
+                            if (!sourceHead) {
                                 return;
                             }
 
-                            let colgroup = stickyTable.querySelector('colgroup');
-                            if (!colgroup) {
-                                colgroup = document.createElement('colgroup');
-                                stickyTable.insertBefore(colgroup, stickyTable.firstChild);
-                            }
+                            stickyViewport.dataset.ready = '1';
 
-                            colgroup.replaceChildren();
+                            const stickyTable = document.createElement('table');
+                            stickyTable.className = sourceTable.className;
+                            stickyTable.setAttribute('aria-hidden', 'true');
+                            stickyTable.appendChild(sourceHead.cloneNode(true));
+                            stickyViewport.replaceChildren(stickyTable);
 
-                            cells.forEach((cell) => {
-                                const col = document.createElement('col');
-                                const width = cell.getBoundingClientRect().width;
-                                col.style.width = `${width}px`;
-                                col.style.minWidth = `${width}px`;
-                                colgroup.appendChild(col);
+                            const appHeader = document.querySelector('header.sticky');
+                            let ticking = false;
+
+                            const syncColumnWidths = () => {
+                                const firstBodyRow = sourceTable.querySelector('tbody tr');
+                                if (!firstBodyRow) {
+                                    return;
+                                }
+
+                                const cells = Array.from(firstBodyRow.children);
+                                if (!cells.length) {
+                                    return;
+                                }
+
+                                let colgroup = stickyTable.querySelector('colgroup');
+                                if (!colgroup) {
+                                    colgroup = document.createElement('colgroup');
+                                    stickyTable.insertBefore(colgroup, stickyTable.firstChild);
+                                }
+
+                                colgroup.replaceChildren();
+
+                                cells.forEach((cell) => {
+                                    const col = document.createElement('col');
+                                    const width = cell.getBoundingClientRect().width;
+                                    col.style.width = `${width}px`;
+                                    col.style.minWidth = `${width}px`;
+                                    colgroup.appendChild(col);
+                                });
+
+                                stickyTable.style.width = `${sourceTable.getBoundingClientRect().width}px`;
+                                stickyTable.style.minWidth = `${sourceTable.scrollWidth}px`;
+                            };
+
+                            const updateStickyHeader = () => {
+                                ticking = false;
+
+                                const tableRect = sourceTable.getBoundingClientRect();
+                                const viewportRect = scrollViewport.getBoundingClientRect();
+                                const topOffset = appHeader ? appHeader.getBoundingClientRect().bottom : 0;
+                                const stickyHeight = stickyViewport.offsetHeight || sourceHead.getBoundingClientRect()
+                                    .height;
+
+                                const shouldShow = tableRect.top < topOffset && tableRect.bottom > (topOffset +
+                                    stickyHeight);
+
+                                if (!shouldShow) {
+                                    stickyViewport.classList.add('hidden');
+                                    return;
+                                }
+
+                                stickyViewport.classList.remove('hidden');
+                                stickyViewport.style.top = `${topOffset}px`;
+                                stickyViewport.style.left = `${viewportRect.left}px`;
+                                stickyViewport.style.width = `${viewportRect.width}px`;
+                                stickyViewport.scrollLeft = scrollViewport.scrollLeft;
+                            };
+
+                            const requestUpdate = () => {
+                                if (ticking) {
+                                    return;
+                                }
+
+                                ticking = true;
+                                window.requestAnimationFrame(updateStickyHeader);
+                            };
+
+                            const refresh = () => {
+                                syncColumnWidths();
+                                requestUpdate();
+                            };
+
+                            scrollViewport.addEventListener('scroll', () => {
+                                stickyViewport.scrollLeft = scrollViewport.scrollLeft;
+                                requestUpdate();
+                            }, {
+                                passive: true
                             });
 
-                            stickyTable.style.width = `${sourceTable.getBoundingClientRect().width}px`;
-                            stickyTable.style.minWidth = `${sourceTable.scrollWidth}px`;
-                        };
+                            window.addEventListener('scroll', requestUpdate, {
+                                passive: true
+                            });
+                            window.addEventListener('resize', refresh, {
+                                passive: true
+                            });
 
-                        const updateStickyHeader = () => {
-                            ticking = false;
-
-                            const tableRect = sourceTable.getBoundingClientRect();
-                            const viewportRect = scrollViewport.getBoundingClientRect();
-                            const topOffset = appHeader ? appHeader.getBoundingClientRect().bottom : 0;
-                            const stickyHeight = stickyViewport.offsetHeight || sourceHead.getBoundingClientRect().height;
-
-                            const shouldShow = tableRect.top < topOffset && tableRect.bottom > (topOffset + stickyHeight);
-
-                            if (!shouldShow) {
-                                stickyViewport.classList.add('hidden');
-                                return;
+                            if ('ResizeObserver' in window) {
+                                const resizeObserver = new ResizeObserver(refresh);
+                                resizeObserver.observe(sourceTable);
+                                resizeObserver.observe(scrollViewport);
                             }
 
-                            stickyViewport.classList.remove('hidden');
-                            stickyViewport.style.top = `${topOffset}px`;
-                            stickyViewport.style.left = `${viewportRect.left}px`;
-                            stickyViewport.style.width = `${viewportRect.width}px`;
-                            stickyViewport.scrollLeft = scrollViewport.scrollLeft;
+                            refresh();
                         };
 
-                        const requestUpdate = () => {
-                            if (ticking) {
-                                return;
-                            }
-
-                            ticking = true;
-                            window.requestAnimationFrame(updateStickyHeader);
-                        };
-
-                        const refresh = () => {
-                            syncColumnWidths();
-                            requestUpdate();
-                        };
-
-                        scrollViewport.addEventListener('scroll', () => {
-                            stickyViewport.scrollLeft = scrollViewport.scrollLeft;
-                            requestUpdate();
-                        }, { passive: true });
-
-                        window.addEventListener('scroll', requestUpdate, { passive: true });
-                        window.addEventListener('resize', refresh, { passive: true });
-
-                        if ('ResizeObserver' in window) {
-                            const resizeObserver = new ResizeObserver(refresh);
-                            resizeObserver.observe(sourceTable);
-                            resizeObserver.observe(scrollViewport);
+                        if (document.readyState === 'loading') {
+                            document.addEventListener('DOMContentLoaded', initPpeSummaryStickyTable, {
+                                once: true
+                            });
+                        } else {
+                            initPpeSummaryStickyTable();
                         }
-
-                        refresh();
-                    };
-
-                    if (document.readyState === 'loading') {
-                        document.addEventListener('DOMContentLoaded', initPpeSummaryStickyTable, { once: true });
-                    } else {
-                        initPpeSummaryStickyTable();
-                    }
-                })();
-            </script>
-        @endpush
+                    })();
+                </script>
+            @endpush
 
         </div>
     </x-po_dashboard_layout>

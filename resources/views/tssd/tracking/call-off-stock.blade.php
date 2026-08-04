@@ -34,31 +34,101 @@
                 class="grid gap-3 border-b border-slate-200 bg-slate-50/70 p-5 lg:grid-cols-[1fr_230px_210px_auto_auto]">
                 <input type="search" name="search" value="{{ $search }}" placeholder="Call-Off, PO, supplier, province..."
                     class="rounded-xl border-slate-300 focus:border-[#2E628D] focus:ring-[#2E628D]">
-                <select name="province_id" class="rounded-xl border-slate-300 focus:border-[#2E628D] focus:ring-[#2E628D]">
+
+                <select name="province_id"
+                    class="rounded-xl border-slate-300 focus:border-[#2E628D] focus:ring-[#2E628D]">
                     <option value="">All Provincial Offices</option>
                     @foreach ($provinces as $province)
-                        <option value="{{ $province->id }}" @selected((int) $provinceId === (int) $province->id)>{{ $province->name }}</option>
+                        <option value="{{ $province->id }}" @selected((int) $provinceId === (int) $province->id)>
+                            {{ $province->name }}
+                        </option>
                     @endforeach
                 </select>
-                <select name="status" class="rounded-xl border-slate-300 focus:border-[#2E628D] focus:ring-[#2E628D]">
+
+                <select name="status"
+                    class="rounded-xl border-slate-300 focus:border-[#2E628D] focus:ring-[#2E628D]">
                     <option value="">All status</option>
                     @foreach ($statuses as $statusOption)
-                        <option value="{{ $statusOption }}" @selected($status === $statusOption)>{{ $statusOption }}</option>
+                        <option value="{{ $statusOption }}" @selected($status === $statusOption)>
+                            {{ $statusOption }}
+                        </option>
                     @endforeach
                 </select>
-                <button class="rounded-xl bg-[#2E628D] px-5 py-3 text-sm font-bold text-white hover:bg-[#244F73]">Filter</button>
-                <a href="{{ route('tssd.tracking.call-off-stock') }}" class="rounded-xl border border-slate-300 bg-white px-5 py-3 text-center text-sm font-bold text-slate-700 hover:bg-slate-50">Reset</a>
+
+                <button
+                    class="rounded-xl bg-[#2E628D] px-5 py-3 text-sm font-bold text-white hover:bg-[#244F73]">
+                    Filter
+                </button>
+
+                <a href="{{ route('tssd.tracking.call-off-stock') }}"
+                    class="rounded-xl border border-slate-300 bg-white px-5 py-3 text-center text-sm font-bold text-slate-700 hover:bg-slate-50">
+                    Reset
+                </a>
             </form>
 
             @php
-                $ppeHeaderGroups = $items
+                /*
+                 * Standard PPE display order:
+                 * 1. Longsleeves      -> Medium, Large, Total
+                 * 2. Bucket Hat
+                 * 3. Rubber Boots     -> US9, US10, Total
+                 * 4. Hand Gloves
+                 * 5. Mask
+                 * 6. Additional PPEs  -> alphabetical after the standard PPEs
+                 */
+                $orderedItems = $items
+                    ->sortBy(function ($item): string {
+                        $canonicalName = \App\Models\Item::canonicalItemName((string) $item->item_name);
+
+                        $name = strtolower(
+                            str_replace([' ', '-', '_'], '', $canonicalName)
+                        );
+
+                        $label = strtolower(trim((string) ($item->label ?? '')));
+
+                        $itemOrder = match ($name) {
+                            'longsleeve', 'longsleeves' => 1,
+                            'buckethat', 'buckethats' => 2,
+                            'rubberboot', 'rubberboots' => 3,
+                            'handglove', 'handgloves', 'glove', 'gloves' => 4,
+                            'mask', 'masks' => 5,
+                            default => 100,
+                        };
+
+                        $labelOrder = match (true) {
+                            in_array($name, ['longsleeve', 'longsleeves'], true)
+                                && in_array($label, ['medium', 'm'], true) => 1,
+
+                            in_array($name, ['longsleeve', 'longsleeves'], true)
+                                && in_array($label, ['large', 'l'], true) => 2,
+
+                            in_array($name, ['rubberboot', 'rubberboots'], true)
+                                && in_array($label, ['us9', '9'], true) => 1,
+
+                            in_array($name, ['rubberboot', 'rubberboots'], true)
+                                && in_array($label, ['us10', '10'], true) => 2,
+
+                            default => 50,
+                        };
+
+                        return sprintf(
+                            '%03d-%03d-%s-%s',
+                            $itemOrder,
+                            $labelOrder,
+                            $name,
+                            $label
+                        );
+                    })
+                    ->values();
+
+                $ppeHeaderGroups = $orderedItems
                     ->groupBy(function ($item): string {
                         $name = \App\Models\Item::canonicalItemName((string) $item->item_name);
                         $normalized = strtolower(str_replace([' ', '-', '_'], '', $name));
 
                         return match ($normalized) {
-                            'longsleeves' => 'longsleeves',
-                            'rubberboots' => 'rubberboots',
+                            'longsleeve', 'longsleeves' => 'longsleeves',
+                            'rubberboot', 'rubberboots' => 'rubberboots',
                             default => 'item-' . $item->id,
                         };
                     })
@@ -73,7 +143,18 @@
                         ];
                     })
                     ->values();
+
+                /*
+                 * One visible column for each PPE item/variant,
+                 * plus a Total column for Longsleeves and Rubber Boots.
+                 */
+                $ppeColumnCount =
+                    $orderedItems->count()
+                    + $ppeHeaderGroups->where('grouped', true)->count();
+
+                $tableColumnCount = 4 + $ppeColumnCount;
             @endphp
+
             <div class="overflow-x-auto">
                 <table class="ppe-tracking-table min-w-max w-full text-sm">
                     <thead>
@@ -82,40 +163,53 @@
                             <th rowspan="2" class="px-5 py-4 text-left">Call-Off / PO</th>
                             <th rowspan="2" class="px-5 py-4 text-left">Supplier</th>
                             <th rowspan="2" class="px-5 py-4 text-center">Status</th>
-                            {{-- <th rowspan="2" class="px-5 py-4 text-center">Allocated</th> --}}
-                            {{-- <th rowspan="2" class="px-5 py-4 text-center">Received</th> --}}
-                            {{-- <th rowspan="2" class="px-5 py-4 text-center">Project Issued</th> --}}
+
                             @foreach ($ppeHeaderGroups as $group)
                                 @if ($group['grouped'])
-                                    <th colspan="{{ $group['items']->count() + 1 }}" class="min-w-28 px-4 py-4 text-center">{{ $group['name'] }}</th>
+                                    <th colspan="{{ $group['items']->count() + 1 }}"
+                                        class="min-w-28 px-4 py-4 text-center">
+                                        {{ $group['name'] }}
+                                    </th>
                                 @else
                                     <th rowspan="2" class="min-w-28 px-4 py-4 text-center">
                                         {{ $group['name'] }}
+
                                         @if ($group['items']->first()->label)
-                                            <span class="block text-[10px] font-semibold uppercase tracking-wide text-white/80">{{ $group['items']->first()->label }}</span>
+                                            <span
+                                                class="block text-[10px] font-semibold uppercase tracking-wide text-white/80">
+                                                {{ $group['items']->first()->label }}
+                                            </span>
                                         @endif
                                     </th>
                                 @endif
                             @endforeach
-                            {{-- <th rowspan="2" class="px-5 py-4 text-center">Remaining Total</th> --}}
                         </tr>
+
                         <tr>
                             @foreach ($ppeHeaderGroups as $group)
                                 @if ($group['grouped'])
                                     @foreach ($group['items'] as $item)
-                                        <th class="min-w-24 px-4 py-3 text-center">{{ $item->label ?: '—' }}</th>
+                                        <th class="min-w-24 px-4 py-3 text-center">
+                                            {{ $item->label ?: '—' }}
+                                        </th>
                                     @endforeach
-                                    <th class="min-w-24 px-4 py-3 text-center font-black">Total</th>
+
+                                    <th class="min-w-24 px-4 py-3 text-center font-black">
+                                        Total
+                                    </th>
                                 @endif
                             @endforeach
                         </tr>
                     </thead>
+
                     <tbody class="divide-y divide-slate-100">
                         @forelse ($allocations as $allocation)
                             @php
                                 $callOff = $allocation->distributionBatch?->callOff;
                                 $purchaseOrder = $allocation->distributionBatch?->purchaseOrder;
+
                                 $normalizedStatus = strtolower(trim((string) $allocation->status));
+
                                 $statusClass = str_contains($normalizedStatus, 'pending')
                                     ? 'bg-red-100 text-red-800 ring-red-200'
                                     : match ($allocation->status) {
@@ -127,61 +221,90 @@
                                         default => 'bg-slate-100 text-slate-700 ring-slate-200',
                                     };
                             @endphp
+
                             <tr class="align-top hover:bg-[#F7FBFD]">
-                                <td class="px-5 py-4 font-bold text-slate-900">{{ $allocation->province?->name ?? '—' }}</td>
+                                <td class="px-5 py-4 font-bold text-slate-900">
+                                    {{ $allocation->province?->name ?? '—' }}
+                                </td>
+
                                 <td class="px-5 py-4">
-                                    <p class="font-extrabold text-[#2E628D]">{{ $callOff?->call_off_number ?? 'Pending' }}</p>
-                                    <p class="mt-1 text-xs text-slate-500">PO {{ $purchaseOrder?->po_number ?? '—' }}</p>
+                                    <p class="font-extrabold text-[#2E628D]">
+                                        {{ $callOff?->call_off_number ?? 'Pending' }}
+                                    </p>
+                                    <p class="mt-1 text-xs text-slate-500">
+                                        PO {{ $purchaseOrder?->po_number ?? '—' }}
+                                    </p>
                                 </td>
-                                <td class="px-5 py-4 text-slate-700">{{ $purchaseOrder?->supplier?->supplier_name ?? '—' }}</td>
+
+                                <td class="px-5 py-4 text-slate-700">
+                                    {{ $purchaseOrder?->supplier?->supplier_name ?? '—' }}
+                                </td>
+
                                 <td class="px-5 py-4 text-center">
-                                    <span class="inline-flex rounded-full px-3 py-1 text-xs font-bold ring-1 {{ $statusClass }}">{{ $allocation->status ?: 'Pending' }}</span>
+                                    <span
+                                        class="inline-flex rounded-full px-3 py-1 text-xs font-bold ring-1 {{ $statusClass }}">
+                                        {{ $allocation->status ?: 'Pending' }}
+                                    </span>
                                 </td>
-                                {{-- <td class="px-5 py-4 text-center font-bold">{{ number_format((int) $allocation->tracking_allocated_total) }}</td> --}}
-                                {{-- <td class="px-5 py-4 text-center font-bold">{{ number_format((int) $allocation->tracking_received_total) }}</td> --}}
-                                {{-- <td class="px-5 py-4 text-center font-bold">{{ number_format((int) $allocation->tracking_distributed_total) }}</td> --}}
+
                                 @foreach ($ppeHeaderGroups as $group)
                                     @if ($group['grouped'])
                                         @php
                                             $groupTotal = 0;
                                         @endphp
+
                                         @foreach ($group['items'] as $item)
                                             @php
-                                                $quantity = (int) ($allocation->tracking_quantities[$item->id] ?? 0);
-                                            @endphp
-                                            @php
+                                                $quantity = (int) (
+                                                    $allocation->tracking_quantities[$item->id] ?? 0
+                                                );
+
                                                 $groupTotal += $quantity;
                                             @endphp
-                                            <td class="px-4 py-4 text-center font-bold {{ $quantity <= 0 ? 'text-red-700' : 'text-slate-900' }}">
+
+                                            <td
+                                                class="px-4 py-4 text-center font-bold {{ $quantity <= 0 ? 'text-red-700' : 'text-slate-900' }}">
                                                 {{ number_format($quantity) }}
                                             </td>
                                         @endforeach
-                                        <td class="bg-[#F2F8FB] px-4 py-4 text-center font-black text-[#2E628D]">{{ number_format($groupTotal) }}</td>
+
+                                        {{-- Total applies to Longsleeves and Rubber Boots only. --}}
+                                        <td
+                                            class="bg-[#F2F8FB] px-4 py-4 text-center font-black {{ $groupTotal <= 0 ? 'text-red-700' : 'text-[#2E628D]' }}">
+                                            {{ number_format($groupTotal) }}
+                                        </td>
                                     @else
                                         @php
                                             $item = $group['items']->first();
+
+                                            $quantity = (int) (
+                                                $allocation->tracking_quantities[$item->id] ?? 0
+                                            );
                                         @endphp
-                                        @php
-                                            $quantity = (int) ($allocation->tracking_quantities[$item->id] ?? 0);
-                                        @endphp
-                                        <td class="px-4 py-4 text-center font-bold {{ $quantity <= 0 ? 'text-red-700' : 'text-slate-900' }}">
+
+                                        <td
+                                            class="px-4 py-4 text-center font-bold {{ $quantity <= 0 ? 'text-red-700' : 'text-slate-900' }}">
                                             {{ number_format($quantity) }}
                                         </td>
                                     @endif
                                 @endforeach
-                                {{-- <td class="px-5 py-4 text-center text-base font-black {{ (int) $allocation->tracking_remaining_total <= 0 ? 'text-red-700' : 'text-emerald-700' }}">
-                                    {{ number_format((int) $allocation->tracking_remaining_total) }}
-                                </td> --}}
                             </tr>
                         @empty
-                            <tr><td colspan="{{ $items->count() + $ppeHeaderGroups->where('grouped', true)->count() + 8 }}" class="px-6 py-14 text-center text-slate-500">No Call-Off stock records matched the current filter.</td></tr>
+                            <tr>
+                                <td colspan="{{ $tableColumnCount }}"
+                                    class="px-6 py-14 text-center text-slate-500">
+                                    No Call-Off stock records matched the current filter.
+                                </td>
+                            </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
 
             @if ($allocations->hasPages())
-                <div class="border-t border-slate-200 px-5 py-4">{{ $allocations->links() }}</div>
+                <div class="border-t border-slate-200 px-5 py-4">
+                    {{ $allocations->links() }}
+                </div>
             @endif
         </section>
     </div>
