@@ -17,11 +17,7 @@
             'label' => 'Per Call-Off Stock',
             'description' => 'Allocation, receipts, distributions, and balance',
         ],
-        // [
-        //     'route' => 'tssd.tracking.purchase-order-stock',
-        //     'label' => 'Purchase Order Stock',
-        //     'description' => 'Supply PO quantities remaining for allocation',
-        // ],
+ 
         [
             'route' => 'tssd.tracking.project-transactions',
             'label' => 'Project Transactions',
