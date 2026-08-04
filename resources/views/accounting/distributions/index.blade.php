@@ -30,16 +30,16 @@
         </section>
 
         {{-- Summary cards --}}
-        <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Total Distributions</p>
                 <p class="mt-3 text-3xl font-extrabold text-[#143A52]">{{ number_format($totalDistributions) }}</p>
             </div>
 
-            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            {{-- <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Total PPE Allocated</p>
                 <p class="mt-3 text-3xl font-extrabold text-[#247BA0]">{{ number_format($totalPpe) }}</p>
-            </div>
+            </div> --}}
 
             <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Received</p>
@@ -105,7 +105,7 @@
                             <th class="px-5 py-4 text-left">Province</th>
                             <th class="px-5 py-4 text-left">Supplier</th>
                             <th class="px-5 py-4 text-left">Scheduled Delivery</th>
-                            <th class="px-5 py-4 text-center">Total PPE</th>
+                            {{-- <th class="px-5 py-4 text-center">Total PPE</th> --}}
                             <th class="px-5 py-4 text-center">Status</th>
                         </tr>
                     </thead>
@@ -137,9 +137,9 @@
                                 </td>
                                 <td class="px-5 py-4">
                                     {{ $distribution->scheduled_delivery_date?->format('M d, Y') ?? '—' }}</td>
-                                <td class="px-5 py-4 text-center text-lg font-bold text-[#247BA0]">
+                                {{-- <td class="px-5 py-4 text-center text-lg font-bold text-[#247BA0]">
                                     {{ number_format($distribution->items->sum('quantity')) }}
-                                </td>
+                                </td> --}}
                                 <td class="px-5 py-4 text-center">
                                     <span
                                         class="inline-flex rounded-full px-3 py-1 text-xs font-bold ring-1 {{ $statusClasses }}">

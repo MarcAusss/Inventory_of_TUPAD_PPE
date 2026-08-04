@@ -16,7 +16,7 @@ class ItemSeeder extends Seeder
             ['item_name' => 'Rubber Boots', 'label' => 'US9', 'unit_of_measurement' => 'Pair'],
             ['item_name' => 'Rubber Boots', 'label' => 'US10', 'unit_of_measurement' => 'Pair'],
             ['item_name' => 'Hand Gloves', 'label' => null, 'unit_of_measurement' => 'Pair'],
-            ['item_name' => 'Mask', 'label' => null, 'unit_of_measurement' => 'Box'],
+            ['item_name' => 'Mask', 'label' => null, 'unit_of_measurement' => 'Piece'],
         ];
 
         foreach ($items as $item) {

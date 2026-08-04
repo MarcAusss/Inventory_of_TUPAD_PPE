@@ -68,7 +68,7 @@
         </section>
 
         {{-- Summary Cards --}}
-        <section
+        {{-- <section
             class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
             <div
@@ -159,7 +159,7 @@
 
             </div>
 
-        </section>
+        </section> --}}
 
         {{-- Filters and Table --}}
         <section
@@ -333,16 +333,6 @@
 
                             </th>
 
-                            <th
-                                rowspan="2"
-                                class="border border-white/20
-                                       bg-[#143A52]
-                                       px-4 py-3 text-center">
-
-                                Total PPE
-
-                            </th>
-
                         </tr>
 
                         <tr class="bg-[#339DCB]">
@@ -469,18 +459,6 @@
                                     ) }}
                                 </td>
 
-                                <td
-                                    class="bg-[#EAF6FC]
-                                           px-4 py-4 text-center
-                                           text-lg font-extrabold
-                                           text-[#143A52]">
-
-                                    {{ number_format(
-                                        $row['total']
-                                    ) }}
-
-                                </td>
-
                             </tr>
 
                         @empty
@@ -555,17 +533,6 @@
                                     {{ number_format(
                                         $totals['mask']
                                     ) }}
-                                </td>
-
-                                <td
-                                    class="bg-[#EAF6FC]
-                                           px-4 py-4 text-center
-                                           text-lg">
-
-                                    {{ number_format(
-                                        $totals['total']
-                                    ) }}
-
                                 </td>
 
                             </tr>
